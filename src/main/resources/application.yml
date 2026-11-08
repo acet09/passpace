@@ -1,0 +1,72 @@
+# =====================================================================
+# 공통 설정 (혼자 수정 금지)
+# 개인 값(DB 비밀번호, 공공데이터 API 키)은 application-local.yml 에 적는다.
+#   → application-local.yml.example 을 복사해서 이름을 바꾸면 된다.
+# =====================================================================
+spring:
+  application:
+    name: passpace-merged
+  config:
+    import: optional:classpath:application-local.yml
+  datasource:
+    url: jdbc:mariadb://localhost:3306/passpace_merged
+    username: passpace
+    password: passpace
+  sql:
+    init:
+      mode: never            # 테이블은 db/ 폴더의 SQL을 DBeaver로 직접 실행
+  thymeleaf:
+    cache: false             # 화면 수정 후 새로고침만으로 반영
+
+server:
+  port: 8080
+  servlet:
+    encoding:
+      charset: UTF-8
+      force: true
+    session:
+      timeout: 60m
+
+passpace:
+  certification-code: "1320"          # 정보처리기사 종목코드 (CERTIFICATIONS.source_exam_code)
+
+  # [용성] 수집 설정
+  collect:
+    data-go-kr-key: ""                 # 공공데이터포털 인증키. 정처기 일정(15074408)·SQLD 일정(15062838) 공용. 비어 있으면 샘플 일정
+    exam-year: 0                       # 0이면 올해
+    review-delay-ms: 3000              # velog 요청 간격. 1.5초에서 429(요청 과다)를 받아 3초로 늘림 (Crawl-delay 가 더 크면 그 값)
+    review-timeout-seconds: 45         # velog 응답 대기 (velog 는 가끔 느려 길게 둠)
+    tistory-delay-ms: 500              # 티스토리 요청 간격 (블로그 전체를 한 사이트로 보고 적용)
+    tistory-timeout-seconds: 20        # 티스토리 응답 대기
+    review-max-chars: 4000             # 본문은 이 길이까지만 메모리에서 사용(저장 안 함)
+    user-agent: "PasspaceStudentBot/0.1 (school project, non-commercial)"
+    review-max-per-run: 100            # 예전 동기 수집 버튼 1회 최대 글 수 (관리자 화면은 10~1000건을 직접 입력)
+    tistory-search-enabled: true       # 티스토리 검색 화면 읽기 (PC 크롬 필요, 없으면 이 기능만 꺼짐)
+    tistory-search-pages: 5            # 검색어당 최대 쪽 수 (1쪽 약 30건)
+    tistory-search-delay-ms: 5000      # 검색 화면 사이 간격 (최소 3초)
+    tistory-rss-max: 400               # 수집 1회에 읽을 티스토리 블로그 RSS 최대 수 (같은 블로그는 24시간에 한 번)
+    data-dir: collect-data             # 수집 이력·초기화 직전 기록 파일 폴더 (서버 실행 폴더 기준, 본문 없음)
+    author-salt: "passpace-default-salt"  # 작성자 해시용. 팀 실제 값은 application-local.yml 에 (공유 저장소에 올리지 않음)
+
+  # [용성] 관리자 화면(/admin/**) 비밀번호. 여기는 비워 두고 application-local.yml 에 적는다.
+  #        비어 있으면 관리자 화면 전체가 잠긴다.
+  admin:
+    password: ""
+
+  # [동건] 로컬 LLM(Ollama) 설정
+  ollama:
+    base-url: http://localhost:11434
+    model: qwen3.5:4b                  # 6GB GPU 개발용. 10GB GPU(RTX 3080)에서는 qwen3.5:9b
+    send-think-false: true             # Qwen3.5 생각 과정 출력 끄기. 다른 모델에서 오류 나면 false
+    num-ctx: 8192
+    timeout-seconds: 180
+
+  # [동건] 통계 기준 (기획안: 유효 표본 10건 미만이면 통계 미사용)
+  stats:
+    min-sample: 10
+
+logging:
+  level:
+    com.passpace: INFO
+  file:
+    name: logs/passpace.log   # 오류 원인을 파일로도 남김 (C:\dev\passpace-merged\logs) - .gitignore 대상

@@ -1,0 +1,35 @@
+// =====================================================================
+// 패스페이스(PASS PACE) 정보처리기사 실험판 - 빌드 설정 (공통, 혼자 수정 금지)
+// IntelliJ: File > Open > 이 폴더(passpace) 선택 → Gradle 프로젝트로 자동 인식
+// =====================================================================
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.5.6'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.passpace'
+version = '0.1.0'
+
+java {
+    toolchain { languageVersion = JavaLanguageVersion.of(21) }
+}
+
+repositories { mavenCentral() }
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'         // 웹 서버(8080), REST
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'   // 화면(HTML 템플릿)
+    implementation 'org.springframework.boot:spring-boot-starter-jdbc'        // JdbcTemplate (DB 접속)
+    implementation 'org.springframework.boot:spring-boot-starter-validation'  // 입력값 검증(@NotBlank 등)
+    implementation 'org.springframework.security:spring-security-crypto'      // [한결] 비밀번호 BCrypt 해시만 사용
+    implementation 'org.jsoup:jsoup:1.21.1'                                   // [용성] HTML 본문 추출
+    implementation 'org.seleniumhq.selenium:selenium-java'                     // [용성] 티스토리 검색 화면 읽기 (PC 의 크롬 사용, 버전은 Spring Boot 관리)
+    runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'                         // MariaDB 드라이버
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }
+tasks.named('test') { useJUnitPlatform() }
