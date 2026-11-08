@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<!--
+  [한결] 공통 레이아웃 조각(fragment) - 빈칸본
+  ★ 계약: 아래 3개 fragment 이름은 바꾸지 말 것 (용성·동건 화면도 이 이름으로 가져다 씀)
+     head(title) / header / footer
+  TODO(한결)
+   - head : meta charset, title("제목 | 패스페이스"), /css/app.css 연결
+   - header : 로고(메인 링크), 메뉴. 로그인 전: 로그인·회원가입 / 로그인 후: "닉네임 님"(마이페이지 링크) + 로그아웃(POST /logout)
+             로그인 여부는 ${loginUser} 로 판단 (LoginUserModelAdvice 가 넣어 줌)
+   - footer : 하단 문구
+-->
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <!-- 기존 코드: 공통 head fragment와 CSS 연결 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title th:text="${title} + ' | 패스페이스'">
+        패스페이스
+    </title>
+
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+
+<header class="pp-header" th:fragment="header">
+    <!-- TODO(한결) -->
+    <div class="header-inner">
+
+        <!-- 기존 코드: 메인 주소와 로그인 상태별 메뉴 유지 -->
+        <!-- 추가된 코드: 사이트 로고와 시험 일정 탐색 -->
+        <a class="brand" th:href="@{/}" aria-label="패스페이스 홈">
+            <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 28 28" fill="none"><path d="M6 19V12M14 19V6M22 19V3" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><path d="M6 25H22" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
+            패스페이스<span class="brand-dot" aria-hidden="true">.</span>
+        </a>
+        <nav class="site-nav" aria-label="주요 메뉴">
+            <a th:href="@{/}">홈</a>
+            <a th:href="@{/#exam-schedule}">시험 일정</a>
+            <a th:if="${loginUser != null}" th:href="@{/mypage}">마이페이지</a>
+        </nav>
+
+        <nav class="account-nav" aria-label="회원 메뉴">
+
+            <div class="header-menu" th:if="${loginUser == null}">
+                <a th:href="@{/login}">로그인</a>
+                <a class="nav-signup" th:href="@{/signup}">시작하기 <span aria-hidden="true">↗</span></a>
+            </div>
+
+            <div class="header-menu" th:if="${loginUser != null}">
+
+                <a class="account-link" th:href="@{/mypage}"
+                   th:text="${loginUser.nickname} + ' 님'">
+                    닉네임 님
+                </a>
+
+                <form class="logout-form"
+                      th:action="@{/logout}"
+                      method="post">
+                    <button type="submit">로그아웃</button>
+                </form>
+            </div>
+
+        </nav>
+    </div>
+</header>
+
+<footer class="pp-footer" th:fragment="footer">
+    <!-- TODO(한결) -->
+    <div class="footer-inner">
+        <!-- 추가된 코드: 공통 하단 브랜드 문구 -->
+        <p><strong>패스페이스.</strong><span>나의 속도로 준비하는 정보처리기사</span></p>
+        <small>한 걸음씩, 나에게 맞는 페이스로.</small>
+    </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<!--
+  [한결] ① 메인 페이지 "/" - 빈칸본
+  모델 값: exams (List<UserViews.UpcomingExam>)
+  TODO(한결)
+   - 서비스 소개 문구
+   - 다가오는 시험 일정 카드: 연도·회차·필기/실기, D-Day(daysLeft), 원서접수 기간, 시험일, 합격 발표일, 샘플이면 "샘플" 표시
+   - 일정이 없으면 "일정 준비 중"
+   - 비로그인일 때(th:if="${loginUser == null}"): "챗봇은 회원 전용" 안내 + 회원가입·로그인 버튼
+-->
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head th:replace="~{fragments/layout :: head('메인')}"></head>
+<body class="pp-site pp-home">
+<header th:replace="~{fragments/layout :: header}"></header>
+
+<main id="main-content" class="pp-main">
+    <!-- 추가된 코드: 소개와 로그인 상태에 맞는 시작 버튼 -->
+    <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-copy">
+            <p class="eyebrow"><span class="status-dot" aria-hidden="true"></span> 나에게 맞는 정보처리기사 준비</p>
+            <h1 id="hero-title">합격까지,<br><span>나만의 페이스로.</span></h1>
+            <p class="hero-description">막막했던 자격증 준비를 한 걸음씩.<br>시험 일정을 살펴보고, 나에게 맞는 학습 목표를 세워 보세요.</p>
+            <div class="hero-actions">
+                <a class="button" th:if="${loginUser == null}" th:href="@{/signup}">나의 페이스 시작하기 <span aria-hidden="true">→</span></a>
+                <a class="button" th:if="${loginUser != null}" th:href="@{/mypage}">나의 학습 목표 보기 <span aria-hidden="true">→</span></a>
+                <a class="text-link" href="#exam-schedule">시험 일정 먼저 보기 <span aria-hidden="true">↓</span></a>
+            </div>
+            <p class="hero-footnote"><span aria-hidden="true">✓</span> 시험 일정부터 학습 목표까지, 한곳에서</p>
+        </div>
+        <div class="pace-visual" aria-hidden="true">
+            <div class="visual-orbit orbit-one"></div><div class="visual-orbit orbit-two"></div>
+            <div class="visual-heading"><span class="visual-dot"></span> MY OWN PACE <span>↗</span></div>
+            <p class="visual-title">오늘의 작은 계획이<br>내일의 나를 만드니까.</p>
+            <svg class="pace-path" viewBox="0 0 420 200" fill="none"><path d="M15 180C90 180 70 125 145 125S205 65 280 65S345 18 400 18" stroke="#b9d3ff" stroke-width="3" stroke-dasharray="6 7"/><circle cx="15" cy="180" r="6" fill="#8fb8fa"/><circle cx="145" cy="125" r="6" fill="#6a9ff4"/><circle cx="280" cy="65" r="6" fill="#427ee8"/><circle cx="400" cy="18" r="8" fill="#2563eb"/></svg>
+            <div class="pace-step step-one"><span class="step-icon">01</span><div><strong>시험 일정 확인</strong><small>다가오는 시험을 한눈에</small></div><span class="step-check">✓</span></div>
+            <div class="pace-step step-two"><span class="step-icon">02</span><div><strong>나만의 목표 설정</strong><small>내 시간과 이해도에 맞게</small></div><span class="step-check">✓</span></div>
+            <div class="pace-step step-three"><span class="step-icon">03</span><div><strong>꾸준히, 나의 속도로</strong><small>합격을 향한 한 걸음</small></div><span class="step-arrow">↗</span></div>
+            <div class="visual-caption">작은 시작, 더 가까워지는 합격.</div>
+        </div>
+    </section>
+
+    <!-- 기존 코드: exams 반복, 날짜 계산 및 샘플 구분 유지 -->
+    <!-- 추가된 코드: 일정 섹션 제목과 안내 -->
+    <section id="exam-schedule" class="exam-section" aria-labelledby="exams-title">
+        <div class="section-heading"><div><p class="eyebrow">EXAM SCHEDULE</p><h2 id="exams-title">다가오는 시험 일정</h2><p>미리 확인하고, 여유 있게 준비하세요.</p></div><span class="section-label">정보처리기사</span></div>
+
+        <p class="empty-state" th:if="${#lists.isEmpty(exams)}">
+            일정 준비 중
+        </p>
+
+        <div class="exam-grid"
+             th:unless="${#lists.isEmpty(exams)}">
+
+            <article class="exam-card" th:each="exam : ${exams}">
+
+                <span class="badge" th:if="${exam.sample}">
+                    샘플
+                </span>
+
+                <p class="card-kicker">정보처리기사</p>
+                <h3 th:text="|${exam.examYear}년 ${exam.roundNo}회 ${exam.examTypeLabel}|">
+                    시험 일정
+                </h3>
+
+                <p class="dday"
+                   th:text="${exam.daysLeft == 0 ? 'D-Day' : 'D-' + exam.daysLeft}">
+                    D-Day
+                </p>
+
+                <dl class="exam-dates">
+
+                    <dt>원서접수 기간</dt>
+                    <dd>
+                        <span th:text="${exam.regStartAt != null
+                            ? #temporals.format(exam.regStartAt, 'yyyy.MM.dd HH:mm')
+                            : '미정'}">
+                            미정
+                        </span>
+
+                        ~
+
+                        <span th:text="${exam.regEndAt != null
+                            ? #temporals.format(exam.regEndAt, 'yyyy.MM.dd HH:mm')
+                            : '미정'}">
+                            미정
+                        </span>
+                    </dd>
+
+                    <dt>시험일</dt>
+                    <dd>
+                        <span th:text="${exam.examStartDate != null
+                            ? #temporals.format(exam.examStartDate, 'yyyy.MM.dd')
+                            : '미정'}">
+                            미정
+                        </span>
+
+                        <span th:if="${exam.examEndDate != null
+                                      and exam.examEndDate != exam.examStartDate}"
+                              th:text="${' ~ ' + #temporals.format(
+                                  exam.examEndDate, 'yyyy.MM.dd')}">
+                            ~ 종료일
+                        </span>
+                    </dd>
+
+                    <dt>합격 발표일</dt>
+                    <dd th:text="${exam.resultDate != null
+                        ? #temporals.format(exam.resultDate, 'yyyy.MM.dd')
+                        : '미정'}">
+                        미정
+                    </dd>
+                </dl>
+
+                <p class="sample-notice" th:if="${exam.sample}">
+                    실제 시험 일정이 아닌 테스트용 샘플입니다.
+                </p>
+
+            </article>
+        </div>
+    </section>
+
+    <section class="member-notice" th:if="${loginUser == null}">
+        <div class="member-copy"><span class="notice-icon" aria-hidden="true">✦</span><div><p class="eyebrow">함께 준비하는 학습</p><h2>챗봇은 회원 전용</h2><p>로그인하고 회원 전용 챗봇도 이용해 보세요.</p></div></div>
+
+        <div class="member-actions">
+            <a class="button" th:href="@{/signup}">무료로 시작하기 <span aria-hidden="true">↗</span></a>
+            <a class="text-link" th:href="@{/login}">로그인</a>
+        </div>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/chatbot :: widget}"></div>
+</body>
+</html>
