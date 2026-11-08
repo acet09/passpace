@@ -1,0 +1,149 @@
+/* [동건] PASS PACE 챗봇 위젯: 타 팀 화면을 건드리지 않는 pp-chat- 네임스페이스 */
+#pp-chat-root {font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif; color:#172339;}
+#pp-chat-root * {box-sizing:border-box;}
+#pp-chat-root .pp-chat-toggle {position:fixed;bottom:24px;right:24px;width:58px;height:58px;z-index:9998;display:grid;place-items:center;border:0;border-radius:50%;background:#275fd4;color:white;box-shadow:0 8px 28px rgba(18,45,96,.32);font-size:27px;cursor:pointer;transition:transform .2s,background .2s;}
+#pp-chat-root .pp-chat-toggle:hover {transform:translateY(-3px);background:#1d4cac;}
+#pp-chat-root .pp-chat-toggle:focus-visible,#pp-chat-root .pp-chat-close:focus-visible,#pp-chat-root .pp-chat-send:focus-visible,#pp-chat-root a:focus-visible {outline:3px solid #78afff;outline-offset:2px;}
+#pp-chat-root .pp-chat-panel {position:fixed;bottom:94px;right:24px;z-index:9999;width:min(410px,calc(100vw - 24px));height:min(600px,calc(100dvh - 116px));max-height:700px;display:flex;flex-direction:column;overflow:hidden;border:1px solid #d7e0ef;border-radius:18px;background:#fff;box-shadow:0 18px 56px rgba(18,36,70,.24);}
+#pp-chat-root .pp-chat-panel[hidden] {display:none !important;}
+#pp-chat-root .pp-chat-header {display:flex;align-items:center;justify-content:space-between;gap:12px;padding:17px 18px;background:linear-gradient(135deg,#1d438d,#2d67d7);color:white;flex-shrink:0;}
+#pp-chat-root .pp-chat-heading {display:flex;flex-direction:column;gap:3px;}
+#pp-chat-root .pp-chat-brand {font-size:10px;letter-spacing:1.7px;font-weight:800;color:#c6dcff;}
+#pp-chat-root .pp-chat-title {font-size:17px;line-height:1.4;}
+#pp-chat-root .pp-chat-subtitle {font-size:11px;color:#e0ebff;}
+#pp-chat-root .pp-chat-close {width:34px;height:34px;border:0;border-radius:8px;background:rgba(255,255,255,.15);color:white;font-size:26px;cursor:pointer;}
+#pp-chat-root .pp-chat-content {display:flex;flex-direction:column;min-height:0;flex:1;}
+#pp-chat-root .pp-chat-log {flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:14px;padding:18px 14px;background:#f6f8fd;overscroll-behavior:contain;}
+#pp-chat-root .pp-chat-message {display:flex;flex-direction:column;align-items:flex-start;max-width:94%;gap:4px;}
+#pp-chat-root .pp-chat-message-label {font-size:11px;font-weight:700;color:#5e6d83;padding:0 4px;}
+#pp-chat-root .pp-chat-bubble {font-size:13px;line-height:1.68;white-space:pre-wrap;overflow-wrap:anywhere;background:white;border:1px solid #e1e7f0;border-radius:4px 14px 14px 14px;padding:12px 13px;box-shadow:0 2px 7px rgba(24,47,94,.035);}
+#pp-chat-root .pp-chat-user {align-self:flex-end;align-items:flex-end;}
+#pp-chat-root .pp-chat-user .pp-chat-bubble {color:#fff;background:#2c64cf;border-color:#2c64cf;border-radius:14px 4px 14px 14px;}
+#pp-chat-root .pp-chat-error .pp-chat-bubble {background:#fff2f1;border-color:#fac8c5;color:#a72b22;}
+#pp-chat-root .pp-chat-waiting .pp-chat-bubble {color:#6b7590;font-style:italic;}
+#pp-chat-root .pp-chat-tip {color:#596b85;border:1px dashed #cbd7ec;border-radius:11px;padding:10px 12px;font-size:12px;line-height:1.5;}
+#pp-chat-root .pp-chat-tip-sub {display:block;margin-top:5px;font-size:11px;color:#8190a7;}
+#pp-chat-root .pp-chat-meta {margin-top:6px;width:100%;padding:9px 11px;background:#eef3fc;border-radius:9px;color:#506079;font-size:11px;line-height:1.6;overflow-wrap:anywhere;}
+#pp-chat-root .pp-chat-source-list {margin:6px 0 0;padding-left:15px;}
+#pp-chat-root .pp-chat-source-list a {color:#1b56b7;text-decoration:underline;overflow-wrap:anywhere;}
+#pp-chat-root .pp-chat-form {flex-shrink:0;background:#fff;border-top:1px solid #e5eaf3;padding:12px 13px;}
+#pp-chat-root .pp-chat-label {display:block;font-size:12px;font-weight:700;color:#344760;margin-bottom:8px;}
+#pp-chat-root .pp-chat-input-row {display:flex;gap:8px;align-items:stretch;}
+#pp-chat-root .pp-chat-input {min-width:0;flex:1;resize:none;min-height:55px;max-height:140px;border:1px solid #cbd5e6;border-radius:10px;padding:10px 11px;background:#fff;font:inherit;font-size:13px;line-height:1.5;color:#1a2942;}
+#pp-chat-root .pp-chat-input:focus {outline:2px solid #a3c0f5;outline-offset:0;border-color:#5790ec;}
+#pp-chat-root .pp-chat-send {align-self:stretch;min-width:62px;padding:0 10px;background:#285fd4;border:0;border-radius:10px;color:#fff;font-weight:700;cursor:pointer;}
+#pp-chat-root .pp-chat-send:disabled,#pp-chat-root .pp-chat-input:disabled {opacity:.55;cursor:not-allowed;}
+#pp-chat-root .pp-chat-hint {font-size:10px;color:#8b96a9;margin-top:7px;}
+#pp-chat-root .pp-chat-footer {padding:9px 14px;background:#f9fbff;border-top:1px solid #e4e9f2;color:#77859a;text-align:center;font-size:10px;flex-shrink:0;}
+#pp-chat-root .pp-chat-locked {display:flex;flex:1;min-height:0;flex-direction:column;justify-content:center;align-items:center;gap:10px;padding:27px;text-align:center;}
+#pp-chat-root .pp-chat-lock-icon {font-size:38px;}
+#pp-chat-root .pp-chat-locked strong {font-size:17px;}
+#pp-chat-root .pp-chat-locked p {margin:0;font-size:13px;line-height:1.7;color:#67778c;}
+#pp-chat-root .pp-chat-actions {display:flex;gap:10px;margin-top:14px;}
+#pp-chat-root .pp-chat-login-link,#pp-chat-root .pp-chat-signup-link {padding:10px 18px;border-radius:9px;text-decoration:none;font-size:13px;font-weight:700;}
+#pp-chat-root .pp-chat-login-link {background:#285fd4;color:#fff;}
+#pp-chat-root .pp-chat-signup-link {background:#edf2fa;color:#2857a8;}
+@media (max-width:480px){#pp-chat-root .pp-chat-toggle{right:12px;bottom:12px;}#pp-chat-root .pp-chat-panel{right:12px;bottom:82px;width:calc(100vw - 24px);height:calc(100dvh - 103px);border-radius:14px;}}
+
+/* [동건] 정보처리기사·SQLD 통합 학습계획: 전부 pp-chat- 접두사 사용 */
+#pp-chat-root .pp-chat-tabs {display:flex;gap:4px;padding:8px 10px;background:#f5f8fe;border-bottom:1px solid #e1e8f4;flex-shrink:0;}
+#pp-chat-root .pp-chat-tab {flex:1;border:0;padding:9px;border-radius:8px;color:#405571;background:transparent;font-size:12px;font-weight:700;cursor:pointer;}
+#pp-chat-root .pp-chat-tab-active {color:#fff;background:#285fd4;}
+#pp-chat-root .pp-chat-chat-section {display:flex;flex:1;min-height:0;flex-direction:column;}
+#pp-chat-root .pp-chat-chat-section[hidden],#pp-chat-root .pp-chat-planner[hidden],#pp-chat-root .pp-chat-plan-error[hidden]{display:none!important;}
+#pp-chat-root .pp-chat-planner {flex:1;overflow:auto;min-height:0;padding:13px;background:#f6f8fd;font-size:12px;line-height:1.6;}
+#pp-chat-root .pp-chat-planner-help {background:white;border:1px solid #dbe5f4;padding:12px;border-radius:10px;}
+#pp-chat-root .pp-chat-planner-note {font-size:11px;color:#667b98;margin:9px 0;}
+#pp-chat-root .pp-chat-field-label {display:block;font-size:12px;font-weight:700;color:#334563;margin-top:11px;margin-bottom:5px;}
+#pp-chat-root .pp-chat-field-input {width:100%;min-height:36px;border:1px solid #cad5e7;background:#fff;border-radius:7px;padding:7px 8px;font:inherit;color:#1b2c45;}
+#pp-chat-root .pp-chat-cert-selector {display:flex;flex-direction:column;gap:6px;margin:10px 0;}
+#pp-chat-root .pp-chat-cert-choice {display:flex;align-items:center;gap:8px;padding:9px;border:1px solid #dae4f2;border-radius:9px;background:white;cursor:pointer;font-weight:700;}
+#pp-chat-root .pp-chat-cert-choice input {width:16px;height:16px;accent-color:#285fd4;}
+#pp-chat-root .pp-chat-goal-forms {display:flex;flex-direction:column;gap:13px;}
+#pp-chat-root .pp-chat-goal-card {padding:13px;background:#fff;border-radius:11px;border:1px solid #d7e1f0;}
+#pp-chat-root .pp-chat-goal-title {font-size:14px;margin:0;font-weight:800;}
+#pp-chat-root .pp-chat-subject-card {padding:9px 0;border-bottom:1px dashed #d9e1ed;}
+#pp-chat-root .pp-chat-subject-card:last-child {border-bottom:0;}
+#pp-chat-root .pp-chat-subject-name {font-weight:700;font-size:12px;color:#25374e;}
+#pp-chat-root .pp-chat-level-options {display:flex;gap:6px;margin-top:7px;}
+#pp-chat-root .pp-chat-level-option {flex:1;border:1px solid #c9d6e8;background:#f5f8fd;border-radius:8px;padding:7px 2px;cursor:pointer;color:#2e4767;font-size:11px;font-weight:700;}
+#pp-chat-root .pp-chat-level-option[aria-pressed="true"] {background:#285fd4;color:#fff;border-color:#285fd4;}
+#pp-chat-root .pp-chat-subject-fields {display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+#pp-chat-root .pp-chat-subject-fields label {display:block;font-size:10px;color:#50627e;margin-top:7px;}
+#pp-chat-root .pp-chat-subject-fields input {margin-top:3px;}
+#pp-chat-root .pp-chat-plan-calc {display:block;width:100%;background:#285fd4;border:0;border-radius:9px;padding:12px;color:#fff;font-size:12px;font-weight:800;margin:14px 0;cursor:pointer;}
+#pp-chat-root .pp-chat-plan-calc:disabled {opacity:.6;cursor:wait;}
+#pp-chat-root .pp-chat-plan-error {padding:10px;background:#fff0ef;border:1px solid #efbbb6;color:#a02e21;border-radius:8px;margin:8px 0;}
+#pp-chat-root .pp-chat-plan-results {display:flex;flex-direction:column;gap:9px;}
+#pp-chat-root .pp-chat-result-card {background:white;border:1px solid #d9e1ee;border-radius:10px;padding:11px;}
+#pp-chat-root .pp-chat-result-title {font-size:13px;font-weight:800;margin-bottom:6px;}
+#pp-chat-root .pp-chat-result-line {font-size:11px;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.7;}
+#pp-chat-root .pp-chat-result-warning {border-color:#e6b493;background:#fff9f5;}
+#pp-chat-root .pp-chat-result-day {border-top:1px dashed #d8e1ed;padding:7px 0;}
+#pp-chat-root .pp-chat-result-day:first-child {border-top:0;}
+#pp-chat-root .pp-chat-plan-results details {margin-top:8px;}
+#pp-chat-root .pp-chat-plan-results summary {cursor:pointer;color:#1d59ac;font-weight:700;}
+#pp-chat-root .pp-chat-tabs button:focus-visible,#pp-chat-root .pp-chat-planner button:focus-visible,#pp-chat-root .pp-chat-planner input:focus-visible {outline:2px solid #69a1ff;outline-offset:2px;}
+@media (min-width:600px) {#pp-chat-root .pp-chat-panel {width:min(480px,calc(100vw - 24px));height:min(680px,calc(100dvh - 116px));}}
+
+/* [동건] 추정 학습시간의 표본·출처와 과목별 자동 기준시간 표시 */
+#pp-chat-root .pp-chat-baseline {font-size:12px;line-height:1.5;padding:9px 10px;background:#f0f5ff;border:1px solid #cadaf6;border-radius:8px;color:#204c90;}
+#pp-chat-root .pp-chat-evidence-details {margin:8px 0 12px;padding:10px 12px;border:1px solid #cbd8ee;border-radius:10px;background:#fafcff;font-size:11px;line-height:1.6;color:#485d7b;}
+#pp-chat-root .pp-chat-evidence-details summary {font-size:12px;font-weight:700;cursor:pointer;color:#1d4ea4;}
+#pp-chat-root .pp-chat-evidence-text {margin:8px 0 4px;}
+#pp-chat-root .pp-chat-evidence-warning {margin:4px 0 9px;color:#ad5716;font-weight:600;}
+#pp-chat-root .pp-chat-evidence-sources {margin:6px 0 3px;padding-left:18px;}
+#pp-chat-root .pp-chat-evidence-sources li {margin-bottom:7px;overflow-wrap:anywhere;}
+#pp-chat-root .pp-chat-evidence-sources a {color:#1b56b7;text-decoration:underline;}
+#pp-chat-root .pp-chat-evidence-observation {color:#596b85;}
+
+/* [동건] 과목별 직접 기록과 추정 배분의 차이를 명시 */
+#pp-chat-root .pp-chat-source-count {grid-column:1 / -1; font-size:11px;line-height:1.6;color:#425a76;background:#f7f9fc;padding:5px 8px;border-radius:6px;}
+#pp-chat-root .pp-chat-baseline {grid-column:1 / -1;}
+#pp-chat-root .pp-chat-subject-evidence {grid-column:1 / -1;font-size:11px;color:#50617b;line-height:1.5;margin:0;}
+#pp-chat-root .pp-chat-subject-evidence summary {cursor:pointer;color:#22589d;font-weight:700;}
+#pp-chat-root .pp-chat-subject-evidence p {margin:5px 0;overflow-wrap:anywhere;}
+
+/* [동건] 집단별 출처/임시 대체값 구분 (다른 화면에는 영향 없음) */
+.pp-chat-group-reference { padding: 10px 12px; border-radius: 10px; border: 1px solid #94a3b8; margin: 10px 0; background: #f8fafc; color: #334155; font-size: 12px; line-height: 1.6; }
+.pp-chat-group-title { font-weight: 700; margin-bottom: 4px; }
+.pp-chat-group-counts { font-size: 11px; margin-bottom: 5px; }
+.pp-chat-group-fallback { border-color: #eab308; background: #fefce8; }
+
+/* 동건 담당: 채팅 안의 최소입력 자동 계획 UI */
+#pp-chat-root .pp-chat-quick-description {white-space:pre-line;font-size:12px;line-height:1.6;color:#475569;margin:8px 0}
+#pp-chat-root .pp-chat-quick-cert {font-size:13px;margin:14px 0 7px;font-weight:700}
+#pp-chat-root .pp-chat-quick-subject {padding:7px 0;border-bottom:1px solid #e2e8f0}
+#pp-chat-root .pp-chat-quick-subject-label {font-size:12px;font-weight:600;margin-bottom:6px}
+#pp-chat-root .pp-chat-quick-result {margin-top:10px;white-space:pre-line}
+#pp-chat-root .pp-chat-quick-goal {font-size:12px;font-weight:600}
+#pp-chat-root .pp-chat-quick-adjust, #pp-chat-root .pp-chat-optional-progress, #pp-chat-root .pp-chat-optional-settings {margin:10px 0;padding:8px;border:1px solid #dbe5f0;border-radius:8px;font-size:12px}
+#pp-chat-root .pp-chat-schedule-warning {font-size:11px;color:#9a5800;line-height:1.5;margin:4px 0 10px}
+#pp-chat-root .pp-chat-quick-adjust summary, #pp-chat-root .pp-chat-optional-progress summary {cursor:pointer}
+#pp-chat-root .pp-chat-quick-result .pp-chat-result-day {font-size:11px;margin:5px 0;padding:6px;background:#f5f8fd}
+#pp-chat-root .pp-chat-quick-subject .pp-chat-level-options {display:flex;gap:5px;flex-wrap:wrap}
+#pp-chat-root .pp-chat-quick-subject .pp-chat-level-option {flex:1;min-width:52px}
+#pp-chat-root .pp-chat-bubble {overflow-wrap:anywhere}
+
+/* 동건 담당: 하루 공부시간은 최초 필수 선택. 대역 150분의 묵시적 사용 방지. */
+#pp-chat-root .pp-chat-time-setup,
+#pp-chat-root .pp-chat-quick-time { margin:11px 0; padding:12px; border:1px solid #b5c9eb; background:#f2f6ff; border-radius:10px; font-size:12px; line-height:1.5; }
+#pp-chat-root .pp-chat-time-setup strong,
+#pp-chat-root .pp-chat-quick-time strong {display:block; color:#193f87; font-size:13px;}
+#pp-chat-root .pp-chat-time-options {display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; margin:10px 0 8px;}
+#pp-chat-root .pp-chat-time-option {padding:8px 4px; border:1px solid #b8cae3; background:white; border-radius:8px; color:#2c4e7e; font:inherit; font-weight:700; font-size:11px; cursor:pointer;}
+#pp-chat-root .pp-chat-time-option[aria-pressed="true"] {border-color:#285fd4; background:#285fd4; color:white;}
+#pp-chat-root .pp-chat-time-custom-label {display:block; margin-top:9px; font-size:11px; color:#415776;}
+#pp-chat-root .pp-chat-time-custom-label input {margin-top:4px;}
+#pp-chat-root .pp-chat-time-option:focus-visible {outline:2px solid #6e9ef7; outline-offset:2px;}
+
+/* [동건] 주간 공부 요일 선택. 채팅 자동계획과 통합 학습계획 탭 공통. */
+#pp-chat-root .pp-chat-weekday-setting {margin:12px 0; padding:11px; border:1px solid #b9cee9; border-radius:10px; background:#f4f8ff; font-size:12px;}
+#pp-chat-root .pp-chat-weekday-setting strong {font-size:13px;color:#193f87;}
+#pp-chat-root .pp-chat-weekday-presets {display:flex;gap:6px;margin:7px 0;}
+#pp-chat-root .pp-chat-weekday-preset {padding:6px 9px;border:1px solid #b9cee9;border-radius:8px;background:#fff;color:#31557f;font:inherit;font-size:11px;cursor:pointer;}
+#pp-chat-root .pp-chat-weekday-preset[aria-pressed="true"] {background:#285fd4;border-color:#285fd4;color:#fff;}
+#pp-chat-root .pp-chat-weekday-options {display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;}
+#pp-chat-root .pp-chat-weekday-option {min-width:0;padding:8px 0;border:1px solid #b9cee9;background:white;border-radius:8px;font:inherit;font-size:12px;font-weight:700;color:#28476f;cursor:pointer;}
+#pp-chat-root .pp-chat-weekday-option[aria-pressed="true"] {background:#285fd4;border-color:#285fd4;color:white;}
+#pp-chat-root .pp-chat-weekday-option:focus-visible,#pp-chat-root .pp-chat-weekday-preset:focus-visible {outline:2px solid #6e9ef7;outline-offset:2px;}

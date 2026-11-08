@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<!--
+  [동건] 챗봇 위젯 fragment
+  모든 페이지 하단에서 <div th:replace="~{fragments/chatbot :: widget}"></div> 로 들어간다.
+  → fragment 이름 "widget" 과 바깥 id "pp-chat-root" 는 바꾸지 않는다 (공통 계약).
+
+  ★ 챗봇은 로그인 사용자 전용이다.
+    로그인 여부는 화면 model 의 ${loginUser} 로 판단한다 (한결의 LoginUserModelAdvice 가 모든 화면에 넣어 줌,
+    혼자 테스트할 때는 dev/DevHomeController 가 넣어 줌)
+
+  구현: #pp-chat-root 안에 아래 요소를 포함한다 (id 는 chatbot.js 에서 사용)
+   - 열기 버튼            #pp-chat-toggle  (로그인 여부와 상관없이 보임)
+   - 대화창 (처음엔 hidden) #pp-chat-panel
+       - 제목 + 닫기 버튼   #pp-chat-close
+       - [로그인일 때만 th:if="${loginUser != null}"]
+           - 대화 목록       #pp-chat-log   (닉네임 인사말 + 예시 질문 + 마이페이지 안내)
+           - 입력 form       #pp-chat-form  / textarea #pp-chat-input (maxlength 500) / 전송 버튼 #pp-chat-send
+       - [비로그인일 때만 th:if="${loginUser == null}"]
+           - 잠긴 안내       #pp-chat-locked ("로그인 후 이용할 수 있어요" + /login, /signup 링크), 입력창 없음
+   - 클래스·id 는 모두 pp-chat- 로 시작 (다른 화면 스타일과 충돌 방지)
+-->
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<body>
+<div th:fragment="widget" id="pp-chat-root">
+    <link rel="stylesheet" th:href="@{/css/chatbot.css}">
+
+    <button type="button" id="pp-chat-toggle" class="pp-chat-toggle" aria-expanded="false"
+            aria-controls="pp-chat-panel" aria-label="학습 상담 챗봇 열기">💬</button>
+    <section id="pp-chat-panel" class="pp-chat-panel" role="dialog"
+             aria-label="PASS PACE 학습 상담" hidden>
+        <header class="pp-chat-header">
+            <div class="pp-chat-heading">
+                <span class="pp-chat-brand">PASS PACE</span>
+                <strong class="pp-chat-title">학습 상담 챗봇</strong>
+                <small class="pp-chat-subtitle">학습 통계와 일정 기반 맞춤 계획</small>
+            </div>
+            <button type="button" id="pp-chat-close" class="pp-chat-close" aria-label="챗봇 닫기">×</button>
+        </header>
+        <div th:if="${loginUser != null}" class="pp-chat-content" id="pp-chat-auth-content"
+             th:attr="data-user-id=${loginUser.userId},data-major=${loginUser.majorType}">
+            <nav class="pp-chat-tabs" aria-label="학습 도구 선택">
+                <button type="button" id="pp-chat-tab-chat" class="pp-chat-tab pp-chat-tab-active"
+                        aria-pressed="true">학습 상담</button>
+                <button type="button" id="pp-chat-tab-planner" class="pp-chat-tab"
+                        aria-pressed="false">통합 학습계획</button>
+            </nav>
+            <div id="pp-chat-chat-section" class="pp-chat-chat-section">
+            <div id="pp-chat-log" class="pp-chat-log" role="log" aria-live="polite" aria-relevant="additions">
+                <div class="pp-chat-message pp-chat-bot">
+                    <span class="pp-chat-message-label">PASS PACE</span>
+                    <div class="pp-chat-bubble">안녕하세요, <span th:text="${loginUser.nickname}">회원</span>님!
+                        정보처리기사와 SQLD 학습계획을 자동으로 만들어 드릴게요.
+                        필요한 과목별 사전 이해도만 클릭해서 알려 주세요.
+                    </div>
+                </div>
+                <div class="pp-chat-tip">예) "정처기 필기랑 SQLD 같이 공부할 계획 만들어줘"
+                    <span class="pp-chat-tip-sub">2027년 시험일은 2026년 일정 기준 가상 목표일로 설정합니다. 필요하면 변경할 수 있어요.</span>
+                </div>
+            </div>
+            <form id="pp-chat-form" class="pp-chat-form">
+                <label class="pp-chat-label" for="pp-chat-input">학습 상담 질문</label>
+                <div class="pp-chat-input-row">
+                    <textarea id="pp-chat-input" class="pp-chat-input" maxlength="500" rows="2"
+                              placeholder="예: 정처기 필기랑 SQLD 계획 짜줘" required></textarea>
+                    <button type="submit" id="pp-chat-send" class="pp-chat-send">전송</button>
+                </div>
+                <div class="pp-chat-hint">Enter 전송 · Shift+Enter 줄바꿈 · 최대 500자</div>
+            </form>
+            </div>
+            <section id="pp-chat-planner" class="pp-chat-planner" hidden aria-label="다중 자격증 통합 학습계획">
+                <div class="pp-chat-planner-help">하루 총 공부 가능시간·공부 요일·과목별 이해도를 선택하면
+                    학습계획을 자동 제안합니다. 자격증마다 학습 시작일을 따로 정할 수 있고 기본값은 오늘입니다. 시험일은 전년도 기준 가상 목표일이며 변경할 수 있습니다.</div>
+                <section class="pp-chat-time-setup" aria-label="하루 학습 가능시간 설정">
+                  <strong>① 하루 총 공부 가능시간 (필수)</strong>
+                  <p class="pp-chat-quick-description">여러 자격증이 같은 하루 공부시간을 공유합니다. 테스트용 150분은 자동 적용되지 않습니다.</p>
+                  <div id="pp-chat-daily-options"></div>
+                  <label class="pp-chat-field-label" for="pp-chat-daily-minutes">다른 시간 직접 입력 (분)</label>
+                  <input id="pp-chat-daily-minutes" class="pp-chat-field-input" type="number"
+                         min="30" max="960" step="10" placeholder="예: 75 (분)" inputmode="numeric">
+                </section>
+                <div id="pp-chat-weekdays-options" aria-label="공부 요일 선택"></div>
+                <p class="pp-chat-planner-note">전공별 자료는 분리 관리합니다. 현재 과목별 통계는 표본이 부족한 <strong>잠정 추정치</strong>입니다.</p>
+                <div id="pp-chat-catalog-status" class="pp-chat-planner-note" role="status">카탈로그를 불러오려면 이 탭을 열어 주세요.</div>
+                <div id="pp-chat-cert-selector" class="pp-chat-cert-selector"></div>
+                <div id="pp-chat-goal-forms" class="pp-chat-goal-forms"></div>
+                <button type="button" id="pp-chat-plan-calc" class="pp-chat-plan-calc">통합 계획 계산 / 진도 반영 재계획</button>
+                <div id="pp-chat-plan-error" class="pp-chat-plan-error" role="alert" hidden></div>
+                <div id="pp-chat-plan-results" class="pp-chat-plan-results" aria-live="polite"></div>
+                <p class="pp-chat-planner-note">데모 단계: 입력값은 이 브라우저에만 저장됩니다. 팀의 학습기록·계획 DB 연동은 아직 하지 않습니다.</p>
+            </section>
+        </div>
+        <div th:if="${loginUser == null}" id="pp-chat-locked" class="pp-chat-locked">
+            <div class="pp-chat-lock-icon" aria-hidden="true">🔒</div>
+            <strong>로그인 후 이용할 수 있어요</strong>
+            <p>학습 기록을 바탕으로 맞춤 계획을 제안하고 대화를 저장합니다.</p>
+            <div class="pp-chat-actions">
+                <a class="pp-chat-login-link" th:href="@{/login}" href="/login">로그인</a>
+                <a class="pp-chat-signup-link" th:href="@{/signup}" href="/signup">회원가입</a>
+            </div>
+        </div>
+        <footer class="pp-chat-footer">학습계획은 참고용이며 공식 시험 일정은 별도 확인해 주세요.</footer>
+    </section>
+
+    <script th:src="@{/js/chatbot.js}"></script>
+</div>
+</body>
+</html>
