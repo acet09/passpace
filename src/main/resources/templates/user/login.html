@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<!--
+  [한결] ② 로그인 "/login" - 빈칸본
+  모델 값: form (LoginForm), redirectURL
+  TODO(한결)
+   - POST /login 폼, th:object="${form}"
+   - 입력칸 이름은 LoginForm 필드와 같게: loginId, password  (+ hidden redirectURL)
+   - 칸별 오류(th:errors), 로그인 실패 메시지(global error)
+-->
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head th:replace="~{fragments/layout :: head('로그인')}"></head>
+<body class="pp-site pp-login">
+<header th:replace="~{fragments/layout :: header}"></header>
+
+<main id="main-content" class="pp-main auth-main">
+    <!-- 추가된 코드: 회원 화면의 안내 영역과 반응형 배치 -->
+    <div class="auth-layout">
+    <aside class="auth-story" aria-label="패스페이스 소개">
+        <p class="eyebrow">WELCOME BACK</p>
+        <h2>다시 만나 반가워요.<br>오늘도 나의 페이스로.</h2>
+        <p>조금씩 쌓인 오늘의 노력이<br>합격에 한 걸음 더 가까워지도록.</p>
+        <div class="auth-illustration" aria-hidden="true"><div class="book book-back"></div><div class="book book-front"><span>PASS<br>PACE<span class="book-period">.</span></span><div class="book-rule"></div><small>ONE STEP AT A TIME</small></div><span class="book-star">✦</span><span class="book-ring"></span></div>
+        <div class="story-note"><span aria-hidden="true">✓</span> 일정 확인 &nbsp;·&nbsp; 학습 목표 &nbsp;·&nbsp; 과목별 이해도</div>
+    </aside>
+    <!-- 기존 코드: 폼 전송 주소·입력 이름·서버 검증 오류 유지 -->
+    <section class="auth-card" aria-labelledby="auth-title">
+        <p class="form-kicker">나의 학습을 이어가세요</p>
+        <h1 id="auth-title">로그인</h1>
+        <p>로그인하고 나의 학습 목표를 확인해 보세요.</p>
+
+        <form th:action="@{/login}"
+              th:object="${form}"
+              method="post"
+              novalidate>
+
+            <input type="hidden"
+                   name="redirectURL"
+                   th:value="${redirectURL}">
+
+            <div class="global-error"
+                 role="alert"
+                 th:if="${#fields.hasGlobalErrors()}">
+
+                <p th:each="error : ${#fields.globalErrors()}"
+                   th:text="${error}">
+                    아이디 또는 비밀번호가 올바르지 않습니다.
+                </p>
+            </div>
+
+            <div class="form-field">
+                <label for="loginId">아이디</label>
+
+                <input type="text"
+                       id="loginId"
+                       th:field="*{loginId}"
+                       th:errorclass="input-error"
+                       autocomplete="username"
+                       placeholder="아이디를 입력해 주세요">
+
+                <p class="field-error"
+                   th:if="${#fields.hasErrors('loginId')}"
+                   th:errors="*{loginId}">
+                    아이디 오류 메시지
+                </p>
+            </div>
+
+            <div class="form-field">
+                <label for="password">비밀번호</label>
+
+                <input type="password"
+                       id="password"
+                       th:field="*{password}"
+                       th:errorclass="input-error"
+                       autocomplete="current-password"
+                       placeholder="비밀번호를 입력해 주세요">
+
+                <p class="field-error"
+                   th:if="${#fields.hasErrors('password')}"
+                   th:errors="*{password}">
+                    비밀번호 오류 메시지
+                </p>
+            </div>
+
+            <button class="button auth-submit" type="submit">로그인</button>
+        </form>
+
+        <p class="auth-switch">
+            아직 회원이 아니라면
+            <a th:href="@{/signup}">회원가입</a>
+        </p>
+    </section>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<div th:replace="~{fragments/chatbot :: widget}"></div>
+</body>
+</html>
