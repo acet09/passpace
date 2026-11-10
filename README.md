@@ -53,7 +53,7 @@ db/  01_schema(= passpace_erd.sql) → 02_schema_ext → 03_seed (04 는 더미 
 ### 3-2. DB (DBeaver, root 계정)
 ```sql
 CREATE USER IF NOT EXISTS 'passpace'@'localhost' IDENTIFIED BY 'passpace';
-GRANT ALL ON passpace.* TO 'passpace'@'localhost';
+GRANT ALL ON passpace_merged.* TO 'passpace'@'localhost';
 ```
 그다음 `db/01_schema.sql` → `db/02_schema_ext.sql` → `db/03_seed.sql` 을 차례로 열고 **스크립트 실행(Alt+X)**.
 - `01_schema.sql` 은 팀 기준 `passpace_erd.sql` 과 같은 내용이다. 이미 passpace_erd.sql 을 실행했다면 01 은 건너뛰고 02, 03 만 실행
