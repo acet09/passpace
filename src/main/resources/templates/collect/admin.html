@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<!-- [용성] 관리자 수집 화면. 사이트 레이아웃·CSS 와 분리된 독립 화면 (헤더·푸터·챗봇·app.css 없음) -->
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>데이터 수집 관리 | PASS PACE 관리자</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+    <style>
+        :root {
+            --ink: #18202B;  --muted: #5E6A7A;  --line: #D9DFE7;  --bg: #F2F4F7;  --surface: #FFFFFF;
+            --navy: #13284A; --navy-2: #1E3762; --blue: #2D5BD8; --blue-soft: #E8EEFC;
+            --ok: #1D7A4E;   --ok-soft: #E3F3EA; --warn: #8F5400; --warn-soft: #FDF1DD;
+            --danger: #B42318; --danger-soft: #FCEBEA;
+            --code-bg: #F6F8FB;
+        }
+        * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; scroll-padding-top: 16px; }
+        body {
+            margin: 0; background: var(--bg); color: var(--ink);
+            font: 15px/1.6 "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+            font-variant-numeric: tabular-nums; word-break: keep-all;
+        }
+        h1, h2, h3, p { margin: 0; }
+        button, input, select { font: inherit; }
+        :focus-visible { outline: 3px solid #8FB0FF; outline-offset: 2px; border-radius: 6px; }
+
+        /* ---- 상단 상황판 ---- */
+        .board { background: var(--navy); color: #fff; padding: 22px 32px 26px; }
+        .board-inner { max-width: 1180px; margin: 0 auto; }
+        .board-top { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+        .board h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
+        .board h1 small { display: block; font-size: 13px; font-weight: 400; color: #AFC0DD; margin-top: 2px; }
+        .board-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .board-actions .btn { background: transparent; color: #DCE6F7; border-color: #3C5585; }
+        .board-actions .btn:hover { background: var(--navy-2); }
+        .readouts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 20px; }
+        .readout { background: var(--navy-2); border-radius: 10px; padding: 14px 16px; min-height: 92px; }
+        .readout h2 { font-size: 13px; font-weight: 500; color: #AFC0DD; }
+        .readout .value { font-size: 26px; font-weight: 700; margin-top: 4px; line-height: 1.25; }
+        .readout .detail { font-size: 13px; color: #C9D5EA; margin-top: 2px; overflow-wrap: anywhere; }
+        .readout[data-tone="ok"] .value { color: #7BE0A8; }
+        .readout[data-tone="ng"] .value { color: #FF9C93; }
+        .readout[data-tone="run"] .value { color: #9DBBFF; }
+
+        /* ---- 본문: 왼쪽 목차 + 오른쪽 영역 ---- */
+        .layout { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 28px; max-width: 1180px; margin: 0 auto; padding: 28px 32px 64px; }
+        .toc { position: sticky; top: 16px; align-self: start; display: flex; flex-direction: column; gap: 2px; }
+        .toc a { color: var(--muted); text-decoration: none; padding: 7px 12px; border-radius: 6px; font-size: 14px; }
+        .toc a:hover { background: #E3E8EF; color: var(--ink); }
+        .toc .sep { height: 1px; background: var(--line); margin: 8px 12px; }
+        main { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+
+        details.sec { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+        details.sec > summary { list-style: none; cursor: pointer; padding: 18px 22px; display: flex; align-items: baseline; gap: 12px; }
+        details.sec > summary::-webkit-details-marker { display: none; }
+        details.sec > summary::after { content: "열기"; margin-left: auto; font-size: 13px; color: var(--muted); }
+        details.sec[open] > summary::after { content: "접기"; }
+        details.sec > summary h2 { font-size: 18px; font-weight: 700; }
+        details.sec > summary span { font-size: 13px; color: var(--muted); }
+        .sec-body { padding: 0 22px 22px; display: flex; flex-direction: column; gap: 14px; }
+        details.sec.danger { border-color: #F0C4C0; }
+        details.sec.danger > summary h2 { color: var(--danger); }
+        details.sec.recover { border-color: #BCCDF6; }
+
+        .desc { color: var(--muted); font-size: 14px; max-width: 72ch; }
+        .desc b { color: var(--ink); font-weight: 600; }
+        .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .sub { border-top: 1px solid var(--line); padding-top: 14px; display: flex; flex-direction: column; gap: 10px; }
+        .sub h3 { font-size: 15px; font-weight: 600; }
+
+        /* ---- 버튼·입력 ---- */
+        .btn { border: 1px solid var(--line); background: var(--surface); color: var(--ink); padding: 8px 14px;
+               border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; }
+        .btn:hover { background: #EEF1F5; }
+        .btn:disabled { opacity: .45; cursor: not-allowed; }
+        .btn.primary { background: var(--blue); border-color: var(--blue); color: #fff; }
+        .btn.primary:hover { background: #2349B5; }
+        .btn.danger { background: var(--danger); border-color: var(--danger); color: #fff; }
+        .btn.danger:hover { background: #911B12; }
+        .field { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); }
+        input[type=number], input[type=url], select { border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px;
+               background: #fff; color: var(--ink); font-size: 14px; }
+        input[type=url] { flex: 1 1 320px; min-width: 0; }
+
+        /* ---- 진행률 ---- */
+        .progress { height: 10px; background: #E6EAF0; border-radius: 999px; overflow: hidden; }
+        .progress > div { height: 100%; width: 0; background: var(--blue); border-radius: 999px; transition: width .4s ease; }
+        .progress-text { font-size: 14px; }
+        .note { font-size: 13px; color: var(--muted); }
+
+        /* ---- 상태 문구 ---- */
+        .status { font-size: 14px; padding: 10px 12px; border-radius: 8px; background: var(--code-bg); }
+        .status.ok { background: var(--ok-soft); color: #145C3A; }
+        .status.ng { background: var(--danger-soft); color: #8A1C13; }
+        .status.info { background: var(--blue-soft); color: #1C3E9E; }
+        .ok { color: var(--ok); font-weight: 600; }
+        .ng { color: var(--danger); font-weight: 600; }
+
+        /* ---- 결과칸 (열고 닫기) ---- */
+        details.out { border: 1px solid var(--line); border-radius: 8px; background: var(--code-bg); }
+        details.out > summary { cursor: pointer; padding: 9px 12px; font-size: 13px; color: var(--muted); }
+        details.out[open] > summary { border-bottom: 1px solid var(--line); }
+        pre.result { margin: 0; padding: 12px 14px; max-height: 340px; overflow: auto; white-space: pre-wrap; word-break: break-all;
+                     font: 12.5px/1.55 "D2Coding", Consolas, "SF Mono", monospace; color: #2B3440; }
+
+
+        /* ---- 수집 범위 탭 ---- */
+        .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); }
+        .tab { border: 0; background: none; padding: 10px 16px; font-size: 15px; font-weight: 600; color: var(--muted);
+               cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -1px; }
+        .tab[aria-selected="true"] { color: var(--blue); border-bottom-color: var(--blue); }
+        .tab span { font-weight: 500; font-size: 13px; color: var(--muted); }
+        .srcpanel { display: flex; flex-direction: column; gap: 10px; }
+        .srcpanel[hidden] { display: none; }
+        .text { border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; font-size: 14px; background: #fff; color: var(--ink); }
+        .row > .text { flex: 1 1 320px; min-width: 0; }
+        textarea.text { font: 13px/1.5 Consolas, "D2Coding", monospace; resize: vertical; }
+        .filter { max-width: 320px; }
+        .srclist { list-style: none; margin: 0; padding: 0; border: 1px solid var(--line); border-radius: 8px; max-height: 360px; overflow: auto; }
+        .srclist li { display: flex; gap: 8px; align-items: center; padding: 7px 12px; border-bottom: 1px solid #EDF0F4; }
+        .srclist li:last-child { border-bottom: 0; }
+        .srclist li.empty { color: var(--muted); font-size: 13px; }
+        .srclist .label { flex: 1; min-width: 0; overflow-wrap: anywhere; font-size: 14px; }
+        .srclist .kind { font-size: 12px; color: var(--muted); background: #EEF1F5; border-radius: 999px; padding: 1px 8px; white-space: nowrap; }
+        .srclist .btn { padding: 3px 10px; font-size: 12px; }
+        .inspect { border: 1px solid #BCCDF6; background: #F7F9FF; border-radius: 8px; padding: 12px 14px; font-size: 14px; }
+        .inspect h4 { margin: 0 0 6px; font-size: 14px; }
+        .inspect table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .inspect td { padding: 5px 6px; border-top: 1px solid #E1E8F8; vertical-align: top; }
+        .inspect a { color: var(--blue); text-decoration: none; }
+        .inspect a:hover { text-decoration: underline; }
+        .tag-new { color: var(--ok); font-weight: 600; white-space: nowrap; }
+        .tag-old { color: var(--muted); white-space: nowrap; }
+
+        @media (max-width: 900px) {
+            .layout { grid-template-columns: 1fr; padding: 20px 16px 48px; }
+            .toc { position: static; flex-direction: row; flex-wrap: wrap; }
+            .toc .sep { display: none; }
+            .readouts { grid-template-columns: 1fr; }
+            .board { padding: 18px 16px 20px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            html { scroll-behavior: auto; }
+            .progress > div { transition: none; }
+        }
+    </style>
+</head>
+<body>
+
+<header class="board"><div class="board-inner">
+    <div class="board-top">
+        <h1>데이터 수집 관리<small>PASS PACE 관리자 · 정보처리기사 · SQLD</small></h1>
+        <div class="board-actions">
+            <button class="btn" type="button" onclick="toggleAll(true)">모두 펼치기</button>
+            <button class="btn" type="button" onclick="toggleAll(false)">모두 접기</button>
+            <form th:action="@{/admin/logout}" action="/admin/logout" method="post" style="display:inline">
+                <button class="btn" type="submit">로그아웃</button>
+            </form>
+        </div>
+    </div>
+    <div class="readouts" aria-live="polite">
+        <section class="readout" id="chipDb">
+            <h2>DB 연결</h2>
+            <p class="value">확인 중</p>
+            <p class="detail">&nbsp;</p>
+        </section>
+        <section class="readout" id="chipJob">
+            <h2>후기 수집</h2>
+            <p class="value">대기 중</p>
+            <p class="detail">이번 서버 실행 중 수집 기록 없음</p>
+        </section>
+        <section class="readout" id="chipRecover">
+            <h2>복구율</h2>
+            <p class="value">-</p>
+            <p class="detail">초기화 후 복구하면 표시됩니다</p>
+        </section>
+    </div>
+</div></header>
+
+<div class="layout">
+    <nav class="toc" aria-label="영역 이동">
+        <a href="#sec-db">DB 상태</a>
+        <a href="#sec-exam">시험일정</a>
+        <a href="#sec-sources">수집 범위</a>
+        <a href="#sec-collect">후기 수집</a>
+        <a href="#sec-recover">복구</a>
+        <a href="#sec-preview">글 미리보기</a>
+        <a href="#sec-ref">참고 학습시간</a>
+        <div class="sep"></div>
+        <a href="#sec-reset" style="color:var(--danger)">크롤링 후기 초기화</a>
+    </nav>
+
+    <main>
+        <details class="sec" id="sec-db" open>
+            <summary><h2>DB 상태</h2><span>연결 · 테이블별 행 수 · 빈 테이블</span></summary>
+            <div class="sec-body">
+                <p class="status" id="dbSummary">확인 중...</p>
+                <div class="row"><button class="btn" onclick="checkDb()">다시 확인</button></div>
+                <details class="out">
+                    <summary>테이블별 행 수 (□ 빈 테이블)</summary>
+                    <pre class="result" id="dbResult">아직 확인하지 않았습니다.</pre>
+                </details>
+            </div>
+        </details>
+
+        <details class="sec" id="sec-exam" open>
+            <summary><h2>시험일정</h2><span>공공데이터 API · 정처기 15074408 · SQLD 15062838</span></summary>
+            <div class="sec-body">
+                <p class="desc">application-local.yml 에 인증키가 없으면 <b>샘플 일정(실제 일정 아님)</b>으로 저장합니다.
+                    결과는 EXAM_ROUNDS, 실행 기록은 DATA_SYNC_JOBS 에 남습니다.</p>
+                <div class="row">
+                    <button class="btn primary" onclick="run('/admin/collect/exam', 'examResult')">정보처리기사 일정 가져오기</button>
+                </div>
+                <details class="out"><summary>정보처리기사 결과</summary>
+                    <pre class="result" id="examResult">아직 실행하지 않았습니다.</pre></details>
+                <div class="sub">
+                    <p class="desc">SQLD 는 큐넷 API 에 없어 <b>한국데이터산업진흥원 데이터 자격검정 시험 정보 API(15062838)</b>에서 가져옵니다.
+                        같은 인증키(data-go-kr-key)로 최근 2년의 SQLD 일반검정 회차만 저장합니다.</p>
+                    <div class="row">
+                        <button class="btn primary" onclick="run('/admin/collect/sqld-schedule', 'sqldResult')">SQLD 일정 가져오기</button>
+                    </div>
+                    <details class="out"><summary>SQLD 결과</summary>
+                        <pre class="result" id="sqldResult">아직 실행하지 않았습니다.</pre></details>
+                </div>
+            </div>
+        </details>
+
+        <details class="sec" id="sec-sources" open>
+            <summary><h2>수집 범위</h2><span>수집기가 글을 찾는 출발점 · 추가하면 다음 수집부터 반영</span></summary>
+            <div class="sec-body">
+                <p class="status info" id="srcSummary">불러오는 중...</p>
+
+                <details class="out">
+                    <summary>velog 와 티스토리의 수집 방법이 다른 이유</summary>
+                    <div style="padding:12px 14px" class="desc">
+                        <p><b>velog — 검색어로 찾습니다.</b> velog 의 태그·검색 결과 화면은 서버가 글 목록을 화면 안에 담아 보내 주므로,
+                            수집기가 그 화면만 읽어도 글 주소를 뽑을 수 있습니다. 그래서 검색어(검색 화면 주소)를 등록해 두면 수집할 때마다
+                            그 검색어의 <b>최근 글 약 20개</b>를 자동으로 찾습니다. 더 오래된 글은 화면을 내릴 때 velog 내부 API 로 불러오는 방식이라 쓰지 않으므로,
+                            범위를 넓히려면 검색어 수를 늘립니다.</p>
+                        <p style="margin-top:8px"><b>티스토리 — 검색어(브라우저), 글 주소, 블로그 RSS 로 찾습니다.</b> 티스토리 통합 검색 결과는 브라우저에서 스크립트가 실행된 뒤에야
+                            그려져서, 글자만 받아 오는 일반 요청으로는 결과가 비어 있습니다. 그 데이터를 주는 내부 API 를 직접 부르는 것은 서비스 모방·우회에 해당할 수 있어 쓰지 않고,
+                            대신 <b>PC 에 설치된 크롬을 화면 없이 실행해 사람이 보는 것과 같은 방식</b>으로 공개 검색 화면만 읽어 글 주소를 찾습니다
+                            (www.tistory.com 에는 robots.txt 가 없어 제한 없음, 카카오 통합약관 제12조 검토 완료, 화면 사이 5초 간격, 우리 봇 이름 표시).
+                            글 본문은 지금처럼 각 블로그의 robots.txt 를 지키며 가져옵니다. 직접 등록한 글 주소와 블로그 RSS(/rss)도 함께 씁니다.</p>
+                        <p style="margin-top:8px">참고: 통계는 같은 작성자를 1건으로 세므로, 같은 블로그에서 글을 더 찾으면 수집 건수는 늘지만 통계 표본은 크게 늘지 않습니다.
+                            새 작성자를 늘리는 데는 velog 검색어 추가와 새 티스토리 글 주소 등록이 효과적입니다.</p>
+                    </div>
+                </details>
+
+                <div class="tabs" role="tablist" aria-label="사이트별 수집 범위">
+                    <button class="tab" role="tab" id="tab-velog" aria-selected="true" onclick="showTab('velog')">velog <span id="cntVelog">-</span></button>
+                    <button class="tab" role="tab" id="tab-tistory" aria-selected="false" onclick="showTab('tistory')">티스토리 <span id="cntTistory">-</span></button>
+                </div>
+
+                <section class="srcpanel" id="panel-velog" role="tabpanel" aria-labelledby="tab-velog">
+                    <p class="note">검색어 1개를 등록하면 수집할 때마다 그 검색 결과의 최근 글 약 20개를 찾습니다. 태그 주소(https://velog.io/tags/…)도 넣을 수 있습니다.</p>
+                    <div class="row">
+                        <input id="velogInput" class="text" type="text" maxlength="200" placeholder="검색어 (예: 정처기 실기 2025 합격) 또는 태그 주소"
+                               onkeydown="if(event.key==='Enter')addVelog()">
+                        <button class="btn primary" onclick="addVelog()">추가</button>
+                    </div>
+                    <input class="text filter" type="search" placeholder="목록에서 찾기" oninput="renderList('velog', this.value)">
+                    <ul class="srclist" id="listVelog"></ul>
+                    <div class="inspect" id="inspectVelog" hidden></div>
+                </section>
+
+                <section class="srcpanel" id="panel-tistory" role="tabpanel" aria-labelledby="tab-tistory" hidden>
+                    <p class="note">검색어를 등록하면 수집할 때 티스토리 통합 검색 화면을 읽어 새 블로그의 후기 글을 찾습니다(PC 에 크롬 필요, 검색어당 최대 5쪽, 6시간에 한 번).
+                        글 주소를 등록하면 그 글 하나를, 블로그 RSS 주소(https://블로그.tistory.com/rss)를 넣으면 그 블로그의 후기 글을 찾습니다.</p>
+                    <div class="row">
+                        <input id="tistoryKeyword" class="text" type="text" maxlength="50" placeholder="검색어 (예: 정처기 실기 직장인 합격)"
+                               onkeydown="if(event.key==='Enter')addTistoryKeyword()">
+                        <button class="btn primary" onclick="addTistoryKeyword()">검색어 추가</button>
+                    </div>
+                    <div class="row" style="align-items:flex-start">
+                        <textarea id="tistoryInput" class="text" rows="3" placeholder="https://abc.tistory.com/123&#10;https://abc.tistory.com/rss"></textarea>
+                        <button class="btn" onclick="addTistory()">주소 추가</button>
+                    </div>
+                    <input class="text filter" type="search" placeholder="목록에서 찾기" oninput="renderList('tistory', this.value)">
+                    <ul class="srclist" id="listTistory"></ul>
+                    <div class="inspect" id="inspectTistory" hidden></div>
+                </section>
+            </div>
+        </details>
+
+        <details class="sec" id="sec-collect" open>
+            <summary><h2>후기 수집</h2><span>velog 검색어 · 티스토리 글 주소 · 수집 이력</span></summary>
+            <div class="sec-body">
+                <details class="out">
+                    <summary>수집 방식과 정책</summary>
+                    <div style="padding:12px 14px" class="desc">
+                        velog 는 수집 범위의 <b>태그·검색 화면</b>에서 후기 글을 찾고(1단계만),
+                        티스토리는 등록된 <b>글 주소</b>와 (켜면) 블로그 RSS 를, 그리고 <b>수집 이력 파일</b>에서 저장했던 글을 후보로 씁니다.
+                        DATA_SOURCES 의 허용 확인 날짜(permission_checked_at)가 없는 사이트는 건너뜁니다.
+                        요청 간격은 velog 1.5초·티스토리 0.5초이고 robots.txt 의 Crawl-delay 가 더 크면 그 값을 따릅니다.
+                        403·429 는 즉시 멈추고, 목록에 적힌 작성일이 3년 지난 글은 요청하지 않습니다.
+                        원문과 작성자 아이디는 저장하지 않습니다.
+                    </div>
+                </details>
+                <div class="row" style="align-items:flex-end">
+                    <label class="field">새로 가져올 글 수 (10~1000)
+                        <input id="limit" type="number" min="10" max="1000" step="10" value="100" style="width:130px" oninput="showEstimate()">
+                    </label>
+                    <label class="field">사이트
+                        <select id="site" onchange="showEstimate()">
+                            <option value="ALL">velog + 티스토리 동시</option>
+                            <option value="TISTORY">티스토리만</option>
+                            <option value="VELOG">velog만</option>
+                        </select>
+                    </label>
+                    <label class="field" style="flex-direction:row;align-items:center;gap:6px;color:var(--ink)">
+                        <input type="checkbox" id="rss" checked> 티스토리 블로그 RSS 로 새 글도 찾기
+                    </label>
+                    <label class="field" style="flex-direction:row;align-items:center;gap:6px;color:var(--ink)">
+                        <input type="checkbox" id="tsearch" checked> 티스토리 검색으로 새 블로그 찾기
+                    </label>
+                    <button class="btn primary" id="startBtn" onclick="startCollect('NEW')">수집 시작</button>
+                    <button class="btn" id="cancelBtn" onclick="cancelCollect()" disabled>중단</button>
+                    <button class="btn" onclick="run('/admin/collect/reviews/discover', 'reviewResult')">후보만 찾아보기</button>
+                </div>
+                <p class="note" id="estimate"></p>
+                <div class="progress" role="progressbar" aria-label="수집 진행률"><div id="bar"></div></div>
+                <p class="progress-text" id="progressText">대기 중</p>
+                <p class="status info" id="phaseText" hidden></p>
+                <details class="out"><summary>수집 상태 자세히</summary>
+                    <pre class="result" id="jobResult">아직 수집하지 않았습니다.</pre></details>
+                <p class="note">수집이 끝나면 참고 학습시간이 자동으로 다시 집계되어 챗봇에 바로 반영됩니다.
+                    화면을 닫아도 서버에서 계속 진행됩니다.</p>
+            </div>
+        </details>
+
+        <details class="sec recover" id="sec-recover" open>
+            <summary><h2>복구</h2><span>크롤링 후기가 지워졌을 때</span></summary>
+            <div class="sec-body">
+                <p class="desc">수집기는 찾은 글 주소와 판정 결과를 <b>수집 이력 파일</b>(프로젝트 폴더, 본문 없음)에 계속 기록합니다.
+                    후기가 지워져도 이 파일로 <b>한 번이라도 저장했던 글</b>을 목록 탐색 없이 바로 다시 수집하고,
+                    초기화 직전 기록과 비교해 복구율과 값 일치율을 보여 줍니다.</p>
+                <div class="row">
+                    <button class="btn primary" id="recoverBtn" onclick="startCollect('RECOVER')">복구 수집</button>
+                    <button class="btn" id="retryBtn" onclick="startCollect('RETRY')">실패한 글 다시 시도</button>
+                    <button class="btn" onclick="recoveryReport()">복구율 확인</button>
+                </div>
+                <p class="status info" id="recoverSummary">초기화 → 복구 수집을 실행하면 결과가 여기에 표시됩니다.</p>
+                <details class="out"><summary>복구 리포트 자세히 (못 살린 글과 이유)</summary>
+                    <pre class="result" id="recoverResult">아직 확인하지 않았습니다.</pre></details>
+            </div>
+        </details>
+
+        <details class="sec" id="sec-preview" open>
+            <summary><h2>글 미리보기</h2><span>글 1개 판정 확인 · 저장하지 않음</span></summary>
+            <div class="sec-body">
+                <div class="row">
+                    <input id="previewUrl" type="url" placeholder="https://velog.io/@아이디/글주소 또는 https://블로그.tistory.com/123"
+                           onkeydown="if(event.key==='Enter')preview()">
+                    <button class="btn primary" onclick="preview()">미리보기</button>
+                </div>
+                <details class="out"><summary>미리보기 · 후보 찾기 · 초기화 결과</summary>
+                    <pre class="result" id="reviewResult">아직 실행하지 않았습니다.</pre></details>
+            </div>
+        </details>
+
+        <details class="sec" id="sec-ref" open>
+            <summary><h2>참고 학습시간</h2><span>STUDY_REFERENCE_STATS</span></summary>
+            <div class="sec-body">
+                <p class="desc">실제 수집 후기(더미·샘플 제외) 중 합격 후기의 총 공부시간을 자격증·시험 구분·전공별로 집계합니다.
+                    표본이 10건 이상이면 <b>실측 평균(VERIFIED)</b>으로 저장되어 학습계획이 잠정값 대신 사용합니다.
+                    후기 수집이 끝나면 자동으로 다시 집계합니다.</p>
+                <div class="row"><button class="btn" onclick="run('/admin/collect/reference-stats', 'refResult')">지금 다시 집계</button></div>
+                <details class="out"><summary>집계 결과</summary>
+                    <pre class="result" id="refResult">아직 실행하지 않았습니다.</pre></details>
+            </div>
+        </details>
+
+        <details class="sec danger" id="sec-reset">
+            <summary><h2>크롤링 후기 초기화</h2><span>되돌릴 수 없음</span></summary>
+            <div class="sec-body">
+                <p class="desc">velog·티스토리에서 수집한 후기를 <b>VALID 포함 모두</b> 지웁니다.
+                    더미 후기·시험일정·회원 데이터와 수집 이력 파일은 지우지 않습니다.
+                    지우기 직전 상태를 기록하므로 복구 후 복구율을 비교할 수 있습니다. 수집 중에는 실행되지 않습니다.</p>
+                <div class="row"><button class="btn danger" onclick="resetReviews()">초기화…</button></div>
+            </div>
+        </details>
+    </main>
+</div>
+
+<script>
+    // 개발자 도구(F12) → Console 탭에 [admin] 으로 요청·응답·오류를 함께 남긴다
+    const LOG = (...a) => console.log('[admin]', ...a);
+    LOG('관리자 화면 스크립트 불러옴', new Date().toLocaleTimeString());
+    window.addEventListener('error', e => console.error('[admin] 스크립트 오류', e.message, e.filename + ':' + e.lineno));
+
+    /** 결과칸에 값을 넣고, 그 결과칸을 감싼 열고 닫기 영역을 연다 */
+    function show(targetId, text) {
+        const box = document.getElementById(targetId);
+        box.textContent = text;
+        for (let d = box.closest('details'); d; d = d.parentElement.closest('details')) d.open = true;
+    }
+
+    /** 상단 상황판 한 칸 갱신. tone: ok / ng / run / 없음 */
+    function setReadout(id, value, detail, tone) {
+        const el = document.getElementById(id);
+        el.querySelector('.value').textContent = value;
+        el.querySelector('.detail').textContent = detail || '\u00a0';
+        if (tone) el.dataset.tone = tone; else delete el.dataset.tone;
+    }
+
+    function toggleAll(open) {
+        document.querySelectorAll('details').forEach(d => d.open = open);
+    }
+
+    async function getJson(url, opts) {
+        const res = await fetch(url, opts);
+        if (res.status === 401) throw new Error('관리자 로그인이 풀렸습니다. 새로고침해 비밀번호를 다시 입력하세요.');
+        const text = await res.text();
+        try {
+            return JSON.parse(text);
+        } catch (e) {
+            console.error('[admin] JSON 아님 (서버 오류 화면일 수 있음):', text.slice(0, 500));
+            throw new Error('서버 응답이 JSON 이 아닙니다 (HTTP ' + res.status + '). Console 확인');
+        }
+    }
+
+    // 버튼을 누르면 POST 요청을 보내고 JSON 결과를 그대로 보여 준다
+    async function run(url, targetId) {
+        show(targetId, '실행 중... (오래 걸리면 F12 → Console 확인)');
+        const t0 = performance.now();
+        LOG('요청 보냄 POST', url);
+        try {
+            const body = await getJson(url, {method: 'POST'});
+            LOG('결과', ((performance.now() - t0) / 1000).toFixed(1) + '초', body);
+            show(targetId, JSON.stringify(body, null, 2));
+        } catch (e) {
+            console.error('[admin] 요청 실패', url, e);
+            show(targetId, '요청 실패: ' + e.message);
+        }
+    }
+
+    // ---- 0. DB 상태 ----
+    async function checkDb() {
+        const sum = document.getElementById('dbSummary');
+        sum.className = 'status';
+        sum.textContent = '확인 중...';
+        try {
+            const st = await getJson('/admin/collect/db-status');
+            LOG('DB 상태', st);
+            if (!st.connected) {
+                sum.className = 'status ng';
+                sum.textContent = 'DB 에 연결하지 못했습니다. ' + (st.error || '') + ' → MariaDB 실행 여부와 application-local.yml 의 접속 정보를 확인하세요.';
+                setReadout('chipDb', '연결 실패', st.error, 'ng');
+                document.getElementById('dbResult').textContent = JSON.stringify(st, null, 2);
+                return;
+            }
+            const empty = st.emptyTables.length;
+            sum.className = 'status ' + (st.error ? 'ng' : 'ok');
+            sum.innerHTML = '<b>연결됨</b> · ' + escapeHtml(st.database || '') + ' · ' + escapeHtml(st.version || '')
+                + ' · 응답 ' + st.elapsedMs + 'ms · 테이블 ' + st.tableCount + '개 · '
+                + (empty === 0 ? '빈 테이블 없음' : '아직 비어 있는 테이블 ' + empty + '개: ' + escapeHtml(st.emptyTables.join(', ')))
+                + (st.error ? '<br>' + escapeHtml(st.error) : '');
+            setReadout('chipDb', '연결됨', (st.database || '') + ' · ' + st.elapsedMs + 'ms · 빈 테이블 ' + empty + '개', 'ok');
+            document.getElementById('dbResult').textContent =
+                st.tables.map(t => (t.rows === 0 ? '□ ' : '■ ') + t.table.padEnd(30) + t.rows.toLocaleString()).join('\n')
+                || JSON.stringify(st, null, 2);
+        } catch (e) {
+            sum.className = 'status ng';
+            sum.textContent = '확인하지 못했습니다: ' + e.message;
+            setReadout('chipDb', '확인 실패', e.message, 'ng');
+        }
+    }
+
+    function escapeHtml(s) {
+        return String(s).replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
+    }
+
+    // ---- 2-②. 백그라운드 수집: 예상 시간 · 시작 · 진행률 · 중단 ----
+    // 예상 근거(4차 실측): 글 1건 약 1초(전체 동시), 티스토리만 약 1.5초, velog만 약 2.5초 + 목록 읽기 약 1분
+    function showEstimate() {
+        const n = clampLimit();
+        const site = document.getElementById('site').value;
+        const perItem = site === 'TISTORY' ? 1.5 : site === 'VELOG' ? 2.5 : 1.0;
+        const sec = n * perItem + 30;
+        const lo = Math.max(1, Math.round(sec * 0.8 / 60)), hi = Math.max(lo + 1, Math.round(sec * 1.5 / 60));
+        const lists = (SRC.velog || []).filter(u => !labelOf(u).kind.startsWith('글')).length;
+        document.getElementById('estimate').textContent =
+            n + '건 → 예상 약 ' + lo + '~' + hi + '분. 이미 아는 글부터 바로 수집하고, velog 목록' + (lists ? ' ' + lists + '개' : '')
+            + '와 티스토리 RSS 는 수집과 동시에 읽어 찾는 대로 더합니다 (목록은 1시간, RSS 는 24시간 동안 다시 읽지 않음). 새 후보가 부족하면 있는 만큼만 수집합니다.';
+    }
+
+    function clampLimit() {
+        const v = parseInt(document.getElementById('limit').value, 10);
+        return isNaN(v) ? 100 : Math.min(1000, Math.max(10, v));
+    }
+
+    let pollTimer = null;
+
+    async function startCollect(mode) {
+        try {
+            const body = new URLSearchParams({limit: clampLimit(), site: document.getElementById('site').value, mode,
+                rss: document.getElementById('rss').checked, tsearch: document.getElementById('tsearch').checked});
+            const st = await getJson('/admin/collect/reviews/start', {method: 'POST', body});
+            LOG('수집 시작 응답', mode, st);
+            render(st);
+            startPolling();
+        } catch (e) {
+            alert(e.message);
+        }
+    }
+
+    async function cancelCollect() {
+        try {
+            render(await getJson('/admin/collect/reviews/cancel', {method: 'POST'}));
+        } catch (e) {
+            alert(e.message);
+        }
+    }
+
+    async function pollStatus() {
+        try {
+            const st = await getJson('/admin/collect/reviews/status');
+            if (st.state === 'RUNNING') LOG('수집 진행', st.mode, st.processed + '/' + st.target, '저장 ' + st.saved, '실패 ' + st.failed);
+            render(st);
+            if (st.state !== 'RUNNING') {
+                stopPolling();
+                if (st.mode === 'RECOVER' || st.mode === 'RETRY') recoveryReport();   // 복구가 끝나면 복구율 자동 표시
+            }
+        } catch (e) { /* 다음 조회에서 다시 시도 */ }
+    }
+
+    function startPolling() {
+        stopPolling();
+        pollTimer = setInterval(pollStatus, 3000);
+    }
+
+    function stopPolling() {
+        if (pollTimer) clearInterval(pollTimer);
+        pollTimer = null;
+    }
+
+    const STATE_LABEL = {IDLE: '대기 중', RUNNING: '수집 중', DONE: '완료', STOPPED: '중단됨(접근 거부·오류)', CANCELLED: '관리자 중단'};
+    const MODE_LABEL = {NEW: '일반 수집', RECOVER: '복구 수집', RETRY: '실패분 다시 시도'};
+
+    function render(st) {
+        const running = st.state === 'RUNNING';
+        ['startBtn', 'recoverBtn', 'retryBtn'].forEach(id => document.getElementById(id).disabled = running);
+        document.getElementById('cancelBtn').disabled = !running;
+        const goal = Math.min(st.target || 0, st.candidates || st.target || 0) || st.target || 0;
+        const pct = goal > 0 ? Math.min(100, Math.round(st.processed * 100 / goal)) : (st.state === 'DONE' ? 100 : 0);
+        document.getElementById('bar').style.width = (st.state === 'IDLE' ? 0 : pct) + '%';
+        const min = Math.floor(st.elapsedSeconds / 60), sec = st.elapsedSeconds % 60;
+        document.getElementById('progressText').textContent = st.state === 'IDLE' ? '대기 중' :
+            '[' + (MODE_LABEL[st.mode] || st.mode) + '] ' + (STATE_LABEL[st.state] || st.state) + ' · ' + st.processed + ' / '
+            + goal + '건 처리 (' + pct + '%) · 저장 ' + st.saved + '건 (VALID ' + st.valid + ') · 건너뜀 ' + st.skipped
+            + ' · 실패 ' + st.failed + (st.retryable > 0 ? ' (다시 시도 가능 ' + st.retryable + ')' : '')
+            + ' · 3년 지난 글 제외 ' + st.oldSkipped + ' · 경과 ' + min + '분 ' + sec + '초';
+        document.getElementById('jobResult').textContent = JSON.stringify(st, null, 2);
+        const ph = document.getElementById('phaseText');
+        ph.hidden = !(running && st.phase);
+        ph.textContent = running && st.phase ? '지금: ' + st.phase + ' · 새 후보 ' + st.candidates + '건 확보' : '';
+        if (st.state === 'IDLE') return;
+        setReadout('chipJob', (MODE_LABEL[st.mode] || '') + ' ' + (STATE_LABEL[st.state] || st.state),
+            st.processed + ' / ' + goal + '건 · 저장 ' + st.saved + ' (VALID ' + st.valid + ') · 실패 ' + st.failed,
+            running ? 'run' : (st.state === 'DONE' ? 'ok' : 'ng'));
+    }
+
+    // ---- 2-③. 복구율 ----
+    async function recoveryReport(quiet) {
+        try {
+            const r = await getJson('/admin/collect/reviews/recovery-report');
+            LOG('복구 리포트', r);
+            const rp = r.report, sum = document.getElementById('recoverSummary');
+            sum.className = 'status ' + (rp.snapshotAt ? (rp.restoreRate >= 90 ? 'ok' : 'info') : 'info');
+            sum.textContent = rp.message + ' · 수집 이력 ' + r.ledgerUrls + '건(저장했던 글 ' + r.ledgerEverSaved + '건)';
+            if (rp.snapshotAt) {
+                setReadout('chipRecover', rp.restoreRate + '%', 'VALID ' + rp.validRestoreRate + '% · 값 일치 ' + rp.sameValueRate
+                    + '% · ' + rp.restored + '/' + rp.before + '건', rp.restoreRate >= 90 ? 'ok' : 'run');
+            }
+            if (quiet) document.getElementById('recoverResult').textContent = JSON.stringify(r, null, 2);
+            else show('recoverResult', JSON.stringify(r, null, 2));
+        } catch (e) {
+            if (!quiet) alert(e.message);
+        }
+    }
+
+    // ---- 2-④. 초기화: 삭제 예정 건수를 먼저 보여 주고, '초기화' 를 직접 입력해야 실행 ----
+    async function resetReviews() {
+        try {
+            const p = await getJson('/admin/collect/reviews/reset');
+            if (p.velog + p.tistory === 0) { alert('지울 크롤링 후기가 없습니다.'); return; }
+            const typed = prompt(p.message + '\n\n되돌릴 수 없습니다. 계속하려면 초기화 라고 입력하세요.');
+            if (typed === null) return;
+            const r = await getJson('/admin/collect/reviews/reset', {method: 'POST', body: new URLSearchParams({confirm: typed})});
+            LOG('초기화 결과', r);
+            show('reviewResult', JSON.stringify(r, null, 2));
+            alert(r.message);
+            pollStatus();
+            checkDb();
+        } catch (e) {
+            alert(e.message);
+        }
+    }
+
+    // ---- 수집 범위 (velog · 티스토리 같은 구성) ----
+    let SRC = {velog: [], tistory: []};
+
+    function showTab(name) {
+        ['velog', 'tistory'].forEach(n => {
+            document.getElementById('tab-' + n).setAttribute('aria-selected', n === name);
+            document.getElementById('panel-' + n).hidden = n !== name;
+        });
+    }
+
+    function labelOf(u) {
+        let t = u;
+        try { t = decodeURIComponent(u); } catch (e) { /* 그대로 */ }
+        if (t.startsWith('https://velog.io/search?q=')) return {kind: '검색어', text: t.slice(26)};
+        if (t.startsWith('https://www.tistory.com/search?keyword=')) return {kind: '검색어', text: t.slice(39)};
+        if (t.startsWith('https://velog.io/tags/')) return {kind: '태그', text: t.slice(22)};
+        if (t.endsWith('/rss')) return {kind: 'RSS', text: t};
+        return {kind: '글', text: t};
+    }
+
+    async function loadSources() {
+        try {
+            const r = await getJson('/admin/collect/sources');
+            SRC.velog = r.listings.filter(u => u.includes('velog.io'));
+            SRC.tistory = (r.tistoryKeywords || []).concat(r.listings.filter(u => u.includes('tistory.com')),
+                r.seeds.filter(u => u.includes('tistory.com')));
+            const velogPosts = r.seeds.filter(u => u.includes('velog.io'));
+            SRC.velog = SRC.velog.concat(velogPosts);
+            document.getElementById('cntVelog').textContent = SRC.velog.length;
+            document.getElementById('cntTistory').textContent = SRC.tistory.length;
+            document.getElementById('srcSummary').textContent = 'velog ' + SRC.velog.length + '개 · 티스토리 ' + SRC.tistory.length
+                + '개 · 파일 위치: ' + r.listingFile.replace(/[\\/][^\\/]+$/, '');
+            showEstimate();
+            renderList('velog', document.querySelector('#panel-velog .filter').value);
+            renderList('tistory', document.querySelector('#panel-tistory .filter').value);
+        } catch (e) {
+            document.getElementById('srcSummary').textContent = '불러오지 못했습니다: ' + e.message;
+        }
+    }
+
+    function renderList(site, filter) {
+        const ul = document.getElementById(site === 'velog' ? 'listVelog' : 'listTistory');
+        const f = (filter || '').trim().toLowerCase();
+        const items = SRC[site].filter(u => !f || labelOf(u).text.toLowerCase().includes(f));
+        ul.innerHTML = '';
+        if (items.length === 0) {
+            const li = document.createElement('li');
+            li.className = 'empty';
+            li.textContent = f ? '찾는 항목이 없습니다.' : '등록된 항목이 없습니다. 위에서 추가하세요.';
+            ul.append(li);
+            return;
+        }
+        items.forEach(u => {
+            const {kind, text} = labelOf(u);
+            const li = document.createElement('li');
+            const k = document.createElement('span');
+            k.className = 'kind';
+            k.textContent = kind;
+            const t = document.createElement('span');
+            t.className = 'label';
+            t.textContent = text;
+            t.title = u;
+            const look = document.createElement('button');
+            look.className = 'btn';
+            look.textContent = kind === '글' ? '미리보기' : '찾은 글 보기';
+            look.onclick = () => kind === '글' ? previewInto(site, u) : inspect(site, u);
+            const del = document.createElement('button');
+            del.className = 'btn';
+            del.textContent = '삭제';
+            del.onclick = () => removeSource(u);
+            li.append(k, t, look, del);
+            ul.append(li);
+        });
+    }
+
+    function inspectBox(site) {
+        const box = document.getElementById(site === 'velog' ? 'inspectVelog' : 'inspectTistory');
+        box.hidden = false;
+        return box;
+    }
+
+    async function inspect(site, url) {
+        const box = inspectBox(site);
+        box.textContent = '여는 중... ' + labelOf(url).text + (url.includes('www.tistory.com/search') ? ' (크롬으로 검색 화면을 여는 중이라 10초 정도 걸립니다)' : '');
+        try {
+            const r = await getJson('/admin/collect/sources/inspect', {method: 'POST', body: new URLSearchParams({url})});
+            LOG('찾은 글', r);
+            box.innerHTML = '';
+            const h = document.createElement('h4');
+            h.textContent = labelOf(url).kind + ' "' + labelOf(url).text + '": ' + r.message;
+            box.append(h);
+            if (r.candidates.length) {
+                const table = document.createElement('table');
+                r.candidates.forEach(c => {
+                    const tr = table.insertRow();
+                    const st = tr.insertCell();
+                    st.className = c.alreadySaved ? 'tag-old' : 'tag-new';
+                    st.textContent = c.alreadySaved ? '저장됨' : '새 글';
+                    const title = tr.insertCell();
+                    const a = document.createElement('a');
+                    a.href = c.url; a.target = '_blank'; a.rel = 'noopener';
+                    a.textContent = c.label || c.url;
+                    title.append(a);
+                    tr.insertCell().textContent = c.listedDate || '';
+                });
+                box.append(table);
+            }
+        } catch (e) {
+            box.textContent = '열지 못했습니다: ' + e.message;
+        }
+    }
+
+    async function previewInto(site, url) {
+        const box = inspectBox(site);
+        box.textContent = '미리보는 중... ' + url;
+        try {
+            const r = await getJson('/admin/collect/reviews/preview?url=' + encodeURIComponent(url), {method: 'POST'});
+            const v = r.review || {};
+            box.innerHTML = '';
+            const h = document.createElement('h4');
+            h.textContent = '미리보기 결과: ' + r.verdict + (r.quality && r.quality.excludeReason ? ' (' + r.quality.excludeReason + ')' : '');
+            const p = document.createElement('p');
+            p.textContent = [r.certificateCode === '1320' ? '정보처리기사' : r.certificateCode, r.postedAt ? '작성 ' + r.postedAt : '',
+                v.passed === true ? '합격' : v.passed === false ? '불합격' : '', v.examType || '', v.prepDays != null ? '준비 ' + v.prepDays + '일' : '',
+                v.dailyMinutes != null ? '하루 ' + v.dailyMinutes + '분' : '', v.totalHours != null ? '총 ' + v.totalHours + '시간' : '', r.message]
+                .filter(Boolean).join(' · ');
+            const pre = document.createElement('pre');
+            pre.className = 'result';
+            pre.textContent = JSON.stringify(r, null, 2);
+            const d = document.createElement('details');
+            d.className = 'out';
+            d.innerHTML = '<summary>자세히</summary>';
+            d.append(pre);
+            box.append(h, p, d);
+        } catch (e) {
+            box.textContent = '미리보지 못했습니다: ' + e.message;
+        }
+    }
+
+    async function addVelog() {
+        const v = document.getElementById('velogInput').value.trim();
+        if (!v) { alert('검색어나 태그 주소를 입력하세요.'); return; }
+        try {
+            const r = v.startsWith('http')
+                ? await getJson('/admin/collect/sources/urls', {method: 'POST', body: new URLSearchParams({text: v})})
+                : await getJson('/admin/collect/sources/velog-keyword', {method: 'POST', body: new URLSearchParams({keyword: v})});
+            LOG('velog 추가', r);
+            alert(r.message);
+            if (r.invalid.length === 0) document.getElementById('velogInput').value = '';
+            loadSources();
+        } catch (e) { alert(e.message); }
+    }
+
+    async function addTistoryKeyword() {
+        const kw = document.getElementById('tistoryKeyword').value.trim();
+        if (!kw) { alert('검색어를 입력하세요.'); return; }
+        try {
+            const r = await getJson('/admin/collect/sources/tistory-keyword', {method: 'POST', body: new URLSearchParams({keyword: kw})});
+            LOG('티스토리 검색어 추가', r);
+            alert(r.message);
+            if (r.invalid.length === 0) document.getElementById('tistoryKeyword').value = '';
+            loadSources();
+        } catch (e) { alert(e.message); }
+    }
+
+    async function addTistory() {
+        const text = document.getElementById('tistoryInput').value;
+        if (!text.trim()) { alert('티스토리 주소를 입력하세요.'); return; }
+        const notTistory = text.split(/\r?\n/).map(l => l.trim()).filter(l => l && !l.includes('tistory.com'));
+        if (notTistory.length && !confirm('티스토리가 아닌 주소 ' + notTistory.length + '개가 있습니다. 그래도 추가할까요?')) return;
+        try {
+            const r = await getJson('/admin/collect/sources/urls', {method: 'POST', body: new URLSearchParams({text})});
+            LOG('티스토리 추가', r);
+            alert(r.message + (r.invalid.length ? '\n\n넣지 않은 주소:\n' + r.invalid.slice(0, 10).join('\n') : ''));
+            if (r.invalid.length === 0) document.getElementById('tistoryInput').value = '';
+            loadSources();
+        } catch (e) { alert(e.message); }
+    }
+
+    async function removeSource(url) {
+        if (!confirm('수집 범위에서 뺄까요?\n' + labelOf(url).text)) return;
+        try {
+            await getJson('/admin/collect/sources/remove', {method: 'POST', body: new URLSearchParams({url})});
+            loadSources();
+        } catch (e) { alert(e.message); }
+    }
+
+    function preview() {
+        const url = document.getElementById('previewUrl').value.trim();
+        LOG('미리보기 버튼 누름', url || '(주소 비어 있음)');
+        if (!url) { alert('미리볼 글 주소를 입력하세요.'); return; }
+        run('/admin/collect/reviews/preview?url=' + encodeURIComponent(url), 'reviewResult');
+    }
+
+    // 화면을 열 때: DB 상태 확인, 실행 중인 수집이 있으면 이어서 표시
+    showEstimate();
+    checkDb();
+    recoveryReport(true).catch(() => {});
+    loadSources();   // 화면을 열 때는 상황판만 채우고 결과칸은 접어 둔다
+    pollStatus().then(() => {
+        if (document.getElementById('cancelBtn').disabled === false) startPolling();
+    });
+</script>
+</body>
+</html>
