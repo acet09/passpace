@@ -1,0 +1,33 @@
+{
+  "_comment": "[용성] 인증키가 없을 때 쓰는 샘플. 실제 API 응답과 같은 항목 이름이지만 날짜는 실제 일정이 아님(테스트용).",
+  "header": { "resultCode": "00", "resultMsg": "NORMAL SERVICE (SAMPLE)" },
+  "body": {
+    "items": [
+      {
+        "implYy": "2027", "implSeq": "1", "qualgbCd": "T", "qualgbNm": "국가기술자격",
+        "description": "샘플 - 2027년 정기 기사 1회 (실제 일정 아님)",
+        "docRegStartDt": "20270112", "docRegEndDt": "20270115",
+        "docExamStartDt": "20270215", "docExamEndDt": "20270306", "docPassDt": "20270312",
+        "pracRegStartDt": "20270323", "pracRegEndDt": "20270326",
+        "pracExamStartDt": "20270419", "pracExamEndDt": "20270509", "pracPassDt": "20270611"
+      },
+      {
+        "implYy": "2027", "implSeq": "2", "qualgbCd": "T", "qualgbNm": "국가기술자격",
+        "description": "샘플 - 2027년 정기 기사 2회 (실제 일정 아님)",
+        "docRegStartDt": "20270413", "docRegEndDt": "20270416",
+        "docExamStartDt": "20270510", "docExamEndDt": "20270530", "docPassDt": "20270611",
+        "pracRegStartDt": "20270622", "pracRegEndDt": "20270625",
+        "pracExamStartDt": "20270719", "pracExamEndDt": "20270808", "pracPassDt": "20270910"
+      },
+      {
+        "implYy": "2027", "implSeq": "3", "qualgbCd": "T", "qualgbNm": "국가기술자격",
+        "description": "샘플 - 2027년 정기 기사 3회 (실제 일정 아님)",
+        "docRegStartDt": "20270720", "docRegEndDt": "20270723",
+        "docExamStartDt": "20270808", "docExamEndDt": "20270901", "docPassDt": "20270908",
+        "pracRegStartDt": "20270928", "pracRegEndDt": "20271001",
+        "pracExamStartDt": "20271101", "pracExamEndDt": "20271121", "pracPassDt": "20271224"
+      }
+    ],
+    "numOfRows": 50, "pageNo": 1, "totalCount": 3
+  }
+}
