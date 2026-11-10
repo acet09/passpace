@@ -17,8 +17,9 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
+import org.springframework.jdbc.core.RowMapper;
+//import static org.mockito.ArgumentMatchers.anyString;
+//import static org.mockito.Mockito.*;
 
 /** [동건] 전공 그룹 통계와 개인 이해도는 별개이며 세션으로 그룹을 결정한다. */
 class StudyHoursByMajorTest {
@@ -68,8 +69,14 @@ class StudyHoursByMajorTest {
 
     @Test
     void catalogSelectsGroupFromSessionAndNotFromClient() {
-        JdbcTemplate jdbc = mock(JdbcTemplate.class);
-        when(jdbc.queryForList(anyString())).thenReturn(List.of());
+//        JdbcTemplate jdbc = mock(JdbcTemplate.class);
+//        when(jdbc.queryForList(anyString())).thenReturn(List.of());
+        JdbcTemplate jdbc = new JdbcTemplate() {
+            @Override
+            public List<Map<String, Object>> queryForList(String sql) { return List.of(); }
+            @Override
+            public <T> List<T> query(String sql, RowMapper<T> rm, Object... args) { return List.of(); }
+        };
         var controller = new MultiGoalPlannerController(jdbc);
 
         CatalogResponse major = (CatalogResponse) controller.catalog(session(MajorType.MAJOR)).getBody();

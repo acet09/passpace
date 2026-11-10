@@ -6,3 +6,5 @@ out/
 # 개인 설정(DB 비밀번호, API 키) - 공유하지 않음
 src/main/resources/application-local.yml
 logs/
+
+collect-data/
