@@ -1,12 +1,12 @@
 package com.passpace.chat;
 
-import com.passpace.chat.controller.MultiGoalPlannerController;
-import com.passpace.chat.controller.MultiGoalPlannerController.CatalogResponse;
-import com.passpace.chat.service.StudyHoursByMajor;
-import com.passpace.chat.service.StudyHoursByMajor.Qualification;
-import com.passpace.common.LoginUser;
-import com.passpace.common.SessionConst;
-import com.passpace.common.code.MajorType;
+import com.passpace.controller.MultiGoalPlannerController;
+import com.passpace.controller.MultiGoalPlannerController.CatalogResponse;
+import com.passpace.service.StudyHoursByMajor;
+import com.passpace.service.StudyHoursByMajor.Qualification;
+import com.passpace.auth.LoginUser;
+import com.passpace.constant.SessionConst;
+import com.passpace.constant.MajorType;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.mock.web.MockHttpServletRequest;

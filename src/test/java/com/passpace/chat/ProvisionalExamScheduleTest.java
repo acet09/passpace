@@ -1,6 +1,6 @@
 package com.passpace.chat;
 
-import com.passpace.chat.service.ProvisionalExamSchedule;
+import com.passpace.service.ProvisionalExamSchedule;
 import org.junit.jupiter.api.Test;
 import java.time.LocalDate;
 import static org.junit.jupiter.api.Assertions.*;

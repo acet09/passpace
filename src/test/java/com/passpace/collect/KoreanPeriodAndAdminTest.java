@@ -1,9 +1,9 @@
 package com.passpace.collect;
 
-import com.passpace.collect.client.RobotsRules;
-import com.passpace.collect.extract.RuleBasedReviewExtractor;
-import com.passpace.collect.web.AdminLoginController;
-import com.passpace.common.review.ExtractedReview;
+import com.passpace.client.RobotsRules;
+import com.passpace.service.RuleBasedReviewExtractor;
+import com.passpace.controller.AdminLoginController;
+import com.passpace.domain.ExtractedReview;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;

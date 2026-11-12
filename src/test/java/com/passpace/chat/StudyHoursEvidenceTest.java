@@ -1,6 +1,6 @@
 package com.passpace.chat;
 
-import com.passpace.chat.service.StudyHoursEvidence;
+import com.passpace.service.StudyHoursEvidence;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

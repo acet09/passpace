@@ -1,19 +1,19 @@
 package com.passpace.collect;
 
-import com.passpace.collect.client.RobotsRules;
-import com.passpace.collect.discover.ListingParser;
-import com.passpace.collect.discover.PostPageParser;
-import com.passpace.collect.discover.PostPageParser.PostPage;
-import com.passpace.collect.discover.ReviewLinkFilter;
-import com.passpace.collect.discover.ReviewLinkFilter.Candidate;
-import com.passpace.collect.discover.ReviewSite;
-import com.passpace.collect.discover.UrlText;
-import com.passpace.collect.extract.CertificateDetector;
-import com.passpace.collect.extract.ReviewQualityChecker;
-import com.passpace.collect.extract.ReviewQualityChecker.PageContext;
-import com.passpace.collect.extract.RuleBasedReviewExtractor;
-import com.passpace.common.code.ExamType;
-import com.passpace.common.review.ExtractedReview;
+import com.passpace.client.RobotsRules;
+import com.passpace.crawler.ListingParser;
+import com.passpace.crawler.PostPageParser;
+import com.passpace.crawler.PostPageParser.PostPage;
+import com.passpace.crawler.ReviewLinkFilter;
+import com.passpace.crawler.ReviewLinkFilter.Candidate;
+import com.passpace.crawler.ReviewSite;
+import com.passpace.crawler.UrlText;
+import com.passpace.service.CertificateDetector;
+import com.passpace.service.ReviewQualityChecker;
+import com.passpace.service.ReviewQualityChecker.PageContext;
+import com.passpace.service.RuleBasedReviewExtractor;
+import com.passpace.constant.ExamType;
+import com.passpace.domain.ExtractedReview;
 import org.jsoup.Jsoup;
 import org.junit.jupiter.api.Test;
 
