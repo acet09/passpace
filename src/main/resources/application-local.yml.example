@@ -5,8 +5,6 @@ spring:
     password: 여기에_DB_비밀번호
 
 passpace:
-  admin:
-    password: 여기에_관리자_비밀번호     # /admin/collect 들어갈 때 입력
   collect:
     data-go-kr-key: 여기에_공공데이터포털_Decoding_인증키
   ollama:

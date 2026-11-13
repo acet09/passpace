@@ -48,10 +48,8 @@ passpace:
     data-dir: collect-data             # 수집 이력·초기화 직전 기록 파일 폴더 (서버 실행 폴더 기준, 본문 없음)
     author-salt: "passpace-default-salt"  # 작성자 해시용. 팀 실제 값은 application-local.yml 에 (공유 저장소에 올리지 않음)
 
-  # [용성] 관리자 화면(/admin/**) 비밀번호. 여기는 비워 두고 application-local.yml 에 적는다.
-  #        비어 있으면 관리자 화면 전체가 잠긴다.
-  admin:
-    password: ""
+  # [JWT] 관리자 비밀번호(passpace.admin.password)는 없앴다.
+  #       관리자 = USERS.role 이 'ADMIN' 인 회원 (db/08_add_user_role.sql 의 UPDATE 한 줄로 지정)
 
   # [동건] 로컬 LLM(Ollama) 설정
   ollama:
@@ -64,6 +62,16 @@ passpace:
   # [동건] 통계 기준 (기획안: 유효 표본 10건 미만이면 통계 미사용)
   stats:
     min-sample: 10
+
+# [JWT] 토큰 설정 (강의안 12주차 p.11, p.36)
+jwt:
+  issuer: passpace
+  # 서명 열쇠 (Base64 글자, 32바이트 이상). 이 값을 아는 사람은 누구나 "진짜 토큰"을 만들 수 있다.
+  #  - 개발용 기본값만 여기 둔다. 실제 값은 환경변수 JWT_SECRET 또는 application-local.yml 에 (저장소에 올리지 않음)
+  #  - 새 값 만들기: jshell 에서 var b = new byte[32]; new java.security.SecureRandom().nextBytes(b); java.util.Base64.getEncoder().encodeToString(b)
+  #  - 바꾸면 그동안 발급된 토큰은 전부 무효 → 모두 다시 로그인
+  secret: ${JWT_SECRET:cGFzc3BhY2UtZGV2LW9ubHktand0LXNlY3JldC1rZXktMjAyNi0xMQ==}
+  access-token-validity-in-seconds: 86400   # 토큰 유효 시간: 24시간
 
 logging:
   level:

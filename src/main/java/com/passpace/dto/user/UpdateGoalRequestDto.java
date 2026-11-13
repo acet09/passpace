@@ -11,13 +11,14 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * [한결] 마이페이지 - 학습 목표 입력값 (모두 선택 입력)
+ * [한결] 학습 목표 저장 요청 (PUT /users/me/goal, 모두 선택 입력)
+ *  예) {"examRoundId":3,"targetExamDate":null,"dailyMinutes":150,"familiarity":{"11":2,"12":3}}
  *  - 목표 회차를 고르면 그 회차의 시험 시작일이 목표 시험일이 된다
  *  - 회차가 없으면 목표 시험일을 직접 입력
  *  - 과목별 사전 이해도: 1(낯섦) / 2(보통) / 3(익숙함)  ← 기획안 3.3
  */
 // TODO(한결): 필드에 검증 어노테이션(jakarta.validation) 추가 - 하루 가용시간 10~720분 (나머지는 선택 입력)
-public class GoalForm {
+public class UpdateGoalRequestDto {
 
     /** EXAM_ROUNDS.exam_round_id (선택) */
     private Long examRoundId;

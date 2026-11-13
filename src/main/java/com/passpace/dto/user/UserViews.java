@@ -14,8 +14,12 @@ public final class UserViews {
     private UserViews() {
     }
 
-    /** 로그인 확인용 계정 정보 (비밀번호 해시 포함 → 화면에 넘기지 않는다) */
-    public record UserAccount(Long userId, String loginId, String passwordHash, String nickname, MajorType majorType) {
+    /**
+     * 로그인 확인용 계정 정보 (비밀번호 해시 포함 → 응답으로 내보내지 않는다)
+     * role: "ADMIN" 또는 "USER" (db/08_add_user_role.sql) → 로그인할 때 토큰에 담는다
+     */
+    public record UserAccount(Long userId, String loginId, String passwordHash, String nickname, MajorType majorType,
+                              String role) {
     }
 
     /** 마이페이지 표시용 회원 정보 */

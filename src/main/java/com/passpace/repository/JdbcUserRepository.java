@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * [한결] USERS 테이블 JDBC 구현.
+ * [한결] USERS 테이블 JDBC 구현.c
  * ERD 원본에서 created_at 은 DEFAULT 가 없으므로 INSERT 할 때 NOW() 를 직접 넣는다.
  */
 @Repository
@@ -99,7 +99,7 @@ public class JdbcUserRepository implements UserRepository {
     @Override
     public Optional<UserAccount> findAccountByLoginId(String loginId) {
         String sql = """
-                SELECT user_id, login_id, password_hash, nickname, major_type
+                SELECT user_id, login_id, password_hash, nickname, major_type, role
                 FROM USERS
                 WHERE login_id = ?
                 """;
@@ -111,12 +111,32 @@ public class JdbcUserRepository implements UserRepository {
                         rs.getString("login_id"),
                         rs.getString("password_hash"),
                         rs.getString("nickname"),
-                        MajorType.fromCode(rs.getString("major_type"))
+                        MajorType.fromCode(rs.getString("major_type")),
+                        rs.getString("role")   // [JWT] 토큰에 담을 권한
                 ),
                 loginId
         );
 
         return accounts.stream().findFirst();
+    }
+
+    @Override
+    public Optional<UserAccount> findAccountByUserId(Long userId) {
+        // [JWT] 회원정보 수정 후 새 토큰을 만들 때 쓴다 (토큰에 들어갈 값을 DB 에서 다시 읽음)
+        String sql = """
+                SELECT user_id, login_id, password_hash, nickname, major_type, role
+                FROM USERS
+                WHERE user_id = ?
+                """;
+
+        return jdbc.query(sql, (rs, rowNum) -> new UserAccount(
+                rs.getLong("user_id"),
+                rs.getString("login_id"),
+                rs.getString("password_hash"),
+                rs.getString("nickname"),
+                MajorType.fromCode(rs.getString("major_type")),
+                rs.getString("role")
+        ), userId).stream().findFirst();
     }
 
     @Override

@@ -8,16 +8,16 @@ import com.passpace.service.StudyHoursEvidence;
 import com.passpace.service.ProvisionalExamSchedule;
 import com.passpace.repository.ChatRepository;
 import com.passpace.service.MultiGoalPlanCalculator.PlanResponse;
-import com.passpace.auth.LoginUser;
-import com.passpace.constant.SessionConst;
+import com.passpace.error.ErrorCode;
+import com.passpace.error.exception.ChatException;
+import com.passpace.jwt.JwtPrincipal;
+import com.passpace.util.ResponseUtil;
 import com.passpace.domain.UserStudyProfile;
 import com.passpace.repository.UserStudyProfileQuery;
 import com.passpace.constant.MajorType;
 import com.passpace.service.StudyHoursByMajor;
 import com.passpace.service.StudyHoursByMajor.Qualification;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
-import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -39,6 +39,11 @@ import java.util.Set;
  * [동건] DB/기존 계약을 바꾸지 않는 통합 플래너 미리보기 API.
  * 과목명과 임시 기준시간은 서버의 근거 레지스트리로 결정한다.
  * 브라우저가 보낸 baseHours는 신뢰하지 않고 서버 값으로 교체한다.
+ *
+ * [JWT] 로그인 확인·전공 구분을 세션 대신 토큰(JwtPrincipal)에서 읽는다.
+ *  - 토큰이 없으면 JwtFilter 가 먼저 401 → 메서드 안의 "로그인했나?" 검사가 필요 없어졌다
+ *  - 실패는 ChatException / IllegalArgumentException 을 던지면 GlobalExceptionHandler 가
+ *    {"status":"ERROR","code":400,"data":{"code":"...","detail":"이유"}} 로 바꿔 준다
  */
 @RestController
 @RequestMapping("/api/chat/planner")
@@ -79,10 +84,8 @@ public class MultiGoalPlannerController {
     }
 
     @GetMapping("/catalog")
-    public ResponseEntity<?> catalog(HttpServletRequest request) {
-        if (!loggedIn(request)) return unauthorized();
-        MajorType major = loginMajor(request);
-        if (major == null) return missingMajor();
+    public ResponseEntity<?> catalog(@AuthenticationPrincipal JwtPrincipal loginUser) {
+        MajorType major = requireMajor(loginUser);
         List<GoalCatalog> goals = new ArrayList<>();
         List<Map<String, Object>> certs = jdbc.queryForList("""
                 SELECT certification_id, cert_name, source_exam_code
@@ -122,15 +125,13 @@ public class MultiGoalPlannerController {
         }
         Integer profileDailyMinutes = null;
         String dailyTimeSource = "미설정";
-        HttpSession session = request.getSession(false);
-        Object sessionUser = session == null ? null : session.getAttribute(SessionConst.LOGIN_USER);
-        if (sessionUser instanceof LoginUser loginUser) {
+        if (loginUser != null) {
             try {
                 List<Integer> stored = jdbc.query("""
                         SELECT daily_minutes FROM USER_GOALS
                         WHERE user_id = ? AND daily_minutes BETWEEN 30 AND 960
                         ORDER BY created_at DESC, goal_id DESC LIMIT 1
-                        """, (rs, rowNum) -> rs.getInt(1), loginUser.userId());
+                        """, (rs, rowNum) -> rs.getInt(1), loginUser.getUserId());
                 if (stored != null && !stored.isEmpty()) {
                     profileDailyMinutes = stored.get(0);
                     dailyTimeSource = "USER_GOALS DB 저장값";
@@ -139,7 +140,7 @@ public class MultiGoalPlannerController {
                 // 팀 통합 전에 확장 컬럼이 누락된 경우: 공통 프로필 계약의 값을 이용한다.
             }
             if (profileDailyMinutes == null) {
-                UserStudyProfile profile = profileQuery.findByUserId(loginUser.userId()).orElse(null);
+                UserStudyProfile profile = profileQuery.findByUserId(loginUser.getUserId()).orElse(null);
                 if (profile != null && profile.dailyMinutes() != null && profile.dailyMinutes() >= 30
                         && profile.dailyMinutes() <= 960) {
                     profileDailyMinutes = profile.dailyMinutes();
@@ -147,9 +148,9 @@ public class MultiGoalPlannerController {
                 }
             }
         }
-        return ResponseEntity.ok(new CatalogResponse(List.copyOf(goals), List.of(
+        return ResponseUtil.SUCCESS(new CatalogResponse(List.copyOf(goals), List.of(
                 "정보처리기사 2027년 필기 4과목, 실기 1과목, SQLD 2024년 이후 2과목을 지원합니다.",
-                "전공 여부는 로그인 세션의 " + major.getLabel() + " 설정을 사용하며, 사용자가 요청으로 변경할 수 없습니다.",
+                "전공 여부는 로그인 정보(토큰)의 " + major.getLabel() + " 설정을 사용하며, 사용자가 요청으로 변경할 수 없습니다.",
                 "과목별 전공·비전공 통계는 분리 관리합니다. 표본 없는 집단은 50명 평균 대신 출처가 명시된 대체 계산값을 사용합니다.",
                 "사전 이해도 1.3/1.0/0.7은 사용자가 과목별로 직접 선택해야 합니다.",
                 "2027 정처기 새 과목의 실측 표본은 0명입니다. 기존 2026 후기를 개편 과목에 " +
@@ -192,14 +193,14 @@ public class MultiGoalPlannerController {
 
     /** 클라이언트 숫자 변조를 막고 등록된 과목 목록/순서만 계산에 반영한다. */
     @PostMapping("/preview")
-    public ResponseEntity<?> preview(@RequestBody PlanRequest plan, HttpServletRequest request) {
-        if (!loggedIn(request)) return unauthorized();
-        MajorType major = loginMajor(request);
-        if (major == null) return missingMajor();
+    public ResponseEntity<?> preview(@RequestBody PlanRequest plan,
+                                     @AuthenticationPrincipal JwtPrincipal loginUser) {
+        MajorType major = requireMajor(loginUser);
         try {
-            return ResponseEntity.ok(calculator.calculate(standardizeServerHours(plan, major), LocalDate.now()));
-        } catch (IllegalArgumentException | ArithmeticException e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+            return ResponseUtil.SUCCESS(calculator.calculate(standardizeServerHours(plan, major), LocalDate.now()));
+        } catch (ArithmeticException e) {
+            // 계산 중 숫자 범위 초과 등 → 사용자 입력 문제로 보고 400
+            throw new ChatException(ErrorCode.INVALID_REQUEST, e.getMessage());
         }
     }
 
@@ -207,23 +208,20 @@ public class MultiGoalPlannerController {
     /** 일반 채팅에서 바로 계산한 계획을 기존 대화방에도 저장한다. */
     @PostMapping("/preview-chat")
     public ResponseEntity<?> previewChat(@RequestBody ChatPlanPreviewRequest body,
-                                         HttpServletRequest request) {
-        if (!loggedIn(request)) return unauthorized();
-        MajorType major = loginMajor(request);
-        if (major == null) return missingMajor();
+                                         @AuthenticationPrincipal JwtPrincipal loginUser) {
+        MajorType major = requireMajor(loginUser);
         if (body == null || body.conId() == null)
-            return ResponseEntity.badRequest().body(Map.of("error", "대화방 ID가 없습니다."));
-        HttpSession session = request.getSession(false);
-        LoginUser user = (LoginUser) session.getAttribute(SessionConst.LOGIN_USER);
-        if (!chatRepository.isOwner(body.conId(), user.userId()))
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "본인 대화방만 수정할 수 있습니다."));
+            throw new ChatException(ErrorCode.INVALID_REQUEST, "대화방 ID가 없습니다.");
+        // "본인 대화방인가"는 주소 규칙(SecurityConfig)으로 알 수 없어서 DB 를 보고 여기서 검사한다 (강의안 p.9)
+        if (!chatRepository.isOwner(body.conId(), loginUser.getUserId()))
+            throw new ChatException(ErrorCode.FORBIDDEN_ACCESS, "본인 대화방만 수정할 수 있습니다.");
         try {
             PlanResponse result = calculator.calculate(standardizeServerHours(body.plan(), major), LocalDate.now());
             String answer = summarizePlan(result);
             chatRepository.insertMessage(body.conId(), "assistant", answer);
-            return ResponseEntity.ok(new ChatPlanPreviewResponse(result, answer));
-        } catch (IllegalArgumentException | ArithmeticException e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+            return ResponseUtil.SUCCESS(new ChatPlanPreviewResponse(result, answer));
+        } catch (ArithmeticException e) {
+            throw new ChatException(ErrorCode.INVALID_REQUEST, e.getMessage());
         }
     }
 
@@ -303,22 +301,13 @@ public class MultiGoalPlannerController {
     private static boolean isSqld(String name) {
         return name != null && (name.toUpperCase().contains("SQLD") || name.contains("SQL 개발자"));
     }
-    private boolean loggedIn(HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-        return session != null && session.getAttribute(SessionConst.LOGIN_USER) instanceof LoginUser;
-    }
-    private MajorType loginMajor(HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-        if (session != null && session.getAttribute(SessionConst.LOGIN_USER) instanceof LoginUser user)
-            return user.majorType();
-        return null;
-    }
-    private ResponseEntity<Map<String, String>> missingMajor() {
-        return ResponseEntity.badRequest().body(Map.of("error",
-                "전공 구분이 설정되지 않았습니다. 마이페이지에서 전공 여부를 먼저 선택하세요."));
-    }
-    private ResponseEntity<Map<String, String>> unauthorized() {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(Map.of("error", "로그인 후 이용할 수 있습니다."));
+    /**
+     * 토큰에 담긴 전공 구분. 없으면 400 MISSING_MAJOR.
+     * (loginUser 가 null 인 경우는 JwtFilter 가 먼저 401 로 막으므로 실제로는 오지 않는다 — 테스트용 방어)
+     */
+    private MajorType requireMajor(JwtPrincipal loginUser) {
+        if (loginUser == null) throw new ChatException(ErrorCode.FAILURE_JWT_VERIFIED);
+        if (loginUser.getMajorType() == null) throw new ChatException(ErrorCode.MISSING_MAJOR);
+        return loginUser.getMajorType();
     }
 }

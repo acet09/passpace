@@ -8,7 +8,7 @@ import com.passpace.dto.chat.ChatDtos.PlanNumbers;
 import com.passpace.dto.chat.ChatDtos.StatsSummary;
 import com.passpace.repository.ChatRepository;
 import com.passpace.service.AnswerComposer.AnswerContext;
-import com.passpace.auth.LoginUser;
+import com.passpace.jwt.JwtPrincipal;
 import com.passpace.constant.ExamType;
 import com.passpace.constant.MajorType;
 import com.passpace.constant.StudyMethod;
@@ -64,22 +64,22 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
-    public ChatResponse answer(ChatRequest request, LoginUser loginUser) {
+    public ChatResponse answer(ChatRequest request, JwtPrincipal loginUser) {
         if (request == null || request.message() == null || request.message().isBlank())
             throw new IllegalArgumentException("질문을 입력해 주세요.");
         String message = request.message().trim();
         if (message.length() > MAX_MESSAGE)
             throw new IllegalArgumentException("질문은 500자 이내로 입력해 주세요.");
-        if (loginUser == null || loginUser.userId() == null)
+        if (loginUser == null || loginUser.getUserId() == null)
             throw new IllegalArgumentException("로그인 사용자 정보가 없습니다.");
         long certId = chatRepository.findCertificationId(examCode)
                 .orElseThrow(() -> new IllegalStateException("자격증 기준 데이터가 없습니다. 03_seed.sql 실행 여부를 확인하세요."));
         Long conId = request.conId();
         List<String> history;
-        if (conId != null && chatRepository.isOwner(conId, loginUser.userId())) {
+        if (conId != null && chatRepository.isOwner(conId, loginUser.getUserId())) {
             history = chatRepository.findRecentUserMessages(conId, HISTORY_LIMIT);
         } else {
-            conId = chatRepository.createConversation(loginUser.userId(),
+            conId = chatRepository.createConversation(loginUser.getUserId(),
                     message.length() <= 60 ? message : message.substring(0, 60));
             history = List.of();
         }
@@ -120,9 +120,9 @@ public class ChatServiceImpl implements ChatService {
         if (current.examDatePast())
             return reply(conId, "입력하신 시험일이 이미 지났습니다. 앞으로의 시험일을 다시 알려 주세요.", "지난 시험일");
 
-        UserStudyProfile profile = profileQuery.findByUserId(loginUser.userId()).orElse(null);
+        UserStudyProfile profile = profileQuery.findByUserId(loginUser.getUserId()).orElse(null);
         MajorType major = cond.majorType() != null ? cond.majorType()
-                : loginUser.majorType() != null ? loginUser.majorType()
+                : loginUser.getMajorType() != null ? loginUser.getMajorType()
                 : profile == null ? null : profile.majorType();
         ExamType examType = cond.examType() == null ? ExamType.WRITTEN : cond.examType();
         LocalDate examDate = cond.examDate();

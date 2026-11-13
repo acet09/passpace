@@ -19,6 +19,9 @@ public interface UserRepository {
 
     Optional<UserAccount> findAccountByLoginId(String loginId);
 
+    /** [JWT] 토큰 재발급용 (회원정보 수정 직후) */
+    Optional<UserAccount> findAccountByUserId(Long userId);
+
     Optional<UserProfile> findProfile(Long userId);
 
     void updateProfile(Long userId, String nickname, String email, MajorType majorType);

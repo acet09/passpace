@@ -1,198 +1,79 @@
 package com.passpace.controller;
 
-import com.passpace.auth.LoginUser;
-import com.passpace.constant.SessionConst;
-import com.passpace.constant.MajorType;
-import com.passpace.dto.user.LoginForm;
-import com.passpace.dto.user.SignUpForm;
-import com.passpace.error.exception.DuplicateUserException;
-import com.passpace.error.exception.LoginFailedException;
-import com.passpace.service.UserService;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
+import com.passpace.dto.auth.LoginUserRequestDto;
+import com.passpace.dto.auth.SignupRequestDto;
+import com.passpace.jwt.JwtPrincipal;
+import com.passpace.service.AuthService;
+import com.passpace.util.ResponseUtil;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.net.URI;
-
-import java.nio.charset.StandardCharsets;
-
-/** [한결] ② 로그인 ③ 회원가입, 로그아웃 */
-@Controller
+/**
+ * 인증 API — 강의안 12주차 AuthController 와 같은 주소·모양.
+ *
+ *   POST /auth/signup     누구나          → data: { userId }
+ *   POST /auth/login      누구나          → data: { accessToken, expiresInSeconds }
+ *   GET  /auth/user-info  로그인(토큰)    → data: { userId, loginId, nickname, email, majorType, role, ... }
+ *
+ * 로그아웃 API 는 없다: 토큰 방식은 "화면(앱)이 저장한 토큰을 지우면 로그아웃" 이다 (static/js/auth.js 의 logout).
+ * [passpace] 예전 세션 방식 AuthController(화면 + 세션 저장)를 이 JSON API 로 바꿨다.
+ *            로그인·회원가입 "화면"은 PageController 가 돌려준다.
+ */
+@Tag(name = "인증 (Auth)", description = "회원가입 · 로그인(JWT 발급) · 내 정보")
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/auth")
 public class AuthController {
 
-    private final UserService userService;
+    private final AuthService authService;
 
-    public AuthController(UserService userService) {
-        this.userService = userService;
-    }
-
-    /** 회원가입·마이페이지의 전공 선택 상자에 쓰는 값 */
-    @ModelAttribute("majorTypes")
-    public MajorType[] majorTypes() {
-        // TODO(한결): 구현
-        return MajorType.values();
-    }
-
-    // ---------------- 회원가입 ----------------
-
-    @GetMapping("/signup")
-    public String signupForm(Model model) {
-        // TODO(한결): 구현
-        model.addAttribute("form", new SignUpForm());
-
-        return "user/signup";
-    }
-
+    @Operation(summary = "회원가입", description = "일반 사용자(USER)로 가입합니다. **인증 불필요**")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "data: { userId }"),
+            @ApiResponse(responseCode = "400", description = "INVALID_REQUEST (입력 규칙 위반, 비밀번호 확인 불일치)"),
+            @ApiResponse(responseCode = "409", description = "DUPLICATED_LOGIN_ID · DUPLICATED_EMAIL")
+    })
+    @SecurityRequirements            // Swagger 에서 이 API 는 자물쇠(토큰) 없이 표시
     @PostMapping("/signup")
-    public String signup(@Valid @ModelAttribute("form") SignUpForm form, BindingResult binding,
-                         HttpServletRequest request) {
-        // TODO(한결): 구현
-        if (form.getPassword() != null
-                && form.getPassword().getBytes(StandardCharsets.UTF_8).length > 72) {
-            binding.rejectValue(
-                    "password",
-                    "passwordTooLong",
-                    "비밀번호는 72바이트 이하여야 합니다. 한글만 입력하면 최대 24자입니다."
-            );
-        }
-
-        if (binding.hasErrors()) {
-            return "user/signup";
-        }
-
-        if (form.getPassword() != null
-                && !form.getPassword().equals(form.getPasswordConfirm())) {
-            binding.rejectValue(
-                    "passwordConfirm",
-                    "passwordMismatch",
-                    "비밀번호가 일치하지 않습니다."
-            );
-    }
-        if (binding.hasErrors()) {
-            return "user/signup";
-        }
-
-        try {
-            LoginUser loginUser = userService.signUp(form);
-
-            startSession(request, loginUser);
-
-            return "redirect:/mypage";
-
-        } catch (DuplicateUserException e) {
-            binding.rejectValue(
-                    e.getField(),
-                    "duplicate",
-                    e.getMessage()
-            );
-
-            return "user/signup";
-        }
+    public ResponseEntity<?> signup(@Valid @RequestBody SignupRequestDto request) {
+        return ResponseUtil.SUCCESS(authService.signup(request));
     }
 
+    @Operation(summary = "로그인", description = """
+            아이디·비밀번호가 맞으면 JWT 를 발급합니다. **인증 불필요**
 
-    // ---------------- 로그인 ----------------
-
-    @GetMapping("/login")
-    public String loginForm(Model model, @RequestParam(defaultValue = "/") String redirectURL) {
-        // TODO(한결): 구현
-        model.addAttribute("form", new LoginForm());
-
-        model.addAttribute("redirectURL", safeRedirectURL(redirectURL));
-
-        return "user/login";
-    }
-
+            받은 `accessToken` 을 이후 요청 헤더에 `Authorization: Bearer {accessToken}` 으로 넣습니다.
+            """)
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "data: { accessToken, expiresInSeconds }"),
+            @ApiResponse(responseCode = "400", description = "FAILURE_LOGIN (아이디 없음·비밀번호 틀림을 구분하지 않음)")
+    })
+    @SecurityRequirements
     @PostMapping("/login")
-    public String login(@Valid @ModelAttribute("form") LoginForm form, BindingResult binding,
-                        @RequestParam(defaultValue = "/") String redirectURL,
-                        HttpServletRequest request, Model model) {
-        // TODO(한결): 구현
-        String targetURL = safeRedirectURL(redirectURL);
-
-        model.addAttribute("redirectURL", targetURL);
-
-        if (binding.hasErrors()) {
-            return "user/login";
-    }
-        try {
-            LoginUser loginUser = userService.login(
-                    form.getLoginId(),
-                    form.getPassword()
-            );
-
-            startSession(request, loginUser);
-
-            return "redirect:" + targetURL;
-
-        } catch (LoginFailedException e) {
-            binding.reject("loginFailed", e.getMessage());
-
-            return "user/login";
-        }
+    public ResponseEntity<?> login(@Valid @RequestBody LoginUserRequestDto request) {
+        return ResponseUtil.SUCCESS(authService.login(request));
     }
 
-    // ---------------- 로그아웃 ----------------
-
-    @PostMapping("/logout")
-    public String logout(HttpServletRequest request) {
-        // TODO(한결): 구현
-        HttpSession session = request.getSession(false);
-
-        if (session != null) {
-            session.invalidate();
-        }
-
-        return "redirect:/";
-    }
-
-    /** 세션 고정 공격을 막기 위해 기존 세션을 버리고 새 세션에 로그인 정보를 저장 */
-    private void startSession(HttpServletRequest request, LoginUser loginUser) {
-        // TODO(한결): 구현
-        HttpSession oldSession = request.getSession(false);
-
-        if (oldSession != null) {
-            oldSession.invalidate();
-        }
-
-        HttpSession session = request.getSession(true);
-
-        session.setAttribute(SessionConst.LOGIN_USER, loginUser);
-    }
-
-    private String safeRedirectURL(String redirectURL) {
-        if (redirectURL == null
-                || !redirectURL.startsWith("/")
-                || redirectURL.startsWith("//")) {
-            return "/";
-        }
-
-        try {
-            URI uri = URI.create(redirectURL);
-            String path = uri.getPath();
-
-            if (uri.isAbsolute()
-                    || uri.getRawAuthority() != null
-                    || path == null
-                    || path.startsWith("//")
-                    || path.contains("\\")
-                    || path.chars().anyMatch(c ->
-                    Character.isISOControl(c)
-                            || Character.isWhitespace(c))) {
-                return "/";
-            }
-
-            return uri.toASCIIString();
-
-        } catch (IllegalArgumentException e) {
-            return "/";
-        }
+    @Operation(summary = "내 정보", description = "토큰의 userId 로 내 정보를 조회합니다. 화면 위쪽 '닉네임 님' 표시에도 씁니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "data: { userId, loginId, nickname, email, majorType, role, createdAt }"),
+            @ApiResponse(responseCode = "401", description = "토큰 없음·만료·변조")
+    })
+    @GetMapping("/user-info")
+    public ResponseEntity<?> userInfo(@AuthenticationPrincipal JwtPrincipal loginUser) {
+        // loginUser 는 JwtFilter 가 토큰을 풀어 넣어 둔 값 — 세션을 보지 않는다
+        return ResponseUtil.SUCCESS(authService.findOneUser(loginUser));
     }
 }

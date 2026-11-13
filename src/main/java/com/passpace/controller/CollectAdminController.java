@@ -21,18 +21,23 @@ import com.passpace.service.StudyReferenceAggregator;
 import com.passpace.service.StudyReferenceAggregator.AggregateLine;
 
 import java.util.List;
-import org.springframework.stereotype.Controller;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RestController;
+import com.passpace.util.ResponseUtil;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
- * [용성] 관리자 수집 실행 화면 /admin/collect
- * ※ /admin/** 는 관리자 비밀번호(passpace.admin.password)를 입력한 세션만 들어올 수 있다 (collect.web.AdminAuthInterceptor)
+ * [용성] 관리자 수집 API  /admin/collect/**
+ * ※ 화면(HTML)은 PageController 가 GET /admin/collect 로 돌려주고, 화면의 버튼이 아래 API 를 부른다.
+ * ※ [JWT] 예전에는 관리자 비밀번호 + 세션(AdminAuthInterceptor)으로 잠갔다.
+ *         이제는 SecurityConfig 의 .requestMatchers("/admin/**").hasRole("ADMIN") 한 줄이 막는다.
+ *         → 토큰 없음 401, USER 토큰 403, ADMIN 토큰만 통과 (Controller 안에는 검사 코드가 없다)
+ * ※ 응답은 모두 ResponseUtil.SUCCESS(...) → {"status":"SUCCESS","code":200,"data":...}
  * ※ 나중에 정기 수집은 @Scheduled 스케줄러가 같은 Service 를 호출하도록 확장한다.
  */
-@Controller
+@RestController
 public class CollectAdminController {
 
     private final ExamCollectService examCollectService;
@@ -61,49 +66,40 @@ public class CollectAdminController {
 
     /** SQLD 시험일정 (2차 출처 크롤링) */
     @PostMapping("/admin/collect/sqld-schedule")
-    @ResponseBody
-    public CollectResult collectSqldSchedule() {
-        return sqldScheduleCollectService.collect();
+    public ResponseEntity<?> collectSqldSchedule() {
+        return ResponseUtil.SUCCESS(sqldScheduleCollectService.collect());
     }
 
-    @GetMapping("/admin/collect")
-    public String page() {
-        return "collect/admin";
-    }
 
     /** 시험일정 수집 (공공데이터 API, 키가 없으면 샘플) */
     @PostMapping("/admin/collect/exam")
-    @ResponseBody
-    public CollectResult collectExam() {
-        return examCollectService.collectExamSchedule();
+    public ResponseEntity<?> collectExam() {
+        return ResponseUtil.SUCCESS(examCollectService.collectExamSchedule());
     }
 
     /** 후기 수집 (목록·피드 자동 탐색 + 직접 지정 URL). 끝나면 참고 학습시간을 다시 집계한다 */
     @PostMapping("/admin/collect/reviews")
-    @ResponseBody
-    public CollectResult collectReviews() {
+    public ResponseEntity<?> collectReviews() {
         CollectResult result = reviewCollectService.collectReviews();
         referenceAggregator.refreshAll();
-        return result;
+        return ResponseUtil.SUCCESS(result);
     }
 
     /** 백그라운드 수집 시작: 새로 가져올 글 수(10~1000)와 사이트(ALL/VELOG/TISTORY). 끝나면 참고 학습시간 자동 집계 */
     @PostMapping("/admin/collect/reviews/start")
-    @ResponseBody
-    public CollectJobStatus startReviews(@RequestParam(value = "limit", defaultValue = "100") int limit,
+    public ResponseEntity<?> startReviews(@RequestParam(value = "limit", defaultValue = "100") int limit,
                                          @RequestParam(value = "site", defaultValue = "ALL") String site,
                                          @RequestParam(value = "mode", defaultValue = "NEW") String mode,
                                          @RequestParam(value = "rss", defaultValue = "false") boolean rss,
                                          @RequestParam(value = "tsearch", defaultValue = "false") boolean tsearch) {
-        return reviewCollectService.startCollect(limit, site, mode, rss, tsearch);
+        return ResponseUtil.SUCCESS(reviewCollectService.startCollect(limit, site, mode, rss, tsearch));
     }
 
     // ---------------- 수집 범위(기준점) 관리 ----------------
 
     /** 지금 수집 범위: 목록 주소 전체 + 글 주소 수(목록은 앞 300개만) + 파일 위치 */
     @GetMapping("/admin/collect/sources")
-    @ResponseBody
-    public Map<String, Object> sources() {
+    public ResponseEntity<?> sources() {
         Map<String, Object> m = new LinkedHashMap<>();
         var seeds = sourceRegistry.seeds();
         m.put("listings", sourceRegistry.listings());
@@ -112,114 +108,100 @@ public class CollectAdminController {
         m.put("seeds", seeds);
         m.put("listingFile", sourceRegistry.listingPath().toString());
         m.put("seedFile", sourceRegistry.seedPath().toString());
-        return m;
+        return ResponseUtil.SUCCESS(m);
     }
 
     /** velog 검색어 추가 */
     @PostMapping("/admin/collect/sources/velog-keyword")
-    @ResponseBody
-    public SourceRegistry.AddResult addVelogKeyword(@RequestParam("keyword") String keyword) {
-        return sourceRegistry.addVelogKeyword(keyword);
+    public ResponseEntity<?> addVelogKeyword(@RequestParam("keyword") String keyword) {
+        return ResponseUtil.SUCCESS(sourceRegistry.addVelogKeyword(keyword));
     }
 
     /** 티스토리 검색어 추가 */
     @PostMapping("/admin/collect/sources/tistory-keyword")
-    @ResponseBody
-    public SourceRegistry.AddResult addTistoryKeyword(@RequestParam("keyword") String keyword) {
-        return sourceRegistry.addTistoryKeyword(keyword);
+    public ResponseEntity<?> addTistoryKeyword(@RequestParam("keyword") String keyword) {
+        return ResponseUtil.SUCCESS(sourceRegistry.addTistoryKeyword(keyword));
     }
 
     /** 주소 여러 줄 추가 (글 주소 / velog 태그·검색 화면 / 티스토리 RSS) */
     @PostMapping("/admin/collect/sources/urls")
-    @ResponseBody
-    public SourceRegistry.AddResult addUrls(@RequestParam("text") String text) {
-        return sourceRegistry.addUrls(text);
+    public ResponseEntity<?> addUrls(@RequestParam("text") String text) {
+        return ResponseUtil.SUCCESS(sourceRegistry.addUrls(text));
     }
 
     /** 목록 주소 1개를 열어 찾은 후기 글 보기 (velog 검색어·태그, 티스토리 RSS) */
     @PostMapping("/admin/collect/sources/inspect")
-    @ResponseBody
-    public ListingInspect inspectSource(@RequestParam("url") String url) {
-        return reviewCollectService.inspectListing(url);
+    public ResponseEntity<?> inspectSource(@RequestParam("url") String url) {
+        return ResponseUtil.SUCCESS(reviewCollectService.inspectListing(url));
     }
 
     /** 주소 1개 삭제 */
     @PostMapping("/admin/collect/sources/remove")
-    @ResponseBody
-    public Map<String, Object> removeSource(@RequestParam("url") String url) {
-        return Map.of("removed", sourceRegistry.remove(url), "url", url);
+    public ResponseEntity<?> removeSource(@RequestParam("url") String url) {
+        return ResponseUtil.SUCCESS(Map.of("removed", sourceRegistry.remove(url), "url", url));
     }
 
     /** 복구율 리포트: 초기화 직전 기록 ↔ 지금 DB (+ 수집 이력 파일 위치·건수) */
     @GetMapping("/admin/collect/reviews/recovery-report")
-    @ResponseBody
-    public Map<String, Object> recoveryReport() {
+    public ResponseEntity<?> recoveryReport() {
         RecoveryReport r = recoveryReporter.report();
         Map<String, Object> m = new LinkedHashMap<>();
         m.put("report", r);
         m.put("ledgerFile", ledger.ledgerPath().toString());
         m.put("ledgerUrls", ledger.size());
         m.put("ledgerEverSaved", ledger.everSaved().size());
-        return m;
+        return ResponseUtil.SUCCESS(m);
     }
 
     /** DB 연결 성공/실패 + 테이블별 행 수 + 빈 테이블 */
     @GetMapping("/admin/collect/db-status")
-    @ResponseBody
-    public DbStatus dbStatus() {
-        return dbStatusChecker.check();
+    public ResponseEntity<?> dbStatus() {
+        return ResponseUtil.SUCCESS(dbStatusChecker.check());
     }
 
     /** 백그라운드 수집 진행 상황 (화면이 3초마다 조회) */
     @GetMapping("/admin/collect/reviews/status")
-    @ResponseBody
-    public CollectJobStatus reviewStatus() {
-        return reviewCollectService.jobStatus();
+    public ResponseEntity<?> reviewStatus() {
+        return ResponseUtil.SUCCESS(reviewCollectService.jobStatus());
     }
 
     /** 백그라운드 수집 중단 (처리 중인 글까지만) */
     @PostMapping("/admin/collect/reviews/cancel")
-    @ResponseBody
-    public CollectJobStatus cancelReviews() {
-        return reviewCollectService.cancelCollect();
+    public ResponseEntity<?> cancelReviews() {
+        return ResponseUtil.SUCCESS(reviewCollectService.cancelCollect());
     }
 
     /** 크롤링 후기 초기화 미리보기 (삭제 예정 건수만) */
     @GetMapping("/admin/collect/reviews/reset")
-    @ResponseBody
-    public ResetReport resetPreview() {
-        return reviewCollectService.resetCrawledReviews(false);
+    public ResponseEntity<?> resetPreview() {
+        return ResponseUtil.SUCCESS(reviewCollectService.resetCrawledReviews(false));
     }
 
     /** 크롤링 후기 초기화 실행: confirm 에 "초기화" 를 정확히 넣어야 실행 */
     @PostMapping("/admin/collect/reviews/reset")
-    @ResponseBody
-    public ResetReport reset(@RequestParam(value = "confirm", defaultValue = "") String confirm) {
+    public ResponseEntity<?> reset(@RequestParam(value = "confirm", defaultValue = "") String confirm) {
         if (!"초기화".equals(confirm.strip())) {
             ResetReport preview = reviewCollectService.resetCrawledReviews(false);
-            return new ResetReport(false, preview.velog(), preview.tistory(), "확인 문구가 맞지 않아 삭제하지 않았습니다.");
+            return ResponseUtil.SUCCESS(new ResetReport(false, preview.velog(), preview.tistory(), "확인 문구가 맞지 않아 삭제하지 않았습니다."));
         }
-        return reviewCollectService.resetCrawledReviews(true);
+        return ResponseUtil.SUCCESS(reviewCollectService.resetCrawledReviews(true));
     }
 
     /** 탐색만: 목록·피드에서 어떤 글이 후보로 잡히는지 확인 (글 페이지는 가져오지 않고 저장 안 함) */
     @PostMapping("/admin/collect/reviews/discover")
-    @ResponseBody
-    public DiscoverReport discoverReviews() {
-        return reviewCollectService.discover();
+    public ResponseEntity<?> discoverReviews() {
+        return ResponseUtil.SUCCESS(reviewCollectService.discover());
     }
 
     /** 미리보기: 글 1개를 가져와 추출·검사 결과만 보여 준다 (저장 안 함) */
     @PostMapping("/admin/collect/reviews/preview")
-    @ResponseBody
-    public PreviewReport previewReview(@RequestParam("url") String url) {
-        return reviewCollectService.preview(url);
+    public ResponseEntity<?> previewReview(@RequestParam("url") String url) {
+        return ResponseUtil.SUCCESS(reviewCollectService.preview(url));
     }
 
     /** 참고 학습시간(STUDY_REFERENCE_STATS) 다시 집계: 실측 표본 10건 이상이면 잠정값 대신 쓰인다 */
     @PostMapping("/admin/collect/reference-stats")
-    @ResponseBody
-    public List<AggregateLine> refreshReferenceStats() {
-        return referenceAggregator.refreshAll();
+    public ResponseEntity<?> refreshReferenceStats() {
+        return ResponseUtil.SUCCESS(referenceAggregator.refreshAll());
     }
 }

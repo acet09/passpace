@@ -2,13 +2,12 @@ package com.passpace.collect;
 
 import com.passpace.client.RobotsRules;
 import com.passpace.service.RuleBasedReviewExtractor;
-import com.passpace.controller.AdminLoginController;
 import com.passpace.domain.ExtractedReview;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/** [용성] 4차 수정 테스트: 한글 기간 표현 · Crawl-delay · 관리자 이동 주소 (네트워크·DB 없이 실행) */
+/** [용성] 4차 수정 테스트: 한글 기간 표현 · Crawl-delay (네트워크·DB 없이 실행) */
 class KoreanPeriodAndAdminTest {
 
     private final RuleBasedReviewExtractor extractor = new RuleBasedReviewExtractor();
@@ -62,12 +61,6 @@ class KoreanPeriodAndAdminTest {
         assertThat(RobotsRules.parse("User-agent: *\nDisallow:", "PasspaceStudentBot").crawlDelayMs()).isZero();
     }
 
-    @Test
-    void 관리자_로그인_후_이동은_관리자_화면_안쪽만() {
-        assertThat(AdminLoginController.safeRedirect("/admin/collect")).isEqualTo("/admin/collect");
-        assertThat(AdminLoginController.safeRedirect("https://evil.example")).isEqualTo("/admin/collect");
-        assertThat(AdminLoginController.safeRedirect("//evil.example")).isEqualTo("/admin/collect");
-        assertThat(AdminLoginController.safeRedirect("/admin/login")).isEqualTo("/admin/collect");
-        assertThat(AdminLoginController.safeRedirect(null)).isEqualTo("/admin/collect");
-    }
+    // [JWT] 관리자 비밀번호 로그인(AdminLoginController)을 없애서 "로그인 후 이동 주소" 테스트도 뺐다.
+    //       관리자 권한 검사는 SecurityConfig 의 hasRole("ADMIN") 이 맡는다 → jwt/JwtUtilTest 참고
 }

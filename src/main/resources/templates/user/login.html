@@ -1,11 +1,10 @@
 <!DOCTYPE html>
 <!--
-  [한결] ② 로그인 "/login" - 빈칸본
-  모델 값: form (LoginForm), redirectURL
-  TODO(한결)
-   - POST /login 폼, th:object="${form}"
-   - 입력칸 이름은 LoginForm 필드와 같게: loginId, password  (+ hidden redirectURL)
-   - 칸별 오류(th:errors), 로그인 실패 메시지(global error)
+  [한결] ② 로그인 "/login"
+  [JWT] 예전: 폼을 POST /login 으로 보내면 서버가 세션에 저장
+        지금: JS 가 POST /auth/login 을 부르고, 받은 토큰을 브라우저에 저장 (auth.js 의 PP.login)
+              → 성공하면 redirectURL(로그인 전에 가려던 화면)로 이동
+  입력칸 이름(loginId, password)과 화면 모양은 예전 그대로.
 -->
 <html xmlns:th="http://www.thymeleaf.org" lang="ko">
 <head th:replace="~{fragments/layout :: head('로그인')}"></head>
@@ -24,61 +23,25 @@
     </aside>
     <!-- 기존 코드: 폼 전송 주소·입력 이름·서버 검증 오류 유지 -->
     <section class="auth-card" aria-labelledby="auth-title">
-        <p class="form-kicker">나의 학습을 이어가세요</p>
+        <p class="form-kicker" id="login-kicker">나의 학습을 이어가세요</p>
         <h1 id="auth-title">로그인</h1>
-        <p>로그인하고 나의 학습 목표를 확인해 보세요.</p>
+        <p id="login-desc">로그인하고 나의 학습 목표를 확인해 보세요.</p>
 
-        <form th:action="@{/login}"
-              th:object="${form}"
-              method="post"
-              novalidate>
+        <form id="login-form" novalidate>
 
-            <input type="hidden"
-                   name="redirectURL"
-                   th:value="${redirectURL}">
-
-            <div class="global-error"
-                 role="alert"
-                 th:if="${#fields.hasGlobalErrors()}">
-
-                <p th:each="error : ${#fields.globalErrors()}"
-                   th:text="${error}">
-                    아이디 또는 비밀번호가 올바르지 않습니다.
-                </p>
-            </div>
+            <!-- 서버가 돌려준 오류 문장(예: "아이디 또는 비밀번호가 맞지 않습니다.")을 여기에 보여 준다 -->
+            <div class="global-error" role="alert" id="login-error" hidden></div>
 
             <div class="form-field">
                 <label for="loginId">아이디</label>
-
-                <input type="text"
-                       id="loginId"
-                       th:field="*{loginId}"
-                       th:errorclass="input-error"
-                       autocomplete="username"
-                       placeholder="아이디를 입력해 주세요">
-
-                <p class="field-error"
-                   th:if="${#fields.hasErrors('loginId')}"
-                   th:errors="*{loginId}">
-                    아이디 오류 메시지
-                </p>
+                <input type="text" id="loginId" name="loginId"
+                       autocomplete="username" placeholder="아이디를 입력해 주세요">
             </div>
 
             <div class="form-field">
                 <label for="password">비밀번호</label>
-
-                <input type="password"
-                       id="password"
-                       th:field="*{password}"
-                       th:errorclass="input-error"
-                       autocomplete="current-password"
-                       placeholder="비밀번호를 입력해 주세요">
-
-                <p class="field-error"
-                   th:if="${#fields.hasErrors('password')}"
-                   th:errors="*{password}">
-                    비밀번호 오류 메시지
-                </p>
+                <input type="password" id="password" name="password"
+                       autocomplete="current-password" placeholder="비밀번호를 입력해 주세요">
             </div>
 
             <button class="button auth-submit" type="submit">로그인</button>
@@ -94,5 +57,44 @@
 
 <footer th:replace="~{fragments/layout :: footer}"></footer>
 <div th:replace="~{fragments/chatbot :: widget}"></div>
+<script>
+    // [JWT] 로그인 폼 제출 → POST /auth/login → 토큰 저장 → 원래 가려던 화면으로
+    (function () {
+        const form = document.getElementById('login-form');
+        const errorBox = document.getElementById('login-error');
+        const redirectURL = PP.safeRedirect(new URLSearchParams(location.search).get('redirectURL') || '/');
+
+        // [JWT] 관리자 화면에서 넘어온 경우 "관리자 로그인"으로 보여 준다
+        //       (예전 /admin/login 화면 대신. 관리자 = USERS.role 이 ADMIN 인 회원)
+        if (redirectURL.startsWith('/admin')) {
+            document.getElementById('login-kicker').textContent = 'PASS PACE 관리자';
+            document.getElementById('auth-title').textContent = '관리자 로그인';
+            document.getElementById('login-desc').textContent = 'ADMIN 권한이 있는 회원 계정으로 로그인하세요.';
+            document.title = '관리자 로그인 | 패스페이스';
+        }
+
+        // 이미 로그인(토큰 있음)했으면 바로 이동
+        if (PP.currentUser()) { location.replace(redirectURL); return; }
+
+        form.addEventListener('submit', async function (e) {
+            e.preventDefault();   // 브라우저 기본 제출(페이지 이동)을 막고 JS 로 보낸다
+            errorBox.hidden = true;
+            const loginId = form.loginId.value.trim();
+            const password = form.password.value;
+            if (!loginId || !password) {
+                errorBox.textContent = '아이디와 비밀번호를 입력해 주세요.';
+                errorBox.hidden = false;
+                return;
+            }
+            try {
+                await PP.login(loginId, password);
+                location.href = redirectURL;
+            } catch (err) {
+                errorBox.textContent = err.message;   // 예: FAILURE_LOGIN → "아이디 또는 비밀번호가 맞지 않습니다."
+                errorBox.hidden = false;
+            }
+        });
+    })();
+</script>
 </body>
 </html>

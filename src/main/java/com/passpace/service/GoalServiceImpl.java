@@ -1,6 +1,6 @@
 package com.passpace.service;
 
-import com.passpace.dto.user.GoalForm;
+import com.passpace.dto.user.UpdateGoalRequestDto;
 import com.passpace.dto.user.UserViews.ActiveGoal;
 import com.passpace.dto.user.UserViews.ExamRoundOption;
 import com.passpace.dto.user.UserViews.SubjectOption;
@@ -28,8 +28,8 @@ public class GoalServiceImpl implements GoalService {
     }
 
     @Override
-    public GoalForm getGoalForm(Long userId) {
-        GoalForm form = new GoalForm();
+    public UpdateGoalRequestDto getGoalForm(Long userId) {
+        UpdateGoalRequestDto form = new UpdateGoalRequestDto();
 
         Optional<Long> certificationId =
                 goalRepository.findCertificationId(examCode);
@@ -61,7 +61,7 @@ public class GoalServiceImpl implements GoalService {
      */
     @Override
     @Transactional
-    public void saveGoal(Long userId, GoalForm form) {
+    public void saveGoal(Long userId, UpdateGoalRequestDto form) {
         if (userId == null) {
             throw new IllegalArgumentException("다시 로그인해 주세요.");
         }

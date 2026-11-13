@@ -1,11 +1,17 @@
 <!DOCTYPE html>
-<!-- [용성] 관리자 수집 화면. 사이트 레이아웃·CSS 와 분리된 독립 화면 (헤더·푸터·챗봇·app.css 없음) -->
+<!-- [용성] 관리자 수집 화면. 사이트 레이아웃·CSS 와 분리된 독립 화면 (헤더·푸터·챗봇·app.css 없음)
+     [JWT] 예전: 관리자 비밀번호를 입력한 세션만 들어올 수 있었다 (/admin/login).
+           지금: 화면(껍데기)은 누구나 열리지만, 버튼이 부르는 /admin/collect/** API 는
+                 SecurityConfig 의 hasRole("ADMIN") 이 막는다 → ADMIN 토큰이 있어야 동작한다.
+                 관리자 지정: db/08_add_user_role.sql 의 UPDATE 한 줄 → 그 계정으로 다시 로그인 -->
 <html xmlns:th="http://www.thymeleaf.org" lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>데이터 수집 관리 | PASS PACE 관리자</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+    <!-- [JWT] 토큰 저장·API 호출 공통 도구 (window.PP) -->
+    <script th:src="@{/js/auth.js}" src="/js/auth.js"></script>
     <style>
         :root {
             --ink: #18202B;  --muted: #5E6A7A;  --line: #D9DFE7;  --bg: #F2F4F7;  --surface: #FFFFFF;
@@ -113,6 +119,7 @@
         .tab span { font-weight: 500; font-size: 13px; color: var(--muted); }
         .srcpanel { display: flex; flex-direction: column; gap: 10px; }
         .srcpanel[hidden] { display: none; }
+        #adminGate[hidden] { display: none !important; }   /* [JWT] 관리자 안내창은 hidden 일 때 확실히 숨김 */
         .text { border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; font-size: 14px; background: #fff; color: var(--ink); }
         .row > .text { flex: 1 1 320px; min-width: 0; }
         textarea.text { font: 13px/1.5 Consolas, "D2Coding", monospace; resize: vertical; }
@@ -148,15 +155,27 @@
 </head>
 <body>
 
+<!-- [JWT] 관리자가 아닐 때 화면 전체를 덮는 안내 (예전 관리자 로그인 화면 대신) -->
+<div id="adminGate" hidden style="position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;background:rgba(15,23,42,.55);padding:16px">
+    <section style="background:#fff;border-radius:16px;padding:32px 28px;max-width:420px;width:100%;box-shadow:0 20px 50px rgba(0,0,0,.2);text-align:center">
+        <div style="font-size:32px" aria-hidden="true">🔒</div>
+        <h2 style="margin:8px 0 6px;font-size:20px">관리자 계정이 필요합니다</h2>
+        <p id="adminGateMsg" style="color:#64748b;font-size:14px;margin:0 0 20px">ADMIN 권한이 있는 회원으로 로그인해야 수집 관리 기능을 쓸 수 있습니다.</p>
+        <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+            <button class="btn primary" type="button" onclick="PP.logout('/login?redirectURL=' + encodeURIComponent('/admin/collect'))">관리자 계정으로 로그인</button>
+            <a class="btn" href="/">메인으로</a>
+        </div>
+    </section>
+</div>
+
 <header class="board"><div class="board-inner">
     <div class="board-top">
         <h1>데이터 수집 관리<small>PASS PACE 관리자 · 정보처리기사 · SQLD</small></h1>
         <div class="board-actions">
             <button class="btn" type="button" onclick="toggleAll(true)">모두 펼치기</button>
             <button class="btn" type="button" onclick="toggleAll(false)">모두 접기</button>
-            <form th:action="@{/admin/logout}" action="/admin/logout" method="post" style="display:inline">
-                <button class="btn" type="submit">로그아웃</button>
-            </form>
+            <!-- [JWT] 로그아웃 = 토큰 지우기 -->
+            <button class="btn" type="button" onclick="PP.logout('/login')">로그아웃</button>
         </div>
     </div>
     <div class="readouts" aria-live="polite">
@@ -409,16 +428,34 @@
         document.querySelectorAll('details').forEach(d => d.open = open);
     }
 
+    /**
+     * [JWT] 모든 관리자 API 호출이 이 함수를 거친다.
+     *  - Authorization: Bearer 토큰 헤더를 붙인다
+     *  - 서버 응답 {status, code, data} 에서 data 만 돌려준다 (아래 화면 코드는 예전처럼 data 를 그대로 쓴다)
+     *  - 401(토큰 없음·만료) / 403(ADMIN 아님) 은 알아보기 쉬운 문장으로 바꾼다
+     */
     async function getJson(url, opts) {
+        opts = Object.assign({}, opts);
+        opts.headers = Object.assign({}, opts.headers);
+        const token = PP.getToken();
+        if (token) opts.headers['Authorization'] = 'Bearer ' + token;
+
         const res = await fetch(url, opts);
-        if (res.status === 401) throw new Error('관리자 로그인이 풀렸습니다. 새로고침해 비밀번호를 다시 입력하세요.');
         const text = await res.text();
+        let json;
         try {
-            return JSON.parse(text);
+            json = JSON.parse(text);
         } catch (e) {
             console.error('[admin] JSON 아님 (서버 오류 화면일 수 있음):', text.slice(0, 500));
             throw new Error('서버 응답이 JSON 이 아닙니다 (HTTP ' + res.status + '). Console 확인');
         }
+        if (res.status === 401) throw new Error('로그인이 필요하거나 만료되었습니다. 관리자 계정으로 다시 로그인하세요.');
+        if (res.status === 403) throw new Error('관리자(ADMIN) 계정만 사용할 수 있습니다.');
+        if (json.status !== 'SUCCESS') {
+            const d = json.data || {};
+            throw new Error((d.ko || '요청 실패') + (d.detail ? ' — ' + d.detail : '') + ' (HTTP ' + res.status + ')');
+        }
+        return json.data;
     }
 
     // 버튼을 누르면 POST 요청을 보내고 JSON 결과를 그대로 보여 준다
@@ -793,14 +830,28 @@
         run('/admin/collect/reviews/preview?url=' + encodeURIComponent(url), 'reviewResult');
     }
 
-    // 화면을 열 때: DB 상태 확인, 실행 중인 수집이 있으면 이어서 표시
-    showEstimate();
-    checkDb();
-    recoveryReport(true).catch(() => {});
-    loadSources();   // 화면을 열 때는 상황판만 채우고 결과칸은 접어 둔다
-    pollStatus().then(() => {
-        if (document.getElementById('cancelBtn').disabled === false) startPolling();
-    });
+    // [JWT] 화면을 열 때 먼저 로그인·권한 확인 (서버도 API 마다 다시 확인한다 — 여기는 안내용)
+    //   - 로그인 안 함      → "관리자 로그인" 화면으로 (로그인 후 이 화면으로 돌아옴)
+    //   - ADMIN 이 아닌 회원 → 화면을 덮는 안내 + 관리자 계정으로 다시 로그인 버튼
+    //   - ADMIN            → 예전처럼 상황판을 채운다
+    const adminUser = PP.currentUser();
+    if (!adminUser) {
+        location.replace('/login?redirectURL=' + encodeURIComponent('/admin/collect'));
+    } else if (adminUser.role !== 'ADMIN') {
+        document.getElementById('adminGateMsg').textContent =
+            '지금 로그인한 ' + (adminUser.nickname || adminUser.loginId) + ' 님은 일반 회원(USER)입니다. '
+            + 'ADMIN 권한이 있는 계정으로 다시 로그인하세요.';
+        document.getElementById('adminGate').hidden = false;
+    } else {
+        // 화면을 열 때: DB 상태 확인, 실행 중인 수집이 있으면 이어서 표시
+        showEstimate();
+        checkDb();
+        recoveryReport(true).catch(() => {});
+        loadSources();   // 화면을 열 때는 상황판만 채우고 결과칸은 접어 둔다
+        pollStatus().then(() => {
+            if (document.getElementById('cancelBtn').disabled === false) startPolling();
+        });
+    }
 </script>
 </body>
 </html>

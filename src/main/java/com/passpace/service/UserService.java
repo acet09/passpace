@@ -1,25 +1,17 @@
 package com.passpace.service;
 
-import com.passpace.auth.LoginUser;
-import com.passpace.dto.user.ProfileForm;
-import com.passpace.dto.user.SignUpForm;
+import com.passpace.dto.user.UpdateUserRequestDto;
 import com.passpace.dto.user.UserViews.UserProfile;
 
-/** [한결] 회원 기능. Controller 는 이 인터페이스만 안다. */
+/**
+ * [한결] 마이페이지 회원정보. Controller 는 이 인터페이스만 안다.
+ * [JWT] 회원가입·로그인은 AuthService 로 옮겼다 (토큰 발급과 같이 있어야 해서).
+ */
 public interface UserService {
 
-    /**
-     * 회원가입.
-     * @return 가입 직후 로그인 상태로 쓸 LoginUser
-     * @throws com.passpace.error.exception.DuplicateUserException 아이디·이메일 중복
-     */
-    LoginUser signUp(SignUpForm form);
-
-    /** @throws com.passpace.error.exception.LoginFailedException 아이디 없음 또는 비밀번호 불일치 */
-    LoginUser login(String loginId, String rawPassword);
-
+    /** @throws com.passpace.error.exception.UserException NOT_FOUND_USER */
     UserProfile getProfile(Long userId);
 
-    /** @return 수정된 정보가 반영된 LoginUser (세션 갱신용) */
-    LoginUser updateProfile(Long userId, ProfileForm form);
+    /** @throws com.passpace.error.exception.UserException DUPLICATED_EMAIL (다른 회원이 쓰는 이메일) */
+    void updateProfile(Long userId, UpdateUserRequestDto request);
 }

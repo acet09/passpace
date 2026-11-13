@@ -1,116 +1,61 @@
 <!DOCTYPE html>
 <!--
-  [한결] ④ 마이페이지 "/mypage" - 빈칸본
-  모델 값: profile (UserViews.UserProfile), profileForm (ProfileForm), goalForm (GoalForm),
-          examRounds (List<ExamRoundOption>), subjects (List<SubjectOption>), majorTypes, message(저장 안내)
-  TODO(한결)
-   - 회원정보: 아이디·가입일 표시 + POST /mypage/profile 폼 (nickname, email, majorType)
-   - 학습 목표: POST /mypage/goal 폼
-       examRoundId(회차 선택 상자), targetExamDate(날짜), dailyMinutes(분),
-       과목별 이해도 1~3 → 입력칸 이름 familiarity[과목ID]
-       (Thymeleaf: th:field="*{familiarity[__${s.subjectId}__]}")
+  [한결] ④ 마이페이지 "/mypage"
+  모델 값: majorTypes (MajorType[]) — 전공 선택 상자 목록만 서버가 채운다 (PageController)
+
+  [JWT] 예전: 서버가 세션의 loginUser 로 회원정보·목표를 다 채워서 HTML 을 만들었다.
+        지금: 서버는 빈 껍데기만 주고, 아래 스크립트가 토큰으로 API 를 불러 채운다.
+          - 열릴 때   GET /auth/user-info   → 회원정보 칸
+                      GET /users/me/goal    → 학습 목표 칸 (+ 회차·과목 목록)
+          - 저장 버튼 PUT /users/me         → 응답으로 새 토큰 (닉네임·전공이 바뀌었으니) → 저장
+                      PUT /users/me/goal
+        토큰이 없으면 로그인 화면으로 보낸다 (PP.requireLogin).
 -->
 <html xmlns:th="http://www.thymeleaf.org" lang="ko">
 <head th:replace="~{fragments/layout :: head('마이페이지')}"></head>
 <body class="pp-site pp-mypage">
 <header th:replace="~{fragments/layout :: header}"></header>
-
 <main id="main-content" class="pp-main mypage-main">
     <!-- 추가된 코드: 마이페이지 소개와 회원정보·학습 목표 카드 배치 -->
-    <div class="page-heading"><div><p class="eyebrow">MY PACE</p><h1>마이페이지</h1><p><strong th:text="${profile.nickname}">닉네임</strong> 님, 나에게 맞는 학습을 준비해 볼까요?</p></div><a class="text-link" th:href="@{/#exam-schedule}">시험 일정 확인하기 <span aria-hidden="true">↗</span></a></div>
+    <div class="page-heading"><div><p class="eyebrow">MY PACE</p><h1>마이페이지</h1><p><strong id="heading-nickname">회원</strong> 님, 나에게 맞는 학습을 준비해 볼까요?</p></div><a class="text-link" th:href="@{/#exam-schedule}">시험 일정 확인하기 <span aria-hidden="true">↗</span></a></div>
 
-    <p class="message"
-       role="status"
-       th:if="${message != null}"
-       th:text="${message}">
-        저장했습니다.
-    </p>
+    <!-- 저장 성공 안내 (예: "회원정보를 저장했습니다.") -->
+    <p class="message" role="status" id="mypage-message" hidden></p>
 
     <div class="mypage-grid">
     <section class="profile-section" aria-labelledby="profile-title">
         <div class="panel-heading"><span class="panel-icon" aria-hidden="true">01</span><div><h2 id="profile-title">회원정보</h2><p>나의 기본 정보를 관리해요.</p></div></div>
-        <!-- 기존 코드: 회원정보 표시와 저장 폼 유지 -->
 
         <dl class="profile-meta">
             <dt>아이디</dt>
-            <dd th:text="${profile.loginId}">아이디</dd>
-
+            <dd id="profile-loginId">불러오는 중</dd>
             <dt>가입일</dt>
-            <dd th:text="${profile.createdAt != null
-                ? #temporals.format(profile.createdAt, 'yyyy.MM.dd HH:mm')
-                : '미정'}">
-                가입일
-            </dd>
+            <dd id="profile-createdAt">불러오는 중</dd>
         </dl>
 
-        <form th:action="@{/mypage/profile}"
-              th:object="${profileForm}"
-              method="post"
-              novalidate>
-
-            <div class="global-error"
-                 role="alert"
-                 th:if="${#fields.hasGlobalErrors()}">
-                <p th:each="error : ${#fields.globalErrors()}"
-                   th:text="${error}">
-                    회원정보 수정 오류
-                </p>
-            </div>
+        <form id="profile-form" novalidate>
+            <div class="global-error" role="alert" data-form-error hidden></div>
 
             <div class="form-field">
                 <label for="nickname">닉네임</label>
-
-                <input type="text"
-                       id="nickname"
-                       th:field="*{nickname}"
-                       th:errorclass="input-error"
-                       autocomplete="nickname"
-                       placeholder="50자 이하">
-
-                <p class="field-error"
-                   th:if="${#fields.hasErrors('nickname')}"
-                   th:errors="*{nickname}">
-                    닉네임 오류 메시지
-                </p>
+                <input type="text" id="nickname" name="nickname" autocomplete="nickname" placeholder="50자 이하">
             </div>
 
             <div class="form-field">
                 <label for="email">이메일</label>
-
-                <input type="email"
-                       id="email"
-                       th:field="*{email}"
-                       th:errorclass="input-error"
-                       autocomplete="email"
-                       placeholder="example@email.com">
-
-                <p class="field-error"
-                   th:if="${#fields.hasErrors('email')}"
-                   th:errors="*{email}">
-                    이메일 오류 메시지
-                </p>
+                <input type="email" id="email" name="email" autocomplete="email" placeholder="example@email.com">
             </div>
 
             <div class="form-field">
                 <label for="majorType">전공 구분</label>
-
-                <select id="majorType"
-                        th:field="*{majorType}"
-                        th:errorclass="input-error">
+                <select id="majorType" name="majorType">
                     <option value="">전공 구분을 선택해 주세요</option>
-
                     <option th:each="major : ${majorTypes}"
                             th:value="${major.name()}"
                             th:text="${major.label}">
                         전공 구분
                     </option>
                 </select>
-
-                <p class="field-error"
-                   th:if="${#fields.hasErrors('majorType')}"
-                   th:errors="*{majorType}">
-                    전공 구분 오류 메시지
-                </p>
             </div>
 
             <button class="button" type="submit">회원정보 저장 <span aria-hidden="true">✓</span></button>
@@ -120,121 +65,41 @@
     <section class="goal-section" aria-labelledby="goal-title">
         <div class="panel-heading"><span class="panel-icon" aria-hidden="true">02</span><div><h2 id="goal-title">학습 목표</h2><p>나의 속도에 맞는 계획을 세워요.</p></div></div>
         <p class="form-hint goal-intro">모든 목표 항목은 선택 입력이에요. 필요한 항목만 설정해 주세요.</p>
-        <!-- 기존 코드: 목표 선택, 폼 검증 및 과목별 이해도 바인딩 유지 -->
 
-        <!-- 추가된 코드: 학습 목표 저장 폼 -->
-        <form th:action="@{/mypage/goal}"
-              th:object="${goalForm}"
-              method="post"
-              novalidate>
-
-            <div class="global-error"
-                 role="alert"
-                 th:if="${#fields.hasGlobalErrors()}">
-                <p th:each="error : ${#fields.globalErrors()}"
-                   th:text="${error}">
-                    학습 목표 저장 오류
-                </p>
-            </div>
+        <form id="goal-form" novalidate>
+            <div class="global-error" role="alert" data-form-error hidden></div>
 
             <div class="form-field">
                 <label for="examRoundId">목표 시험 회차</label>
-
-                <select id="examRoundId"
-                        th:field="*{examRoundId}"
-                        th:errorclass="input-error">
-                    <option value="">
-                        회차 선택 안 함 · 시험일 직접 입력
-                    </option>
-
-                    <option th:each="round : ${examRounds}"
-                            th:value="${round.examRoundId}"
-                            th:text="${round.label}">
-                        시험 회차
-                    </option>
+                <select id="examRoundId" name="examRoundId">
+                    <option value="">회차 선택 안 함 · 시험일 직접 입력</option>
+                    <!-- 회차 목록은 GET /users/me/goal 의 examRounds 로 채운다 -->
                 </select>
-
-                <p th:if="${#lists.isEmpty(examRounds)}">
-                    선택 가능한 시험 회차를 준비 중입니다.
-                </p>
-
-                <p class="field-error"
-                   th:if="${#fields.hasErrors('examRoundId')}"
-                   th:errors="*{examRoundId}">
-                    시험 회차 오류 메시지
-                </p>
+                <p id="examRounds-empty" hidden>선택 가능한 시험 회차를 준비 중입니다.</p>
             </div>
 
             <div class="form-field">
                 <label for="targetExamDate">목표 시험일</label>
-
-                <input type="date"
-                       id="targetExamDate"
-                       th:field="*{targetExamDate}"
-                       th:errorclass="input-error">
-
+                <input type="date" id="targetExamDate" name="targetExamDate">
                 <p>
                     회차를 선택하면 해당 회차의 시험일이 우선 적용됩니다.
                     직접 입력하려면 회차를 선택하지 마세요.
-                </p>
-
-                <p class="field-error"
-                   th:if="${#fields.hasErrors('targetExamDate')}"
-                   th:errors="*{targetExamDate}">
-                    목표 시험일 오류 메시지
                 </p>
             </div>
 
             <div class="form-field">
                 <label for="dailyMinutes">하루 학습 가능 시간 <span class="label-unit">분</span></label>
-
-                <input type="number"
-                       id="dailyMinutes"
-                       th:field="*{dailyMinutes}"
-                       th:errorclass="input-error"
-                       min="10"
-                       max="720"
-                       step="1"
-                       placeholder="예: 150">
-
+                <input type="number" id="dailyMinutes" name="dailyMinutes" min="10" max="720" step="1" placeholder="예: 150">
                 <p>입력하는 경우 10~720분으로 설정해 주세요.</p>
-
-                <p class="field-error"
-                   th:if="${#fields.hasErrors('dailyMinutes')}"
-                   th:errors="*{dailyMinutes}">
-                    하루 가용시간 오류 메시지
-                </p>
             </div>
 
             <fieldset class="familiarity-fields">
                 <legend>과목별 이해도</legend>
-
                 <p>1: 낯섦 / 2: 보통 / 3: 익숙함</p>
                 <p>선택하지 않은 과목은 기존 이해도를 유지합니다.</p>
-
-                <p th:if="${#lists.isEmpty(subjects)}">
-                    과목 목록을 준비 중입니다.
-                </p>
-
-                <div class="form-field" th:each="s : ${subjects}">
-                    <label>
-                        <span th:text="${s.subjectName}">과목명</span>
-
-                        <select th:field="*{familiarity[__${s.subjectId}__]}"
-                                th:errorclass="input-error">
-                            <option value="">선택 안 함</option>
-                            <option value="1">1 · 낯섦</option>
-                            <option value="2">2 · 보통</option>
-                            <option value="3">3 · 익숙함</option>
-                        </select>
-                    </label>
-
-                    <p class="field-error"
-                       th:if="${#fields.hasErrors('familiarity[' + s.subjectId + ']')}"
-                       th:errors="*{familiarity[__${s.subjectId}__]}">
-                        과목별 이해도 오류 메시지
-                    </p>
-                </div>
+                <p id="subjects-empty" hidden>과목 목록을 준비 중입니다.</p>
+                <!-- 과목별 선택 상자는 GET /users/me/goal 의 subjects 로 만든다 -->
+                <div id="subject-list"></div>
             </fieldset>
 
             <button class="button" type="submit">학습 목표 저장 <span aria-hidden="true">✓</span></button>
@@ -242,8 +107,132 @@
     </section>
     </div>
 </main>
-
 <footer th:replace="~{fragments/layout :: footer}"></footer>
 <div th:replace="~{fragments/chatbot :: widget}"></div>
+<script>
+(function () {
+    'use strict';
+    // 1) 로그인 안 했으면 로그인 화면으로 (돌아올 주소 /mypage 를 붙여서)
+    if (!PP.requireLogin()) return;
+
+    const profileForm = document.getElementById('profile-form');
+    const goalForm = document.getElementById('goal-form');
+    const message = document.getElementById('mypage-message');
+
+    function showMessage(text) {
+        message.textContent = text;
+        message.hidden = false;
+        message.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    function showFormError(form, err) {
+        const box = form.querySelector('[data-form-error]');
+        box.textContent = err ? err.message : '';
+        box.hidden = !err;
+    }
+    /** "2026-11-12 10:00:00" → "2026.11.12 10:00" (예전 화면과 같은 표시) */
+    function formatDateTime(text) {
+        if (!text) return '미정';
+        return text.slice(0, 16).replace(/-/g, '.');
+    }
+
+    // 2) 회원정보 채우기 — GET /auth/user-info
+    async function loadProfile() {
+        const me = await PP.api('/auth/user-info');
+        document.getElementById('heading-nickname').textContent = me.nickname;
+        document.getElementById('profile-loginId').textContent = me.loginId;
+        document.getElementById('profile-createdAt').textContent = formatDateTime(me.createdAt);
+        profileForm.nickname.value = me.nickname || '';
+        profileForm.email.value = me.email || '';
+        profileForm.majorType.value = me.majorType || '';
+    }
+
+    // 3) 학습 목표 채우기 — GET /users/me/goal → { goal, examRounds, subjects }
+    async function loadGoal() {
+        const data = await PP.api('/users/me/goal');
+
+        const roundSelect = goalForm.examRoundId;
+        data.examRounds.forEach(r => roundSelect.add(new Option(r.label, r.examRoundId)));
+        document.getElementById('examRounds-empty').hidden = data.examRounds.length > 0;
+
+        const list = document.getElementById('subject-list');
+        data.subjects.forEach(s => {
+            const row = document.createElement('div');
+            row.className = 'form-field';
+            row.innerHTML =
+                '<label><span></span>' +
+                '<select data-subject-id="' + Number(s.subjectId) + '">' +
+                '<option value="">선택 안 함</option>' +
+                '<option value="1">1 · 낯섦</option>' +
+                '<option value="2">2 · 보통</option>' +
+                '<option value="3">3 · 익숙함</option>' +
+                '</select></label>';
+            row.querySelector('span').textContent = s.subjectName;   // 과목명은 textContent 로 (HTML 로 해석되지 않게)
+            list.appendChild(row);
+        });
+        document.getElementById('subjects-empty').hidden = data.subjects.length > 0;
+
+        const goal = data.goal || {};
+        roundSelect.value = goal.examRoundId || '';
+        goalForm.targetExamDate.value = goal.targetExamDate || '';
+        goalForm.dailyMinutes.value = goal.dailyMinutes || '';
+        Object.entries(goal.familiarity || {}).forEach(([subjectId, level]) => {
+            const sel = list.querySelector('[data-subject-id="' + Number(subjectId) + '"]');
+            if (sel) sel.value = String(level);
+        });
+    }
+
+    // 4) 회원정보 저장 — PUT /users/me → 새 토큰 저장 (헤더의 "닉네임 님"·챗봇 전공이 바로 바뀐다)
+    profileForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        showFormError(profileForm, null);
+        try {
+            const data = await PP.api('/users/me', {
+                method: 'PUT',
+                body: {
+                    nickname: profileForm.nickname.value.trim(),
+                    email: profileForm.email.value.trim(),
+                    majorType: profileForm.majorType.value || null
+                }
+            });
+            PP.setToken(data.accessToken);
+            PP.renderHeader();
+            document.getElementById('heading-nickname').textContent = profileForm.nickname.value.trim();
+            showMessage('회원정보를 저장했습니다.');
+        } catch (err) {
+            showFormError(profileForm, err);
+        }
+    });
+
+    // 5) 학습 목표 저장 — PUT /users/me/goal
+    goalForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        showFormError(goalForm, null);
+        const familiarity = {};
+        goalForm.querySelectorAll('[data-subject-id]').forEach(sel => {
+            if (sel.value) familiarity[sel.dataset.subjectId] = Number(sel.value);
+        });
+        try {
+            await PP.api('/users/me/goal', {
+                method: 'PUT',
+                body: {
+                    examRoundId: goalForm.examRoundId.value ? Number(goalForm.examRoundId.value) : null,
+                    targetExamDate: goalForm.targetExamDate.value || null,
+                    dailyMinutes: goalForm.dailyMinutes.value ? Number(goalForm.dailyMinutes.value) : null,
+                    familiarity
+                }
+            });
+            showMessage('학습 목표를 저장했습니다.');
+        } catch (err) {
+            showFormError(goalForm, err);
+        }
+    });
+
+    // 처음 열릴 때 두 칸을 동시에 불러온다
+    Promise.all([loadProfile(), loadGoal()]).catch(function (err) {
+        if (err.status === 401) { PP.requireLogin(); return; }   // 토큰 만료 → 로그인 화면
+        showMessage('정보를 불러오지 못했습니다: ' + err.message);
+    });
+})();
+</script>
 </body>
 </html>
