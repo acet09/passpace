@@ -28,7 +28,7 @@ public class SourcePermissions {
     /**
      * [11-14] 크롤링 정책 폐기로 permission_checked_at 확인은 설정으로 끌 수 있게 했다 (기본 꺼짐).
      * 꺼져 있으면: 출처 행이 있으면 그 번호로 수집(비활성 행은 계속 건너뜀),
-     *             출처 행이 없는 사이트(디시 등)는 건너뛰지 않고 sourceId=null 로 수집한다 (DATA_SOURCES 행 추가 안 함)
+     *             출처 행이 없는 사이트는 건너뛰지 않고 sourceId=null 로 수집한다 (DATA_SOURCES 행 추가 안 함)
      */
     @Value("${passpace.collect.permission-check:false}")
     private boolean permissionCheck;

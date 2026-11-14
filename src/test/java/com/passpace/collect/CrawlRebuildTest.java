@@ -3,20 +3,14 @@ package com.passpace.collect;
 import com.passpace.client.DataqScheduleClient;
 import com.passpace.client.DataqScheduleClient.DataqRound;
 import com.passpace.constant.ExamType;
-import com.passpace.crawler.DcinsideParser;
 import com.passpace.crawler.ListingParser.ListingLink;
-import com.passpace.crawler.PostPageParser.PostPage;
 import com.passpace.crawler.ReviewLinkFilter;
-import com.passpace.crawler.ReviewSite;
-import com.passpace.crawler.UrlText;
 import com.passpace.domain.ExtractedReview;
 import com.passpace.dto.collect.CertCountStatus;
 import com.passpace.service.CertificateDetector;
 import com.passpace.service.NaverSearchReviewCollectService;
 import com.passpace.service.ReviewQualityChecker;
 import com.passpace.service.RuleBasedReviewExtractor;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -28,7 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * [용성·11-14] 후기 수집 리빌딩 단위 테스트 - DB·Spring·네트워크 없이 실행된다.
- * 디시·dataq HTML 은 11-14 확인한 구조를 줄여 만든 샘플이다 → 실제 페이지 fixture 로 다시 확인할 것
+ * dataq HTML 은 11-14 확인한 구조를 줄여 만든 샘플이다 → 실제 페이지 fixture 로 다시 확인할 것
  */
 class CrawlRebuildTest {
 
@@ -59,60 +53,6 @@ class CrawlRebuildTest {
                 new ListingLink("https://velog.io/@d/adp", "ADP 필기 후기", null)));
         assertThat(found).extracting(ReviewLinkFilter.Candidate::label)
                 .containsExactly("컴활 1급 실기 합격 후기", "ADsP 독학 합격");
-    }
-
-    // ---------------- 디시인사이드 ----------------
-
-    @Test
-    void 디시_글_주소는_id와_no만_남긴다() {
-        String url = UrlText.canonical("https://gall.dcinside.com/mini/board/view/?id=dataprocessing&no=12345&page=2#c");
-        assertThat(url).isEqualTo("https://gall.dcinside.com/mini/board/view/?id=dataprocessing&no=12345");
-        assertThat(ReviewSite.of(url)).contains(ReviewSite.DCINSIDE);
-        assertThat(ReviewSite.DCINSIDE.isPostUrl(url)).isTrue();
-        assertThat(ReviewSite.DCINSIDE.isPostUrl("https://gall.dcinside.com/mini/board/lists/?id=dataprocessing")).isFalse();
-        // 기존 velog 정규화는 그대로
-        assertThat(UrlText.canonical("http://velog.io/@devkim/x/?utm=1")).isEqualTo("https://velog.io/@devkim/x");
-    }
-
-    @Test
-    void 디시_목록에서_공지를_빼고_글을_뽑는다() {
-        String html = """
-                <table><tbody>
-                <tr class="ub-content" data-type="icon_notice"><td class="gall_num">공지</td>
-                  <td class="gall_tit"><a href="/mini/board/view/?id=dataprocessing&no=1&page=1">공지 정처기 합격 후기 모음</a></td>
-                  <td class="gall_date" title="2026-01-01 00:00:00">26.01.01</td></tr>
-                <tr class="ub-content" data-type="icon_txt"><td class="gall_num">5521</td>
-                  <td class="gall_tit"><a href="/mini/board/view/?id=dataprocessing&no=5521&page=1">정처기 실기 합격 후기</a>
-                    <a class="reply_numbox" href="#"><span class="reply_num">[3]</span></a></td>
-                  <td class="gall_date" title="2026-11-10 12:34:56">11.10</td></tr>
-                </tbody></table>""";
-        List<ListingLink> links = DcinsideParser.listing(html, "https://gall.dcinside.com/mini/board/lists/?id=dataprocessing");
-        assertThat(links).hasSize(1);
-        assertThat(links.get(0).url()).isEqualTo("https://gall.dcinside.com/mini/board/view/?id=dataprocessing&no=5521");
-        assertThat(links.get(0).postedAt()).isEqualTo(LocalDate.of(2026, 11, 10));
-        assertThat(ReviewLinkFilter.filter(links)).hasSize(1);
-    }
-
-    @Test
-    void 디시_글에서_본문_작성일_작성자를_뽑는다() {
-        String html = """
-                <html><head><title>정처기 실기 합격 후기 - 정보처리 마이너 갤러리</title></head><body>
-                <div class="gall_writer ub-writer" data-nick="ㅇㅇ" data-uid="" data-ip="118.235">
-                  <span class="nickname">ㅇㅇ</span><span class="ip">(118.235)</span>
-                  <span class="gall_date" title="2026-11-10 12:34:56">2026.11.10 12:34:56</span></div>
-                <h3><span class="title_subject">정처기 실기 합격 후기</span></h3>
-                <div class="write_div">비전공자고 두 달 동안 하루 3시간씩 공부해서 2026년 3회 실기 합격했습니다.</div>
-                <div class="comment_box">저도 합격했어요</div>
-                </body></html>""";
-        Document doc = Jsoup.parse(html, "https://gall.dcinside.com/mini/board/view/?id=dataprocessing&no=5521");
-        PostPage p = DcinsideParser.post(doc, 4000);
-        assertThat(p.title()).isEqualTo("정처기 실기 합격 후기");
-        assertThat(p.postedAt()).isEqualTo(LocalDate.of(2026, 11, 10));
-        assertThat(p.text()).contains("하루 3시간").doesNotContain("저도 합격했어요");
-        assertThat(DcinsideParser.authorKey(doc)).isEqualTo("ip:ㅇㅇ|118.235");
-
-        Document fixed = Jsoup.parse("<div class='gall_writer' data-nick='정처기러' data-uid='abc123' data-ip=''></div>");
-        assertThat(DcinsideParser.authorKey(fixed)).isEqualTo("uid:abc123");
     }
 
     // ---------------- 네이버 검색 API 응답 정리 ----------------

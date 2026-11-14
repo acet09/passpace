@@ -21,22 +21,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * [용성·11-14] 네이버 검색 API 클라이언트 (blog · cafearticle · news)
- *  GET https://openapi.naver.com/v1/search/{type}.json?query=&display=&start=&sort=
- *  헤더 X-Naver-Client-Id / X-Naver-Client-Secret
+ * [용성·11-14] 네이버 검색 API 클라이언트 (blog · cafearticle · news) — NAVER API HUB(네이버 클라우드 플랫폼)
+ *  GET https://naverapihub.apigw.ntruss.com/search/v1/{type}?query=&display=&start=&sort=
+ *  헤더 X-NCP-APIGW-API-KEY-ID(Client ID) / X-NCP-APIGW-API-KEY(Client Secret)
+ *  (예전 네이버 개발자센터 openapi.naver.com 방식은 쓰지 않는다. 응답 JSON 모양은 같다)
  *
  * 네이버와 사전 협의(하루 호출 한도 25,000회 안에서 자유 사용)에 따라
  *  - 하루 사용량 카운터: 설정값(기본 20,000)을 넘으면 중단. 날짜가 바뀌면 0. 서버 재시작 시 초기화되는 메모리 카운터
  *  - 호출 간격 기본 100ms
- *  - 429 중 하루 한도 초과(errorCode 010)는 재시도 없이 즉시 중단, 그 밖의 429·5xx 는 대기 후 2번 다시 시도
- *  - 401·403 은 즉시 중단 (키 오류)
+ *  - 429 = 호출 한도 초과(하루 허용량) → 재시도 없이 즉시 중단 (예전 개발자센터의 errorCode 010 도 같이 처리)
+ *  - 5xx 는 대기 후 2번 다시 시도, 401·403 은 즉시 중단 (키 오류·API 권한 없음)
  * 키는 application-local.yml 의 passpace.collect.naver.client-id / client-secret (비어 있으면 hasKey()=false)
  */
 @Component
 public class NaverSearchClient {
 
     private static final Logger log = LoggerFactory.getLogger(NaverSearchClient.class);
-    private static final String BASE = "https://openapi.naver.com/v1/search/";
+    private static final String DEFAULT_BASE = "https://naverapihub.apigw.ntruss.com/search/v1/";
     private static final int RETRIES = 2;
     private static final long RETRY_WAIT_MS = 3_000;
 
@@ -53,6 +54,9 @@ public class NaverSearchClient {
     private final String clientSecret;
     private final long callDelayMs;
     private final int dailyLimit;
+    /** 호출 주소 앞부분 (바뀌면 passpace.collect.naver.base-url 로 덮어쓴다) */
+    @Value("${passpace.collect.naver.base-url:" + DEFAULT_BASE + "}")
+    private String base = DEFAULT_BASE;
     private final HttpClient http = HttpClient.newBuilder()
             .version(HttpClient.Version.HTTP_1_1)
             .connectTimeout(Duration.ofSeconds(10))
@@ -95,7 +99,7 @@ public class NaverSearchClient {
      */
     public Page search(String type, String query, String sort, int start, int display) {
         if (!hasKey()) throw new CollectException("NAVER_NO_KEY", "네이버 검색 API 키가 없습니다 (application-local.yml 의 passpace.collect.naver.client-id·client-secret).");
-        String url = BASE + type + ".json?query=" + URLEncoder.encode(query, StandardCharsets.UTF_8)
+        String url = (base.endsWith("/") ? base : base + "/") + type + "?query=" + URLEncoder.encode(query, StandardCharsets.UTF_8)
                 + "&display=" + Math.max(1, Math.min(100, display))
                 + "&start=" + Math.max(1, Math.min(1000, start))
                 + "&sort=" + ("date".equals(sort) ? "date" : "sim");
@@ -104,12 +108,13 @@ public class NaverSearchClient {
             int code = res.statusCode();
             if (code == 200) return parse(res.body());
             if (code == 401 || code == 403) {
-                throw new CollectException("HTTP_" + code, "네이버 검색 API 인증 실패(" + code + "). 키·사용 API 설정을 확인하세요.");
+                throw new CollectException("HTTP_" + code, "네이버 검색 API 인증 실패(" + code + ", " + errorCode(res.body())
+                        + "). NAVER API HUB 의 Client ID·Secret 과 Application 의 검색 API(뉴스·블로그·카페) 구독을 확인하세요.");
             }
-            if (code == 429 && "010".equals(errorCode(res.body()))) {
-                throw new CollectException("NAVER_DAILY_LIMIT", "네이버 검색 API 하루 호출 한도를 넘었습니다(errorCode 010). 내일 다시 실행하세요.");
+            if (code == 429) {
+                throw new CollectException("NAVER_DAILY_LIMIT", "네이버 검색 API 호출 한도를 넘었습니다(429, " + errorCode(res.body()) + "). 내일 다시 실행하세요.");
             }
-            if ((code == 429 || code >= 500) && attempt < RETRIES) {
+            if (code >= 500 && attempt < RETRIES) {
                 log.info("네이버 검색 API {} → {}초 뒤 다시 시도 ({})", code, RETRY_WAIT_MS * (attempt + 1) / 1000, errorCode(res.body()));
                 sleep(RETRY_WAIT_MS * (attempt + 1));
                 continue;
@@ -131,8 +136,8 @@ public class NaverSearchClient {
             usedToday++;
         }
         HttpRequest req = HttpRequest.newBuilder(URI.create(url)).timeout(Duration.ofSeconds(20))
-                .header("X-Naver-Client-Id", clientId)
-                .header("X-Naver-Client-Secret", clientSecret)
+                .header("X-NCP-APIGW-API-KEY-ID", clientId)
+                .header("X-NCP-APIGW-API-KEY", clientSecret)
                 .header("Accept", "application/json")
                 .GET().build();
         try {
@@ -156,9 +161,12 @@ public class NaverSearchClient {
         return new Page(root.path("total").asInt(0), items);
     }
 
+    /** 검색 API 오류 {errorCode} 또는 API Gateway 오류 {error:{errorCode,message}} */
     private String errorCode(String body) {
         try {
-            return objectMapper.readTree(body).path("errorCode").asText("");
+            JsonNode n = objectMapper.readTree(body);
+            if (n.has("error")) return n.path("error").path("errorCode").asText("") + " " + n.path("error").path("message").asText("");
+            return n.path("errorCode").asText("") + " " + n.path("errorMessage").asText("");
         } catch (Exception e) {
             return "";
         }

@@ -35,7 +35,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
-import com.passpace.crawler.DcinsideParser;
 import com.passpace.dto.collect.CertCountStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -114,9 +113,6 @@ public class ReviewCollectServiceImpl implements ReviewCollectService {
     /** [11-14] 네이버 검색 API 영역과 동시 실행 방지 (생성자는 그대로 두고 필드로 주입) */
     @Autowired(required = false)
     private CollectRunGuard runGuard;
-    /** [11-14] 디시 목록 실행당 최대 쪽수 */
-    @Value("${passpace.collect.dcinside-max-pages:5}")
-    private int dcinsideMaxPages = 5;
 
     public ReviewCollectServiceImpl(ReviewPageFetcher fetcher, ReviewExtractor extractor,
                                     ReviewQualityChecker qualityChecker, PassReviewRepository reviewRepository,
@@ -325,9 +321,7 @@ public class ReviewCollectServiceImpl implements ReviewCollectService {
             if (run.queues.containsKey(ReviewSite.TISTORY)) {
                 finders.add(startFinder(run, ReviewSite.TISTORY, () -> findTistory(run)));
             }
-            if (run.queues.containsKey(ReviewSite.DCINSIDE)) {
-                finders.add(startFinder(run, ReviewSite.DCINSIDE, () -> findDcinside(run)));
-            }
+
         } else {
             Gathered g = gather(run.mode, run);
             run.notes.addAll(g.messages);
@@ -351,7 +345,7 @@ public class ReviewCollectServiceImpl implements ReviewCollectService {
         }
 
         for (Counter cnt : run.bySite.values()) {
-            if (cnt.jobId < 0) continue;      // [11-14] 출처 행이 없는 사이트(디시)는 DATA_SYNC_JOBS 에 기록하지 않음
+            if (cnt.jobId < 0) continue;      // [11-14] 출처 행이 없는 사이트는 DATA_SYNC_JOBS 에 기록하지 않음
             String status = cnt.failed.get() == 0 ? "SUCCESS" : (cnt.success.get() > 0 ? "PARTIAL" : "FAILED");
             syncJobRepository.finish(cnt.jobId, cnt.success.get(), cnt.failed.get(), cnt.skipped.get(),
                     status, cnt.failType, cnt.error);
@@ -431,37 +425,6 @@ public class ReviewCollectServiceImpl implements ReviewCollectService {
         run.velogPhase = null;
         run.notes.add("velog 목록 " + ok + "개 읽음(1시간 안에 읽은 목록 " + cached + "개는 저장된 결과 사용)"
                 + (fail > 0 ? ", 실패 " + fail + "개" : "") + " → 새 후보 " + found + "건");
-    }
-
-    /**
-     * [11-14] 디시인사이드 미니갤 목록: 등록된 목록 주소마다 1쪽부터 dcinside-max-pages 쪽까지 (page= 로 넘김).
-     * 잡담이 많아 제목에 자격증 + 후기 단어가 함께 있는 글만 후보로 고른다 (ReviewLinkFilter).
-     */
-    private void findDcinside(Run run) {
-        List<String> lists = sources.listings().stream()
-                .filter(u -> ReviewSite.of(u).orElse(null) == ReviewSite.DCINSIDE).toList();
-        int ok = 0, fail = 0, found = 0, pages = Math.max(1, dcinsideMaxPages);
-        outer:
-        for (String listing : lists) {
-            for (int p = 1; p <= pages; p++) {
-                if (finderShouldStop(run, ReviewSite.DCINSIDE)) break outer;
-                run.dcinsidePhase = "디시 목록 " + p + "/" + pages + "쪽";
-                String url = listing.replaceAll("[?&]page=\\d+", "") + (listing.contains("?") ? "&" : "?") + "page=" + p;
-                ListingRead r = readListing(url, ReviewSite.DCINSIDE);
-                if (r.error != null) {
-                    fail++;
-                    if (r.stop) {
-                        run.stoppedSites.putIfAbsent(ReviewSite.DCINSIDE, "디시 목록 읽기 중 접근 제한(" + r.error + ")");
-                        break outer;
-                    }
-                    continue;
-                }
-                ok++;
-                for (Candidate c : r.candidates) if (offer(run, c)) found++;
-            }
-        }
-        run.dcinsidePhase = null;
-        run.notes.add("디시 목록 " + ok + "쪽 읽음" + (fail > 0 ? ", 실패 " + fail + "쪽" : "") + " → 새 후보 " + found + "건");
     }
 
     /** 티스토리: 등록된 RSS + (켜면) 아는 블로그 RSS 자동 확장 */
@@ -567,9 +530,7 @@ public class ReviewCollectServiceImpl implements ReviewCollectService {
             return new ListingRead(c.candidates(), null, false, true);
         }
         try {
-            String body = fetcher.fetchListingQuick(listing);
-            var links = site == ReviewSite.DCINSIDE ? DcinsideParser.listing(body, UrlText.toAscii(listing))
-                    : ListingParser.parse(body, UrlText.toAscii(listing));
+            var links = ListingParser.parse(fetcher.fetchListingQuick(listing), UrlText.toAscii(listing));
             List<Candidate> found = ReviewLinkFilter.filter(links).stream().filter(x -> x.site() == site).toList();
             found.forEach(x -> ledger.found(x.url(), x.site().name()));
             listingCache.put(listing, new CachedListing(System.currentTimeMillis(), found));
@@ -601,7 +562,7 @@ public class ReviewCollectServiceImpl implements ReviewCollectService {
             }
             if (cnt == null) {
                 try {
-                    // [11-14] DATA_SYNC_JOBS.source_id 는 NOT NULL → 출처 행이 없는 사이트(디시)는 기록하지 않는다
+                    // [11-14] DATA_SYNC_JOBS.source_id 는 NOT NULL → 출처 행이 없는 사이트는 기록하지 않는다
                     cnt = new Counter(sourceId == null ? -1 : syncJobRepository.start(sourceId, "REVIEW_DISCOVER"));
                 } catch (Exception e) {
                     run.notes.add(site + " 실행 기록 시작 실패: " + e.getMessage());
@@ -621,7 +582,7 @@ public class ReviewCollectServiceImpl implements ReviewCollectService {
                     log.info("저장 안 함 {} ({})", c.url(), a.skipReason());
                 } else {
                     if (a.sourceId() == null) {
-                        // [11-14] 출처 행이 없는 새 사이트(디시) → source_id NULL 로 저장
+                        // [11-14] 출처 행이 없는 사이트 → source_id NULL 로 저장
                         reviewRepository.insertWithNullableSource(null, a.certId(), a.url(), a.postedAt(), a.authorHash(), a.review(), a.quality());
                     } else {
                         reviewRepository.insert(a.sourceId(), a.certId(), a.url(), a.postedAt(), a.authorHash(), a.review(), a.quality());
@@ -672,7 +633,7 @@ public class ReviewCollectServiceImpl implements ReviewCollectService {
         /** 사이트별 후보 찾기가 아직 진행 중인지 */
         final Map<ReviewSite, java.util.concurrent.atomic.AtomicBoolean> discovering = new ConcurrentHashMap<>();
         final Set<String> seen = ConcurrentHashMap.newKeySet();
-        volatile String velogPhase, tistoryPhase, dcinsidePhase;
+        volatile String velogPhase, tistoryPhase;
         /** [11-14] "자격증코드|상태" → 건수 (자격증별 건수 API) */
         final Map<String, AtomicInteger> certCounts = new ConcurrentHashMap<>();
         volatile boolean targetReached;
@@ -706,7 +667,6 @@ public class ReviewCollectServiceImpl implements ReviewCollectService {
             List<String> parts = new ArrayList<>();
             if (velogPhase != null) parts.add(velogPhase);
             if (tistoryPhase != null) parts.add(tistoryPhase);
-            if (dcinsidePhase != null) parts.add(dcinsidePhase);
             return parts.isEmpty() ? "글 수집 중" : "후보 찾는 중 (" + String.join(" · ", parts) + ") + 글 수집 중";
         }
 
@@ -802,7 +762,7 @@ public class ReviewCollectServiceImpl implements ReviewCollectService {
             log.info("크롤링 후기 초기화: velog {}건, 티스토리 {}건 삭제, 메모리 기록 {}건 비움", dv, dt, memo);
             return new ResetReport(true, dv, dt, "삭제 완료: velog " + dv + "건, 티스토리 " + dt
                     + "건. 서버의 '대상 아님' 기록 " + memo + "건도 비웠습니다. " + agg
-                    + ". 지우기 직전 상태를 기록했습니다 → '복구 수집' 후 '복구율 확인'으로 비교할 수 있습니다.");
+                    + ". 지우기 직전 상태를 기록했습니다. 다시 모으려면 '크롤링 수집'을 실행하세요.");
         } finally {
             resetting = false;
         }

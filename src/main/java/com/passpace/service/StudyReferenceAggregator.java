@@ -58,7 +58,7 @@ public class StudyReferenceAggregator {
 
     AggregateLine refreshOne(long certId, String exam, String major) {
         // 합격 후기만, 실제 수집 출처만(더미·샘플 제외), 같은 작성자 1표본, 최근 3년
-        // [11-14] source_id 가 NULL 인 새 출처(디시 등) 후기도 빠지지 않게 LEFT JOIN
+        // [11-14] source_id 가 NULL 인 새 출처 후기도 빠지지 않게 LEFT JOIN
         // 총 공부시간이 적힌 글은 그 값을, 없으면 준비기간 × 하루시간으로 환산한다 (환산 건수는 근거 문장에 따로 표시)
         int[] converted = {0};
         List<Double> hours = jdbc.query("""

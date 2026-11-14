@@ -69,8 +69,6 @@ public class SourceRegistry {
     static final List<String> NEW_TISTORY_KEYWORDS_2026_11 = List.of(
             "컴활 1급 합격 후기", "컴활 1급 필기 합격", "컴활 1급 실기 합격", "컴퓨터활용능력 1급 독학",
             "ADsP 합격 후기", "ADsP 독학 합격", "ADsP 비전공 합격");
-    /** [11-14] 디시인사이드 정보처리 미니갤 목록 (기본 목록 주소) */
-    static final String DCINSIDE_DEFAULT_LISTING = "https://gall.dcinside.com/mini/board/lists/?id=dataprocessing";
     /** 한 번 적용 표시 파일: 있으면 위 새 기본값을 다시 넣지 않는다 (관리자가 지운 검색어가 되살아나지 않게) */
     static final String DEFAULTS_DONE_FILE = ".defaults-2026-11.done";
 
@@ -119,7 +117,6 @@ public class SourceRegistry {
             read(seedFile, seedHeader, seeds);
             if (firstListing) {
                 for (String k : DEFAULT_VELOG_KEYWORDS) listings.add(VELOG_SEARCH + k);
-                listings.add(DCINSIDE_DEFAULT_LISTING);
                 save(listingFile, listingHeader, listings);
             }
             applyNewDefaultsOnce(dir, firstListing);
@@ -131,7 +128,7 @@ public class SourceRegistry {
     }
 
     /**
-     * [11-14] 이미 collect-data 파일이 있는 PC 에도 이번에 새로 넣은 기본값(컴활·ADsP 검색어, 디시 목록)을
+     * [11-14] 이미 collect-data 파일이 있는 PC 에도 이번에 새로 넣은 기본값(컴활·ADsP 검색어)을
      * 파일에 없는 것만 한 번 추가한다. 추가 후 표시 파일을 만들어 다음 실행부터는 다시 넣지 않는다.
      */
     private void applyNewDefaultsOnce(Path dir, boolean firstListing) throws IOException {
@@ -140,13 +137,12 @@ public class SourceRegistry {
         if (!firstListing) {
             boolean changed = false;
             for (String k : NEW_VELOG_KEYWORDS_2026_11) changed |= listings.add(VELOG_SEARCH + k);
-            changed |= listings.add(DCINSIDE_DEFAULT_LISTING);
             if (changed) save(listingFile, listingHeader, listings);
             boolean changedT = false;
             for (String k : NEW_TISTORY_KEYWORDS_2026_11) changedT |= tistoryKeywords.add(k);
             if (changedT) save(tistoryKeywordFile, tistoryKeywordHeader, tistoryKeywords);
         }
-        Files.writeString(done, "# 2026-11 기본 검색어(컴활·ADsP)·디시 목록을 한 번 추가함. 지우면 서버 시작 시 다시 추가\n",
+        Files.writeString(done, "# 2026-11 기본 검색어(컴활·ADsP)를 한 번 추가함. 지우면 서버 시작 시 다시 추가\n",
                 StandardCharsets.UTF_8);
     }
 
@@ -280,7 +276,7 @@ public class SourceRegistry {
             return new AddResult(0, 0, dup, invalid, "파일 저장 실패: " + e.getMessage());
         }
         String msg = "목록 주소 " + addedL + "개, 글 주소 " + addedS + "개 추가 · 이미 있음 " + dup + "개"
-                + (invalid.isEmpty() ? "" : " · 넣지 않음 " + invalid.size() + "개 (velog·티스토리·디시 글 주소, velog 태그·검색 화면, 티스토리 RSS, 디시 미니갤 목록만 가능)");
+                + (invalid.isEmpty() ? "" : " · 넣지 않음 " + invalid.size() + "개 (velog·티스토리 글 주소, velog 태그·검색 화면, 티스토리 RSS 만 가능)");
         return new AddResult(addedL, addedS, dup, invalid, msg);
     }
 
@@ -299,9 +295,6 @@ public class SourceRegistry {
         if (site.get() == ReviewSite.VELOG && (path.startsWith("/tags/") || (path.equals("/search") && uri.getRawQuery() != null)))
             return "LISTING";
         if (site.get() == ReviewSite.TISTORY && path.equals("/rss")) return "LISTING";
-        // [11-14] 디시 마이너 갤러리 목록: /mini/board/lists/?id=갤러리
-        if (site.get() == ReviewSite.DCINSIDE && path.startsWith("/mini/board/lists")
-                && uri.getRawQuery() != null && uri.getRawQuery().contains("id=")) return "LISTING";
         return null;
     }
 

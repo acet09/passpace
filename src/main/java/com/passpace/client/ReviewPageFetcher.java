@@ -25,8 +25,6 @@ import java.time.LocalDate;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import com.passpace.crawler.DcinsideParser;
-import org.jsoup.nodes.Document;
 
 /**
  * [용성] 후기 페이지 가져오기.
@@ -97,13 +95,10 @@ public class ReviewPageFetcher {
         this.timings = Map.of(
                 ReviewSite.VELOG.name(), base,
                 ReviewSite.TISTORY.name(), new Timing(tistoryDelayMs, Duration.ofSeconds(tistoryTimeoutSeconds)),
-                ReviewSite.DCINSIDE.name(), new Timing(DCINSIDE_DELAY_MS, Duration.ofSeconds(timeoutSeconds)),
                 OTHER, base);
     }
 
     private static final String OTHER = "OTHER";
-    /** [11-14] 신규 사이트(디시) 요청 간격 기본 2초 */
-    private static final long DCINSIDE_DELAY_MS = 2_000;
 
     /**
      * [11-14] 크롤링 정책 폐기(2026-11-14)로 robots.txt 금지 검사는 설정으로 끌 수 있게 했다 (기본 꺼짐).
@@ -119,13 +114,6 @@ public class ReviewPageFetcher {
         String finalUrl = res.finalUrl();
         if (finalUrl.contains("/login") || finalUrl.contains("accounts.kakao") || finalUrl.contains("/auth/")) {
             throw new CollectException("LOGIN_REQUIRED", "로그인해야 보이는 글이라 수집하지 않습니다: " + url);
-        }
-        if (site == ReviewSite.DCINSIDE) {
-            // [11-14] 디시: 작성자가 주소에 없어 글 페이지에서 뽑는다 (고정닉 아이디 / 유동닉 닉네임+IP 앞 두 자리)
-            Document doc = Jsoup.parse(res.body(), finalUrl);
-            PostPage dc = DcinsideParser.post(doc, maxChars);
-            return new FetchedPage(ascii, dc.title(), dc.text(), dc.postedAt(),
-                    hasher.hash(site, DcinsideParser.authorKey(doc)), dc.noReprint());
         }
         PostPage page = PostPageParser.parse(Jsoup.parse(res.body(), finalUrl), site, LocalDate.now(), maxChars);
         return new FetchedPage(ascii, page.title(), page.text(), page.postedAt(),

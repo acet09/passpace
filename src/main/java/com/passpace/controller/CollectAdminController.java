@@ -30,6 +30,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.passpace.service.NaverSearchReviewCollectService;
 import com.passpace.service.DataqScheduleCollectService;
 import org.springframework.beans.factory.annotation.Autowired;
+import com.passpace.repository.JdbcCollectDataQuery;
 
 /**
  * [용성] 관리자 수집 API  /admin/collect/**
@@ -57,6 +58,9 @@ public class CollectAdminController {
     private NaverSearchReviewCollectService naverCollectService;
     @Autowired
     private DataqScheduleCollectService dataqScheduleCollectService;
+    /** [11-14] 수집 데이터 보기 (읽기 전용) */
+    @Autowired
+    private JdbcCollectDataQuery collectDataQuery;
 
     public CollectAdminController(ExamCollectService examCollectService, ReviewCollectService reviewCollectService,
                                   StudyReferenceAggregator referenceAggregator,
@@ -166,6 +170,25 @@ public class CollectAdminController {
         m.put("crawl", reviewCollectService.certCountStatus());
         m.put("naver", naverCollectService.certCountStatus());
         return ResponseUtil.SUCCESS(m);
+    }
+
+    /** [11-14] 수집 데이터 요약: 출처별 · 자격증별 × 상태(VALID·PENDING·EXCLUDED) 건수 */
+    @GetMapping("/admin/collect/data/summary")
+    public ResponseEntity<?> dataSummary() {
+        return ResponseUtil.SUCCESS(collectDataQuery.summary());
+    }
+
+    /** [11-14] 수집 후기 목록 (출처·자격증·상태·검색어 필터, 열 정렬, 한 쪽 10~200건) */
+    @GetMapping("/admin/collect/data/reviews")
+    public ResponseEntity<?> dataReviews(@RequestParam(value = "source", defaultValue = "ALL") String source,
+                                         @RequestParam(value = "cert", defaultValue = "ALL") String cert,
+                                         @RequestParam(value = "status", defaultValue = "ALL") String status,
+                                         @RequestParam(value = "q", defaultValue = "") String keyword,
+                                         @RequestParam(value = "sort", defaultValue = "id") String sort,
+                                         @RequestParam(value = "dir", defaultValue = "desc") String dir,
+                                         @RequestParam(value = "page", defaultValue = "0") int page,
+                                         @RequestParam(value = "size", defaultValue = "50") int size) {
+        return ResponseUtil.SUCCESS(collectDataQuery.reviews(source, cert, status, keyword, sort, dir, page, size));
     }
 
     /** [11-14] 시험일정 2순위: dataq 일정 페이지 크롤링 (관리자가 직접 실행, SQLD·ADsP) */
