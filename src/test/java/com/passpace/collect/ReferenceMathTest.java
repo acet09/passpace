@@ -1,6 +1,6 @@
 package com.passpace.collect;
 
-import com.passpace.collect.stats.ReferenceMath;
+import com.passpace.service.ReferenceMath;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;

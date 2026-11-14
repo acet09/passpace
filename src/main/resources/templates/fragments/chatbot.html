@@ -5,17 +5,18 @@
   → fragment 이름 "widget" 과 바깥 id "pp-chat-root" 는 바꾸지 않는다 (공통 계약).
 
   ★ 챗봇은 로그인 사용자 전용이다.
-    로그인 여부는 화면 model 의 ${loginUser} 로 판단한다 (한결의 LoginUserModelAdvice 가 모든 화면에 넣어 줌,
-    혼자 테스트할 때는 dev/DevHomeController 가 넣어 줌)
+    [JWT] 로그인 여부는 서버가 아니라 브라우저의 토큰으로 판단한다 (아래 작은 스크립트 + /js/auth.js).
+          두 영역(로그인용·비로그인용)을 모두 그려 두고, 스크립트가 하나를 지운다.
+          → chatbot.js 는 예전처럼 "입력 form 이 있으면 로그인 상태" 로 동작한다.
 
   구현: #pp-chat-root 안에 아래 요소를 포함한다 (id 는 chatbot.js 에서 사용)
    - 열기 버튼            #pp-chat-toggle  (로그인 여부와 상관없이 보임)
    - 대화창 (처음엔 hidden) #pp-chat-panel
        - 제목 + 닫기 버튼   #pp-chat-close
-       - [로그인일 때만 th:if="${loginUser != null}"]
+       - [로그인일 때만 — 토큰이 없으면 스크립트가 지움]
            - 대화 목록       #pp-chat-log   (닉네임 인사말 + 예시 질문 + 마이페이지 안내)
            - 입력 form       #pp-chat-form  / textarea #pp-chat-input (maxlength 500) / 전송 버튼 #pp-chat-send
-       - [비로그인일 때만 th:if="${loginUser == null}"]
+       - [비로그인일 때만 — 토큰이 있으면 스크립트가 지움]
            - 잠긴 안내       #pp-chat-locked ("로그인 후 이용할 수 있어요" + /login, /signup 링크), 입력창 없음
    - 클래스·id 는 모두 pp-chat- 로 시작 (다른 화면 스타일과 충돌 방지)
 -->
@@ -36,8 +37,8 @@
             </div>
             <button type="button" id="pp-chat-close" class="pp-chat-close" aria-label="챗봇 닫기">×</button>
         </header>
-        <div th:if="${loginUser != null}" class="pp-chat-content" id="pp-chat-auth-content"
-             th:attr="data-user-id=${loginUser.userId},data-major=${loginUser.majorType}">
+        <!-- data-user-id · data-major 는 아래 스크립트가 토큰 내용으로 채운다 -->
+        <div class="pp-chat-content" id="pp-chat-auth-content" hidden>
             <nav class="pp-chat-tabs" aria-label="학습 도구 선택">
                 <button type="button" id="pp-chat-tab-chat" class="pp-chat-tab pp-chat-tab-active"
                         aria-pressed="true">학습 상담</button>
@@ -48,7 +49,7 @@
             <div id="pp-chat-log" class="pp-chat-log" role="log" aria-live="polite" aria-relevant="additions">
                 <div class="pp-chat-message pp-chat-bot">
                     <span class="pp-chat-message-label">PASS PACE</span>
-                    <div class="pp-chat-bubble">안녕하세요, <span th:text="${loginUser.nickname}">회원</span>님!
+                    <div class="pp-chat-bubble">안녕하세요, <span data-pp-chat-nickname>회원</span>님!
                         정보처리기사와 SQLD 학습계획을 자동으로 만들어 드릴게요.
                         필요한 과목별 사전 이해도만 클릭해서 알려 주세요.
                     </div>
@@ -89,7 +90,7 @@
                 <p class="pp-chat-planner-note">데모 단계: 입력값은 이 브라우저에만 저장됩니다. 팀의 학습기록·계획 DB 연동은 아직 하지 않습니다.</p>
             </section>
         </div>
-        <div th:if="${loginUser == null}" id="pp-chat-locked" class="pp-chat-locked">
+        <div id="pp-chat-locked" class="pp-chat-locked" hidden>
             <div class="pp-chat-lock-icon" aria-hidden="true">🔒</div>
             <strong>로그인 후 이용할 수 있어요</strong>
             <p>학습 기록을 바탕으로 맞춤 계획을 제안하고 대화를 저장합니다.</p>
@@ -101,6 +102,24 @@
         <footer class="pp-chat-footer">학습계획은 참고용이며 공식 시험 일정은 별도 확인해 주세요.</footer>
     </section>
 
+    <script>
+        // [JWT] 토큰이 있으면 로그인용 영역을, 없으면 잠금 안내를 남긴다 (chatbot.js 보다 먼저 실행)
+        (function () {
+            const user = window.PP ? PP.currentUser() : null;
+            const auth = document.getElementById('pp-chat-auth-content');
+            const locked = document.getElementById('pp-chat-locked');
+            if (user) {
+                locked.remove();
+                auth.hidden = false;
+                auth.dataset.userId = user.userId;
+                auth.dataset.major = user.majorType || '';   // 토큰의 전공 구분 (예: MAJOR)
+                auth.querySelector('[data-pp-chat-nickname]').textContent = user.nickname || user.loginId;
+            } else {
+                auth.remove();
+                locked.hidden = false;
+            }
+        })();
+    </script>
     <script th:src="@{/js/chatbot.js}"></script>
 </div>
 </body>
