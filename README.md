@@ -6,26 +6,34 @@
 ## 1. 담당과 폴더
 
 ```
-src/main/java/com/passpace/
+src/main/java/com/passpace/          ← 12주차 강의안(ExCode) 형식: 기능별이 아니라 "역할별" 폴더
 ├─ PasspaceApplication.java      실행 시작점
-├─ common/   ★ 공통 계약 (혼자 수정 금지)  LoginUser, SessionConst, 코드값 Enum, 인터페이스 3개
-├─ global/   공통 예외 처리 (JSON API)
-├─ user/     [한결] 메인·로그인·회원가입·마이페이지
-├─ collect/  [용성] 시험일정 API 수집, 후기 크롤링, 후기 통계 조회(SQL)
-└─ chat/     [동건] 로컬 LLM 챗봇
+├─ config/      SecurityConfig(권한 규칙) · SwaggerConfig · JacksonConfig
+├─ jwt/         JwtUtil · JwtFilter 등 토큰 만들기·검사 9개 (강의안 그대로)
+├─ constant/    ResponseStatus · Role · 코드값 Enum · CollectSources
+├─ controller/  Auth · User · Page · Home · ChatApi · MultiGoalPlanner · CollectAdmin
+├─ domain/      공통 계약 record (UserStudyProfile 등)
+├─ dto/         ResponseDto + auth/ · user/ · chat/ · collect/
+├─ error/       ErrorCode · ErrorResponseDto · GlobalExceptionHandler · exception/
+├─ repository/  DB 접근 (JdbcTemplate)
+├─ service/     업무 규칙 (AuthService 등)
+├─ client/      외부 API·페이지 가져오기 (Ollama, 공공데이터, 후기 페이지)
+├─ crawler/     후기 탐색·URL 장부
+└─ util/        ResponseUtil
 src/main/resources/
+├─ static/js/auth.js                 [JWT] 토큰 저장·API 호출·헤더 표시 (모든 화면 공통)
 ├─ templates/fragments/layout.html   [한결] 공통 헤더·푸터
 ├─ templates/fragments/chatbot.html  [동건] 챗봇 위젯 (모든 페이지 하단에 들어감)
 ├─ templates/{home, user/*}          [한결]
 ├─ templates/collect/admin.html      [용성] 수집 실행 화면
 ├─ prompts/                          [동건] LLM 지시문
 └─ collect/                          [용성] 후기 탐색 목록·직접 지정 URL, 샘플 시험일정
-db/  01_schema(= passpace_erd.sql) → 02_schema_ext → 03_seed (04 는 더미 삭제)
+db/  01_schema(= passpace_erd.sql) → 02_schema_ext → 03_seed (04 는 더미 삭제) → 08_add_user_role (JWT 권한 칸)
 ```
 
 | 담당 | 화면·주소 | 쓰는 테이블 | 읽는 테이블 |
 |---|---|---|---|
-| 한결 | `/`, `/login`, `/signup`, `/mypage`, `/logout` | USERS, USER_GOALS, GOAL_SUBJECTS | EXAM_ROUNDS, CERTIFICATION_SUBJECTS |
+| 한결 | `/`, `/login`, `/signup`, `/mypage` + API `/auth/**`, `/users/me/**` | USERS, USER_GOALS, GOAL_SUBJECTS | EXAM_ROUNDS, CERTIFICATION_SUBJECTS |
 | 용성 | `/admin/collect` (POST `/admin/collect/exam`, `/admin/collect/reviews`, `/reviews/discover`, `/reviews/preview?url=`, `/reference-stats`) | DATA_SYNC_JOBS, EXAM_ROUNDS, EXAM_SCHEDULE_CHANGE_LOGS, PASS_REVIEWS | CERTIFICATIONS |
 | 동건 | 챗봇 위젯, POST `/api/chat` | CHAT_CONVERSATIONS, CHAT_MESSAGES | PASS_REVIEWS(계약 경유), EXAM_ROUNDS, CERTIFICATION_SUBJECTS |
 
@@ -35,13 +43,38 @@ db/  01_schema(= passpace_erd.sql) → 02_schema_ext → 03_seed (04 는 더미 
 
 | 연결점 | 만드는 쪽 | 쓰는 쪽 | 내용 |
 |---|---|---|---|
-| 세션 `SessionConst.LOGIN_USER` → `LoginUser` | 한결(로그인 시 저장) | 동건(챗봇 사용 가능 여부·전공·회원 ID) | **챗봇은 로그인 사용자 전용**. 이름·타입이 다르면 로그인해도 챗봇이 잠김 |
-| 화면 model `loginUser` | 한결 `LoginUserModelAdvice`(모든 @Controller 화면) | 동건(위젯 잠금/활성), 한결(헤더) | 없으면 위젯이 항상 "로그인 후 이용" 으로 보임 |
-| `UserStudyProfileQuery` | 한결 `user.query.JdbcUserStudyProfileQuery` | 동건 | 마이페이지의 목표 시험일·하루 시간·과목별 이해도 |
-| `ReviewStatsQuery` | 용성 `collect.stats.JdbcReviewStatsQuery` | 동건 | 조건에 맞는 VALID 후기 목록 |
-| `ReviewExtractor` | 용성 `collect.extract.RuleBasedReviewExtractor` | 용성(수집 서비스) | 나중에 동건의 LLM 추출기로 교체 가능 |
+| JWT 토큰 → `JwtPrincipal` (userId·loginId·nickname·majorType·role) | `AuthService.login` (POST /auth/login) | 동건(챗봇·전공), 한결(마이페이지), 용성(ADMIN 권한) | Controller 에서 `@AuthenticationPrincipal JwtPrincipal loginUser` 로 꺼낸다. **세션은 쓰지 않는다** |
+| 화면의 로그인 상태 | `static/js/auth.js` (`window.PP`) | 모든 화면(헤더·챗봇 위젯·마이페이지·관리자) | 서버는 누가 보는지 모른다. JS 가 토큰을 보고 `data-pp-when="guest/member/admin"` 요소를 보이거나 숨긴다 |
+| `UserStudyProfileQuery` | 한결 `repository.JdbcUserStudyProfileQuery` | 동건 | 마이페이지의 목표 시험일·하루 시간·과목별 이해도 |
+| `ReviewStatsQuery` | 용성 `repository.JdbcReviewStatsQuery` | 동건 | 조건에 맞는 VALID 후기 목록 |
+| `ReviewExtractor` | 용성 `service.RuleBasedReviewExtractor` | 용성(수집 서비스) | 나중에 동건의 LLM 추출기로 교체 가능 |
 | 화면 `fragments/chatbot :: widget` | 동건 | 한결(모든 페이지 하단), 용성(관리 화면) | CSS·id 는 `pp-chat-` 접두어 |
 | DB 테이블 | 표 1 참고 | | 테이블마다 쓰는 사람은 한 명 |
+
+## 2-1. 로그인 방식: JWT (12주차 강의안 기준)
+
+세션 방식(서버가 로그인 상태를 기억)을 없애고 **토큰 방식**으로 바꿨다. 나중에 앱(Flutter)을 만들어도 서버를 그대로 쓰기 위해서다.
+
+```
+[웹 화면 JS / 앱] ── POST /auth/login ──────────────→ 토큰(accessToken) 받기 → 저장
+                 ── Authorization: Bearer 토큰 ───→ JwtFilter 가 검사 → Controller
+```
+
+| 주소 | 누가 | 설명 |
+|---|---|---|
+| `POST /auth/signup` · `POST /auth/login` | 누구나 | 가입 · 토큰 발급 |
+| `GET /auth/user-info` | 로그인 | 내 정보 (헤더 "닉네임 님") |
+| `PUT /users/me` · `GET/PUT /users/me/goal` | 로그인 | 마이페이지. 회원정보를 바꾸면 **새 토큰**을 돌려준다 |
+| `/api/chat/**` | 로그인 | 챗봇·통합 학습계획 |
+| `/admin/collect/**` (API) | ADMIN | 수집 관리. 화면 껍데기 `GET /admin/collect` 만 열려 있다 |
+| `/`, `/login`, `/signup`, `/mypage`, `/admin/collect`, css·js | 누구나 | HTML 껍데기. 내용은 JS 가 토큰으로 API 를 불러 채운다 |
+
+- 응답은 항상 `{"status":"SUCCESS|ERROR","code":200,"data":...}`. 실패 이유는 `error/ErrorCode` 한 곳에 모여 있다
+- 권한 규칙은 `config/SecurityConfig` 한 곳, 토큰 없이 열리는 주소는 `jwt/SecurityPaths` 한 곳에서만 고친다
+- 로그아웃 = 브라우저에 저장된 토큰 지우기 (서버 API 없음). 토큰 유효시간 24시간
+- Swagger: http://localhost:8080/swagger-ui.html → `/auth/login` 실행 → 받은 토큰을 오른쪽 위 **Authorize** 에 넣기
+- 서명 열쇠 `jwt.secret` 은 개발용 기본값만 `application.yml` 에 있다. 실제 값은 환경변수 `JWT_SECRET` (저장소에 올리지 않음)
+- IntelliJ: Lombok 을 쓰므로 `Settings > Annotation Processors > Enable annotation processing` 체크
 
 ## 3. 실행 순서
 
@@ -55,7 +88,8 @@ db/  01_schema(= passpace_erd.sql) → 02_schema_ext → 03_seed (04 는 더미 
 CREATE USER IF NOT EXISTS 'passpace'@'localhost' IDENTIFIED BY 'passpace';
 GRANT ALL ON passpace_merged.* TO 'passpace'@'localhost';
 ```
-그다음 `db/01_schema.sql` → `db/02_schema_ext.sql` → `db/03_seed.sql` 을 차례로 열고 **스크립트 실행(Alt+X)**.
+그다음 `db/01_schema.sql` → `db/02_schema_ext.sql` → `db/03_seed.sql` → `db/08_add_user_role.sql` 을 차례로 열고 **스크립트 실행(Alt+X)**.
+- 08 은 JWT 권한(`USERS.role`) 칸을 만든다. 관리자 화면을 쓰려면 08 파일 맨 아래 `UPDATE ... role = 'ADMIN'` 줄에 내 아이디를 넣어 따로 실행하고 **다시 로그인**
 - `01_schema.sql` 은 팀 기준 `passpace_erd.sql` 과 같은 내용이다. 이미 passpace_erd.sql 을 실행했다면 01 은 건너뛰고 02, 03 만 실행
 - 01 실행 결과 `table_count 20`, 03 실행 결과 `dummy_reviews 48` 이면 성공
 - 01 을 다시 실행하면 모든 테이블이 지워지고 새로 만들어진다 (그 뒤 02, 03 도 다시)

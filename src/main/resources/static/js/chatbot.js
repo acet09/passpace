@@ -1,4 +1,8 @@
-/* [동건] 학습 상담 위젯. 응답은 textContent로만 출력한다(XSS 방지). */
+/* [동건] 학습 상담 위젯. 응답은 textContent로만 출력한다(XSS 방지).
+ * [JWT] 서버 호출은 모두 PP.api(...) (static/js/auth.js) 로 한다.
+ *   - Authorization: Bearer 토큰 헤더를 자동으로 붙인다 (예전: 세션 쿠키)
+ *   - 서버 응답 {status, code, data} 에서 data 만 꺼내 준다. 실패면 err.message 에 한국어 문장, err.status 에 HTTP 코드
+ */
 (function () {
     const root = document.getElementById('pp-chat-root');
     if (!root || root.dataset.ready) return;
@@ -44,30 +48,25 @@
         input.value = '';
         setBusy(true);
         const waiting = addMessage('답변 작성 중입니다. 잠시만 기다려 주세요…', 'pp-chat-waiting');
-        let sessionExpired = false;
+        let sessionExpired = false;   // 토큰 만료(401) 여부
         try {
-            const res = await fetch('/api/chat', {
-                method: 'POST',
-                credentials: 'same-origin',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({message, conId})
-            });
             let data;
-            try { data = await res.json(); }
-            catch (_) { throw new Error('서버에서 JSON 응답을 받지 못했습니다.'); }
-            if (res.status === 401) {
+            try {
+                data = await PP.api('/api/chat', {method: 'POST', body: {message, conId}});
+            } catch (err) {
+                if (err.status !== 401) throw err;
+                // 토큰 없음·만료 → 다시 로그인 안내 (돌아올 주소로 지금 화면을 붙인다)
                 sessionExpired = true;
-                addMessage(data.error || '로그인이 만료됐습니다. 다시 로그인해 주세요.', 'pp-chat-error');
+                addMessage(err.message || '로그인이 만료됐습니다. 다시 로그인해 주세요.', 'pp-chat-error');
                 input.disabled = true;
                 send.disabled = true;
                 const link = document.createElement('a');
                 link.className = 'pp-chat-login-link';
-                link.href = '/login';
+                link.href = '/login?redirectURL=' + encodeURIComponent(location.pathname + location.search);
                 link.textContent = '다시 로그인';
                 log.appendChild(link);
                 return;
             }
-            if (!res.ok) throw new Error(data.error || `요청 실패 (${res.status})`);
             if (!data || typeof data.answer !== 'string') throw new Error('잘못된 챗봇 응답입니다.');
             if (typeof data.conId === 'number') conId = data.conId;
             renderAnswer(data);
@@ -346,9 +345,7 @@ function initializeMultiGoalPlanner(root) {
         loaded = true;
         status.textContent = '자격증·과목 목록 불러오는 중…';
         try {
-            const resp = await fetch('/api/chat/planner/catalog', {credentials: 'same-origin'});
-            const data = await resp.json();
-            if (!resp.ok) throw new Error(data.error || '자격증 목록을 불러오지 못했습니다.');
+            const data = await PP.api('/api/chat/planner/catalog');
             catalog = data.goals || [];
             catalogMajorLabel = data.loginMajorLabel || major;
             const sourceIsDemo = /데모|대역|고정/.test(data.dailyTimeSource || '');
@@ -534,12 +531,7 @@ function initializeMultiGoalPlanner(root) {
         button.disabled = true;
         button.textContent = '계산 중…';
         try {
-            const resp = await fetch('/api/chat/planner/preview', {
-                method:'POST', credentials:'same-origin',
-                headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)
-            });
-            const result = await resp.json();
-            if (!resp.ok) throw new Error(result.error || '통합 계획 계산 실패');
+            const result = await PP.api('/api/chat/planner/preview', {method: 'POST', body: payload});
             const previous = state.previous;
             const previousDate = state.lastCalculatedOn;
             const previousTotal = state.lastTotalRemaining;
@@ -746,13 +738,8 @@ function initializeMultiGoalPlanner(root) {
             messageArea.replaceChildren();
             try {
                 const request = makeRequest();
-                const resp = await fetch('/api/chat/planner/preview-chat', {
-                    method:'POST', credentials:'same-origin',
-                    headers:{'Content-Type':'application/json'},
-                    body:JSON.stringify({plan:request,conId:currentConversationId()})
-                });
-                const result = await resp.json();
-                if (!resp.ok) throw new Error(result.error||'계획 계산 실패');
+                const result = await PP.api('/api/chat/planner/preview-chat',
+                    {method: 'POST', body: {plan: request, conId: currentConversationId()}});
                 const plan = result.plan;
                 messageArea.appendChild(node('p','pp-chat-quick-description',result.answer));
                 messageArea.appendChild(node('p','pp-chat-quick-description',

@@ -6,7 +6,8 @@
   TODO(한결)
    - head : meta charset, title("제목 | 패스페이스"), /css/app.css 연결
    - header : 로고(메인 링크), 메뉴. 로그인 전: 로그인·회원가입 / 로그인 후: "닉네임 님"(마이페이지 링크) + 로그아웃(POST /logout)
-             로그인 여부는 ${loginUser} 로 판단 (LoginUserModelAdvice 가 넣어 줌)
+             [JWT] 로그인 여부는 서버가 아니라 /js/auth.js 가 토큰을 보고 판단한다.
+                   data-pp-when="guest|member|admin" 이 붙은 요소를 보이거나 숨긴다.
    - footer : 하단 문구
 -->
 <html xmlns:th="http://www.thymeleaf.org" lang="ko">
@@ -20,6 +21,8 @@
     </title>
 
     <link rel="stylesheet" th:href="@{/css/app.css}">
+    <!-- [JWT] 토큰 저장·API 호출·헤더 표시 공통 도구 (window.PP) -->
+    <script th:src="@{/js/auth.js}" src="/js/auth.js"></script>
 </head>
 <body>
 
@@ -36,28 +39,27 @@
         <nav class="site-nav" aria-label="주요 메뉴">
             <a th:href="@{/}">홈</a>
             <a th:href="@{/#exam-schedule}">시험 일정</a>
-            <a th:if="${loginUser != null}" th:href="@{/mypage}">마이페이지</a>
+            <a data-pp-when="member" hidden th:href="@{/mypage}">마이페이지</a>
+            <!-- [JWT] 토큰의 role 이 ADMIN 일 때만 보인다 (auth.js renderHeader). 실제 권한 검사는 서버가 /admin/** 에서 한다 -->
+            <a data-pp-when="admin" hidden th:href="@{/admin/collect}">관리자 홈페이지</a>
         </nav>
 
         <nav class="account-nav" aria-label="회원 메뉴">
 
-            <div class="header-menu" th:if="${loginUser == null}">
+            <!-- [JWT] 두 메뉴를 모두 그려 두고 auth.js 가 하나만 보이게 한다 -->
+            <div class="header-menu" data-pp-when="guest">
                 <a th:href="@{/login}">로그인</a>
                 <a class="nav-signup" th:href="@{/signup}">시작하기 <span aria-hidden="true">↗</span></a>
             </div>
 
-            <div class="header-menu" th:if="${loginUser != null}">
+            <div class="header-menu" data-pp-when="member" hidden>
 
-                <a class="account-link" th:href="@{/mypage}"
-                   th:text="${loginUser.nickname} + ' 님'">
-                    닉네임 님
-                </a>
+                <a class="account-link" th:href="@{/mypage}" data-pp-nickname>닉네임 님</a>
 
-                <form class="logout-form"
-                      th:action="@{/logout}"
-                      method="post">
-                    <button type="submit">로그아웃</button>
-                </form>
+                <!-- [JWT] 로그아웃 = 브라우저의 토큰 지우기 (서버 요청 없음). 모양은 예전 폼과 같게 유지 -->
+                <div class="logout-form">
+                    <button type="button" data-pp-logout>로그아웃</button>
+                </div>
             </div>
 
         </nav>

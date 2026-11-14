@@ -1,16 +1,14 @@
 package com.passpace.chat;
 
-import com.passpace.chat.controller.MultiGoalPlannerController;
-import com.passpace.chat.controller.MultiGoalPlannerController.CatalogResponse;
-import com.passpace.chat.service.StudyHoursByMajor;
-import com.passpace.chat.service.StudyHoursByMajor.Qualification;
-import com.passpace.common.LoginUser;
-import com.passpace.common.SessionConst;
-import com.passpace.common.code.MajorType;
+import com.passpace.controller.MultiGoalPlannerController;
+import com.passpace.controller.MultiGoalPlannerController.CatalogResponse;
+import com.passpace.service.StudyHoursByMajor;
+import com.passpace.service.StudyHoursByMajor.Qualification;
+import com.passpace.dto.ResponseDto;
+import com.passpace.jwt.JwtPrincipal;
+import com.passpace.constant.MajorType;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.mock.web.MockHttpSession;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
@@ -79,8 +77,9 @@ class StudyHoursByMajorTest {
         };
         var controller = new MultiGoalPlannerController(jdbc);
 
-        CatalogResponse major = (CatalogResponse) controller.catalog(session(MajorType.MAJOR)).getBody();
-        CatalogResponse nonMajor = (CatalogResponse) controller.catalog(session(MajorType.NON_MAJOR)).getBody();
+        // [JWT] 응답은 {status, code, data} 로 감싸져 있으므로 data 를 꺼낸다
+        CatalogResponse major = (CatalogResponse) ((ResponseDto<?>) controller.catalog(loginUser(MajorType.MAJOR)).getBody()).getData();
+        CatalogResponse nonMajor = (CatalogResponse) ((ResponseDto<?>) controller.catalog(loginUser(MajorType.NON_MAJOR)).getBody()).getData();
         assertNotNull(major);
         assertNotNull(nonMajor);
         assertEquals("MAJOR", major.loginMajor());
@@ -93,11 +92,8 @@ class StudyHoursByMajorTest {
                 .findFirst().orElseThrow().majorEvidence().fallback());
     }
 
-    private MockHttpServletRequest session(MajorType major) {
-        var request = new MockHttpServletRequest();
-        var session = new MockHttpSession();
-        session.setAttribute(SessionConst.LOGIN_USER, new LoginUser(1L, "test", "테스트", major));
-        request.setSession(session);
-        return request;
+    /** [JWT] 예전에는 세션에 LoginUser 를 넣었다. 이제는 JwtFilter 가 토큰에서 만들어 주는 JwtPrincipal 을 직접 만든다 */
+    private JwtPrincipal loginUser(MajorType major) {
+        return new JwtPrincipal(1L, "test", "테스트", major, "USER");
     }
 }

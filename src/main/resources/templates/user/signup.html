@@ -1,11 +1,10 @@
 <!DOCTYPE html>
 <!--
-  [한결] ③ 회원가입 "/signup" - 빈칸본
-  모델 값: form (SignUpForm), majorTypes (MajorType[])
-  TODO(한결)
-   - POST /signup 폼, th:object="${form}"
-   - 입력칸 이름은 SignUpForm 필드와 같게: loginId, password, passwordConfirm, nickname, email, majorType(선택 상자)
-   - 칸별 오류 메시지(th:errors)
+  [한결] ③ 회원가입 "/signup"
+  모델 값: majorTypes (MajorType[]) — 전공 선택 상자 목록만 서버가 채운다 (PageController)
+  [JWT] 예전: 폼을 POST /signup 으로 보내면 서버가 가입 + 세션 로그인
+        지금: JS 가 POST /auth/signup(JSON) → 성공하면 바로 POST /auth/login 으로 토큰 받기 → 마이페이지로
+  입력 규칙 검사는 서버(SignupRequestDto 의 @Valid)가 한다. 틀리면 400 + 어느 칸이 왜 틀렸는지(detail)가 온다.
 -->
 <html xmlns:th="http://www.thymeleaf.org" lang="ko">
 <head th:replace="~{fragments/layout :: head('회원가입')}"></head>
@@ -28,117 +27,51 @@
         <h1 id="auth-title">회원가입</h1>
         <p>회원가입하고 나의 학습 목표를 관리해 보세요.</p>
 
-        <form th:action="@{/signup}"
-              th:object="${form}"
-              method="post"
-              novalidate>
+        <form id="signup-form" novalidate>
+
+            <div class="global-error" role="alert" id="signup-error" hidden></div>
 
             <div class="form-field">
                 <label for="loginId">아이디</label>
-
-                <input type="text"
-                       id="loginId"
-                       th:field="*{loginId}"
-                       th:errorclass="input-error"
-                       autocomplete="username"
-                       placeholder="영문, 숫자, 밑줄(_)로 4~20자">
-
-                <p class="field-error"
-                   th:if="${#fields.hasErrors('loginId')}"
-                   th:errors="*{loginId}">
-                    아이디 오류 메시지
-                </p>
+                <input type="text" id="loginId" name="loginId" autocomplete="username" placeholder="영문, 숫자, 밑줄(_)로 4~20자">
+                <p class="field-error" data-error-for="loginId" hidden></p>
             </div>
 
             <div class="form-field">
                 <label for="password">비밀번호</label>
-
-                <input type="password"
-                       id="password"
-                       th:field="*{password}"
-                       th:errorclass="input-error"
-                       autocomplete="new-password"
-                       placeholder="8~50자 (UTF-8 72바이트 이내)">
-
-                <p class="field-error"
-                   th:if="${#fields.hasErrors('password')}"
-                   th:errors="*{password}">
-                    비밀번호 오류 메시지
-                </p>
+                <input type="password" id="password" name="password" autocomplete="new-password" placeholder="8~50자 (UTF-8 72바이트 이내)">
+                <p class="field-error" data-error-for="password" hidden></p>
             </div>
 
             <div class="form-field">
                 <label for="passwordConfirm">비밀번호 확인</label>
-
-                <input type="password"
-                       id="passwordConfirm"
-                       th:field="*{passwordConfirm}"
-                       th:errorclass="input-error"
-                       autocomplete="new-password"
-                       placeholder="비밀번호를 다시 입력해 주세요">
-
-                <p class="field-error"
-                   th:if="${#fields.hasErrors('passwordConfirm')}"
-                   th:errors="*{passwordConfirm}">
-                    비밀번호 확인 오류 메시지
-                </p>
+                <input type="password" id="passwordConfirm" name="passwordConfirm" autocomplete="new-password" placeholder="비밀번호를 다시 입력해 주세요">
+                <p class="field-error" data-error-for="passwordConfirm" hidden></p>
             </div>
 
             <div class="form-field">
                 <label for="nickname">닉네임</label>
-
-                <input type="text"
-                       id="nickname"
-                       th:field="*{nickname}"
-                       th:errorclass="input-error"
-                       autocomplete="nickname"
-                       placeholder="50자 이하">
-
-                <p class="field-error"
-                   th:if="${#fields.hasErrors('nickname')}"
-                   th:errors="*{nickname}">
-                    닉네임 오류 메시지
-                </p>
+                <input type="text" id="nickname" name="nickname" autocomplete="nickname" placeholder="50자 이하">
+                <p class="field-error" data-error-for="nickname" hidden></p>
             </div>
 
             <div class="form-field">
                 <label for="email">이메일</label>
-
-                <input type="email"
-                       id="email"
-                       th:field="*{email}"
-                       th:errorclass="input-error"
-                       autocomplete="email"
-                       placeholder="example@email.com">
-
-                <p class="field-error"
-                   th:if="${#fields.hasErrors('email')}"
-                   th:errors="*{email}">
-                    이메일 오류 메시지
-                </p>
+                <input type="email" id="email" name="email" autocomplete="email" placeholder="example@email.com">
+                <p class="field-error" data-error-for="email" hidden></p>
             </div>
 
             <div class="form-field">
                 <label for="majorType">전공 구분</label>
-
-                <select id="majorType"
-                        th:field="*{majorType}"
-                        th:errorclass="input-error">
-
+                <select id="majorType" name="majorType">
                     <option value="">전공 구분을 선택해 주세요</option>
-
                     <option th:each="major : ${majorTypes}"
                             th:value="${major.name()}"
                             th:text="${major.label}">
                         전공 구분
                     </option>
                 </select>
-
-                <p class="field-error"
-                   th:if="${#fields.hasErrors('majorType')}"
-                   th:errors="*{majorType}">
-                    전공 구분 오류 메시지
-                </p>
+                <p class="field-error" data-error-for="majorType" hidden></p>
             </div>
 
             <!-- 추가된 코드: 비밀번호의 기존 서버 제한 안내 -->
@@ -157,5 +90,55 @@
 
 <footer th:replace="~{fragments/layout :: footer}"></footer>
 <div th:replace="~{fragments/chatbot :: widget}"></div>
+<script>
+    // [JWT] 회원가입 → 자동 로그인(토큰 받기) → 마이페이지
+    (function () {
+        const form = document.getElementById('signup-form');
+        const errorBox = document.getElementById('signup-error');
+
+        if (PP.currentUser()) { location.replace('/mypage'); return; }   // 이미 로그인 상태
+
+        function clearErrors() {
+            errorBox.hidden = true;
+            form.querySelectorAll('[data-error-for]').forEach(p => { p.hidden = true; p.textContent = ''; });
+            form.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
+        }
+
+        /** 서버 오류를 해당 입력칸 아래에 보여 준다 (칸을 모르면 위쪽 공통 오류 칸에) */
+        function showError(err) {
+            const field = err.field || ({ DUPLICATED_LOGIN_ID: 'loginId', DUPLICATED_EMAIL: 'email' })[err.code];
+            const box = field && form.querySelector('[data-error-for="' + field + '"]');
+            if (box) {
+                box.textContent = err.message;
+                box.hidden = false;
+                form.elements[field].classList.add('input-error');
+                form.elements[field].focus();
+            } else {
+                errorBox.textContent = err.message;
+                errorBox.hidden = false;
+            }
+        }
+
+        form.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            clearErrors();
+            const body = {
+                loginId: form.loginId.value.trim(),
+                password: form.password.value,
+                passwordConfirm: form.passwordConfirm.value,
+                nickname: form.nickname.value.trim(),
+                email: form.email.value.trim(),
+                majorType: form.majorType.value || null
+            };
+            try {
+                await PP.api('/auth/signup', { method: 'POST', body });   // data: { userId }
+                await PP.login(body.loginId, body.password);              // 가입 직후 바로 로그인
+                location.href = '/mypage';
+            } catch (err) {
+                showError(err);
+            }
+        });
+    })();
+</script>
 </body>
 </html>

@@ -6,7 +6,7 @@
    - 서비스 소개 문구
    - 다가오는 시험 일정 카드: 연도·회차·필기/실기, D-Day(daysLeft), 원서접수 기간, 시험일, 합격 발표일, 샘플이면 "샘플" 표시
    - 일정이 없으면 "일정 준비 중"
-   - 비로그인일 때(th:if="${loginUser == null}"): "챗봇은 회원 전용" 안내 + 회원가입·로그인 버튼
+   - 비로그인일 때(data-pp-when="guest", auth.js 가 판단): "챗봇은 회원 전용" 안내 + 회원가입·로그인 버튼
 -->
 <html xmlns:th="http://www.thymeleaf.org" lang="ko">
 <head th:replace="~{fragments/layout :: head('메인')}"></head>
@@ -21,8 +21,8 @@
             <h1 id="hero-title">합격까지,<br><span>나만의 페이스로.</span></h1>
             <p class="hero-description">막막했던 자격증 준비를 한 걸음씩.<br>시험 일정을 살펴보고, 나에게 맞는 학습 목표를 세워 보세요.</p>
             <div class="hero-actions">
-                <a class="button" th:if="${loginUser == null}" th:href="@{/signup}">나의 페이스 시작하기 <span aria-hidden="true">→</span></a>
-                <a class="button" th:if="${loginUser != null}" th:href="@{/mypage}">나의 학습 목표 보기 <span aria-hidden="true">→</span></a>
+                <a class="button" data-pp-when="guest" th:href="@{/signup}">나의 페이스 시작하기 <span aria-hidden="true">→</span></a>
+                <a class="button" data-pp-when="member" hidden th:href="@{/mypage}">나의 학습 목표 보기 <span aria-hidden="true">→</span></a>
                 <a class="text-link" href="#exam-schedule">시험 일정 먼저 보기 <span aria-hidden="true">↓</span></a>
             </div>
             <p class="hero-footnote"><span aria-hidden="true">✓</span> 시험 일정부터 학습 목표까지, 한곳에서</p>
@@ -118,7 +118,7 @@
         </div>
     </section>
 
-    <section class="member-notice" th:if="${loginUser == null}">
+    <section class="member-notice" data-pp-when="guest">
         <div class="member-copy"><span class="notice-icon" aria-hidden="true">✦</span><div><p class="eyebrow">함께 준비하는 학습</p><h2>챗봇은 회원 전용</h2><p>로그인하고 회원 전용 챗봇도 이용해 보세요.</p></div></div>
 
         <div class="member-actions">

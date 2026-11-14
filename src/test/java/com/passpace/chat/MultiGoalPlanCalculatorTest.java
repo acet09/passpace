@@ -1,7 +1,7 @@
 package com.passpace.chat;
 
-import com.passpace.chat.service.MultiGoalPlanCalculator;
-import com.passpace.chat.service.MultiGoalPlanCalculator.*;
+import com.passpace.service.MultiGoalPlanCalculator;
+import com.passpace.service.MultiGoalPlanCalculator.*;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
