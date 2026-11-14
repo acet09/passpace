@@ -48,6 +48,31 @@ public class JdbcPassReviewRepository implements PassReviewRepository {
                 authorHash);
     }
 
+    /** [11-14] insert 와 같은 SQL, source_id 만 NULL 허용 (DATA_SOURCES 행이 없는 새 출처용) */
+    @Override
+    public void insertWithNullableSource(Long sourceId, long certificationId, String sourceUrl, LocalDate postedAt,
+                                         String authorHash, ExtractedReview r, QualityResult q) {
+        String dailyHoursText = r.dailyMinutes() == null ? null
+                : String.valueOf(Math.round(r.dailyMinutes() / 6.0) / 10.0).replaceAll("\\.0$", "");
+        jdbc.update("""
+                INSERT INTO PASS_REVIEWS (source_id, certification_id, exam_type, major_type, source_url, posted_at,
+                       proof_yn, prep_days, total_hours, daily_hours, study_subjects, evidence_text,
+                       review_status, exclude_reason, pass_yn, daily_minutes, exam_year, round_no, study_method, author_hash, collected_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+                """,
+                sourceId, certificationId,
+                r.examType() == null ? null : r.examType().name(),
+                r.majorType() == null ? null : r.majorType().name(),
+                sourceUrl, postedAt,
+                r.proof() ? "Y" : "N",
+                r.prepDays(), r.totalHours(), dailyHoursText, r.studySubjects(), r.evidenceText(),
+                q.reviewStatus(), q.excludeReason(),
+                r.passed() == null ? null : (r.passed() ? "Y" : "N"),
+                r.dailyMinutes(), r.examYear(), r.roundNo(),
+                r.studyMethod() == null ? null : r.studyMethod().name(),
+                authorHash);
+    }
+
     @Override
     public int countBySource(long sourceId) {
         Integer n = jdbc.queryForObject("SELECT COUNT(*) FROM PASS_REVIEWS WHERE source_id = ?", Integer.class, sourceId);

@@ -52,6 +52,13 @@ public class SqldScheduleCollectService {
     private static final String API_BASE = "https://api.odcloud.kr/api";
     /** Swagger summary 끝의 파일 날짜: "..._20260106" */
     private static final Pattern FILE_DATE = Pattern.compile("_(\\d{8})\\s*$");
+    /** [11-14] 같은 API(15062838)에 ADsP 일정도 들어 있다 → ADsP 회차도 저장 (CERTIFICATIONS 에 ADSP 행이 없으면 건너뜀) */
+    private static final String ADSP_CODE = "ADSP";
+    private static final Pattern ADSP_NAME = Pattern.compile("(?i)ADsP|데이터\\s*분석\\s*준\\s*전문가");
+
+    /** [11-14] 대상 연도: ExamCollectServiceImpl 과 같은 키. 0 이면 지금처럼 최근 2년, 그 밖이면 그 연도만 */
+    @Value("${passpace.collect.exam-year:0}")
+    private int configuredYear;
 
     private final ExamRoundRepository examRoundRepository;
     private final SyncJobRepository syncJobRepository;
@@ -84,8 +91,8 @@ public class SqldScheduleCollectService {
         int success = 0, skipped = 0;
         try {
             String path = latestFilePath();
-            List<ExamScheduleItem> items = parse(get(API_BASE + path + "?page=1&perPage=1000&returnType=JSON&serviceKey="
-                    + URLEncoder.encode(serviceKey, StandardCharsets.UTF_8)), LocalDate.now().minusYears(2));
+            List<ExamScheduleItem> items = byYear(parse(get(API_BASE + path + "?page=1&perPage=1000&returnType=JSON&serviceKey="
+                    + URLEncoder.encode(serviceKey, StandardCharsets.UTF_8)), LocalDate.now().minusYears(2)));
             if (items.isEmpty()) {
                 syncJobRepository.finish(jobId, 0, 0, 0, "FAILED", "EMPTY_RESULT", "SQLD 회차 0건 - 기존 데이터 유지");
                 return new CollectResult("SQLD_SCHEDULE", mode, 0, 0, 0, "FAILED", "SQLD 회차가 0건입니다. 기존 데이터를 유지합니다.");
@@ -107,15 +114,81 @@ public class SqldScheduleCollectService {
                     }
                 }
             }
+            String adspNote = collectAdsp(path, jobId);
             syncJobRepository.finish(jobId, success, 0, skipped, "SUCCESS", null, null);
             ExamScheduleItem last = items.get(items.size() - 1);
             return new CollectResult("SQLD_SCHEDULE", mode, success, 0, skipped, "SUCCESS",
-                    "SQLD " + items.size() + "개 회차(최근 2년): 저장·변경 " + success + "건, 변경 없음 " + skipped
-                            + "건 / 가장 최근 제" + last.roundNo() + "회 시험일 " + last.examStart());
+                    "SQLD " + items.size() + "개 회차(" + yearLabel() + "): 저장·변경 " + success + "건, 변경 없음 " + skipped
+                            + "건 / 가장 최근 제" + last.roundNo() + "회 시험일 " + last.examStart() + " / " + adspNote);
         } catch (CollectException e) {
             syncJobRepository.finish(jobId, success, 0, skipped, "FAILED", e.getFailType(), e.getMessage());
             return new CollectResult("SQLD_SCHEDULE", mode, success, 0, skipped, "FAILED", e.getMessage());
         }
+    }
+
+    /** [11-14] exam-year 가 정해져 있으면 그 연도 회차만 */
+    private List<ExamScheduleItem> byYear(List<ExamScheduleItem> items) {
+        if (configuredYear <= 0) return items;
+        return items.stream().filter(i -> i.examYear() == configuredYear).toList();
+    }
+
+    private String yearLabel() {
+        return configuredYear > 0 ? configuredYear + "년" : "최근 2년";
+    }
+
+    /**
+     * [11-14] 같은 응답 파일에서 ADsP 일반검정 회차를 골라 저장. 날짜가 바뀐 회차만 수정하고 변경 기록을 남기는 규칙은 SQLD 와 같다.
+     * ADSP 자격증 행이 없거나 실패해도 SQLD 결과에는 영향을 주지 않는다.
+     */
+    private String collectAdsp(String path, long jobId) {
+        var certId = examRoundRepository.findCertificationId(ADSP_CODE);
+        if (certId.isEmpty()) return "ADsP 건너뜀(CERTIFICATIONS 에 ADSP 없음 → db/09 실행 필요)";
+        try {
+            List<ExamScheduleItem> items = byYear(parseByName(get(API_BASE + path + "?page=1&perPage=1000&returnType=JSON&serviceKey="
+                    + URLEncoder.encode(serviceKey, StandardCharsets.UTF_8)), LocalDate.now().minusYears(2), ADSP_NAME, "ADsP"));
+            int saved = 0, same = 0;
+            for (ExamScheduleItem item : items) {
+                var stored = examRoundRepository.find(certId.get(), item.examYear(), item.roundNo(), item.examType().name());
+                if (stored.isEmpty()) {
+                    examRoundRepository.insert(certId.get(), CollectSources.SQLD_SCHEDULE_API, ADSP_CODE, item);
+                    saved++;
+                } else {
+                    String changed = changedFields(stored.get(), item);
+                    if (changed == null) {
+                        examRoundRepository.touch(stored.get().examRoundId());
+                        same++;
+                    } else {
+                        examRoundRepository.insertChangeLog(stored.get().examRoundId(), jobId, stored.get(), item, changed);
+                        examRoundRepository.update(stored.get().examRoundId(), CollectSources.SQLD_SCHEDULE_API, item);
+                        saved++;
+                    }
+                }
+            }
+            return "ADsP " + items.size() + "개 회차: 저장·변경 " + saved + "건, 변경 없음 " + same + "건";
+        } catch (CollectException e) {
+            return "ADsP 실패: " + e.getMessage();
+        }
+    }
+
+    /** [11-14] 시험명 조건만 다른 parse (ADsP 용). 일반검정 · from 이후 · 회차별 1건 · 시험일 순 */
+    List<ExamScheduleItem> parseByName(String body, LocalDate from, Pattern name, String label) {
+        JsonNode data = readJson(body).path("data");
+        if (!data.isArray()) return List.of();
+        Map<Integer, ExamScheduleItem> byRound = new LinkedHashMap<>();
+        for (JsonNode d : data) {
+            if (!name.matcher(d.path("시험명").asText("")).find()) continue;
+            if (!"일반검정".equals(d.path("시험구분").asText(""))) continue;
+            LocalDate exam = date(d.path("시험일").asText(""));
+            int round = d.path("회차").asInt(-1);
+            if (exam == null || round < 0 || exam.isBefore(from)) continue;
+            byRound.putIfAbsent(round, new ExamScheduleItem(exam.getYear(), round, ExamType.WRITTEN,
+                    date(d.path("접수시작일").asText("")), date(d.path("접수마감일").asText("")),
+                    exam, exam, date(d.path("합격자발표일").asText("")),
+                    label + " 제" + round + "회"));
+        }
+        List<ExamScheduleItem> items = new ArrayList<>(byRound.values());
+        items.sort((a, b) -> a.examStart().compareTo(b.examStart()));
+        return items;
     }
 
     /** API 문서에서 summary 날짜(_YYYYMMDD)가 가장 늦은 데이터 파일 경로 */

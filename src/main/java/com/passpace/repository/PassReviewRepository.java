@@ -13,6 +13,15 @@ public interface PassReviewRepository {
     void insert(long sourceId, long certificationId, String sourceUrl, LocalDate postedAt, String authorHash,
                 ExtractedReview review, QualityResult quality);
 
+    /**
+     * [11-14] 출처 번호 없이(NULL) 저장 - DATA_SOURCES 행이 없는 새 출처(네이버 블로그·카페) 전용.
+     * 기존 insert(long …)는 그대로 두고 추가만 했다. sourceId 가 null 이 아니면 그 번호로 저장한다.
+     */
+    default void insertWithNullableSource(Long sourceId, long certificationId, String sourceUrl, LocalDate postedAt,
+                                          String authorHash, ExtractedReview review, QualityResult quality) {
+        throw new UnsupportedOperationException("insertWithNullableSource 미구현");
+    }
+
     /** 출처별 후기 수 (초기화 전 미리보기) */
     int countBySource(long sourceId);
 

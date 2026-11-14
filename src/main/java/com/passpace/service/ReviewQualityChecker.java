@@ -84,6 +84,25 @@ public class ReviewQualityChecker {
         return new QualityResult(ReviewStatus.VALID.name(), null);
     }
 
+    /**
+     * [11-14] 네이버 검색 API 요약문(제목 + 1~2문장) 전용 검사. 기존 check(...) 는 그대로 둔다.
+     *  - 광고·이상값만 EXCLUDED (기존 규칙 재사용)
+     *  - 그 밖은 모두 PENDING: 요약문은 잘려 있어 시간·합격 정보를 잘못 읽을 위험이 크고,
+     *    작성일이 없으면(카페) 통계 쿼리의 "최근 3년" 조건을 그냥 통과하므로 VALID 로는 절대 저장하지 않는다
+     */
+    public QualityResult checkSnippet(ExtractedReview r, String text, LocalDate postedAt) {
+        if (text != null && AD.matcher(text).find()) {
+            return excluded("광고·협찬 의심");
+        }
+        if (r.dailyMinutes() != null && r.dailyMinutes() >= 20 * 60) {
+            return excluded("이상값: 하루 20시간 이상");
+        }
+        if (r.totalHours() != null && r.totalHours().compareTo(BigDecimal.valueOf(5)) < 0) {
+            return excluded("이상값: 총 공부시간 5시간 미만");
+        }
+        return new QualityResult(ReviewStatus.PENDING.name(), postedAt == null ? "작성일 없음·요약문만 수집" : "요약문만 수집");
+    }
+
     private static QualityResult excluded(String reason) {
         return new QualityResult(ReviewStatus.EXCLUDED.name(), reason);
     }

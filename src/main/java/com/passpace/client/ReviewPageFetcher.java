@@ -100,6 +100,13 @@ public class ReviewPageFetcher {
 
     private static final String OTHER = "OTHER";
 
+    /**
+     * [11-14] 크롤링 정책 폐기(2026-11-14)로 robots.txt 금지 검사는 설정으로 끌 수 있게 했다 (기본 꺼짐).
+     * 403·429 즉시 중단, 사이트별 요청 간격, 재시도는 그대로 지킨다.
+     */
+    @Value("${passpace.collect.robots-check:false}")
+    private boolean robotsCheck;
+
     /** 개별 글 페이지 → 본문·작성일·작성자 해시. 본문은 메모리에서만 쓴다 */
     public FetchedPage fetchPost(String url, ReviewSite site, AuthorHasher hasher) {
         String ascii = UrlText.toAscii(url);
@@ -143,7 +150,7 @@ public class ReviewPageFetcher {
         if (wait > 0) {
             throw new CollectException("COOLDOWN", siteKey + " 이(가) 요청을 제한해 쉬는 중입니다 (약 " + (wait / 60 + 1) + "분 남음): " + asciiUrl);
         }
-        if (!isAllowedByRobots(uri)) {
+        if (robotsCheck && !isAllowedByRobots(uri)) {
             throw new CollectException("ROBOTS_DENIED", "robots.txt 에서 금지한 경로입니다: " + asciiUrl);
         }
         Page page = send(uri, attempts);
@@ -187,7 +194,7 @@ public class ReviewPageFetcher {
 
     private Page sendOnce(URI uri) {
         String siteKey = siteKey(uri);
-        Timing timing = timings.get(siteKey);
+        Timing timing = timings.getOrDefault(siteKey, timings.get(OTHER));
         HttpRequest req = HttpRequest.newBuilder(uri)
                 .timeout(timing.timeout())
                 .header("User-Agent", userAgent)
@@ -253,6 +260,7 @@ public class ReviewPageFetcher {
 
     /** 외부(티스토리 검색 브라우저 등)에서 쓰는 robots.txt 확인 */
     public boolean allowedByRobots(String url) {
+        if (!robotsCheck) return true;
         try {
             return isAllowedByRobots(URI.create(UrlText.toAscii(url)));
         } catch (RuntimeException e) {

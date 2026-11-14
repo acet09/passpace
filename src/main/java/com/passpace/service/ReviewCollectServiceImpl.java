@@ -35,6 +35,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
+import com.passpace.dto.collect.CertCountStatus;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -108,6 +110,10 @@ public class ReviewCollectServiceImpl implements ReviewCollectService {
     /** 이번 서버 실행 중 "대상 자격증 아님"으로 판단한 URL (다시 가져오지 않음, DB 에도 저장 안 함) */
     private final Set<String> notTargetUrls = ConcurrentHashMap.newKeySet();
 
+    /** [11-14] 네이버 검색 API 영역과 동시 실행 방지 (생성자는 그대로 두고 필드로 주입) */
+    @Autowired(required = false)
+    private CollectRunGuard runGuard;
+
     public ReviewCollectServiceImpl(ReviewPageFetcher fetcher, ReviewExtractor extractor,
                                     ReviewQualityChecker qualityChecker, PassReviewRepository reviewRepository,
                                     ExamRoundRepository examRoundRepository, SyncJobRepository syncJobRepository,
@@ -151,7 +157,7 @@ public class ReviewCollectServiceImpl implements ReviewCollectService {
     @Override
     public CollectResult collectReviews() {
         Run run = new Run(maxPerRun, null, MODE_NEW, false, false);
-        if (!tryStart(run)) {
+        if (naverRunning() || !tryStart(run)) {
             return new CollectResult("REVIEW_DISCOVER", "CRAWL", 0, 0, 0, "BUSY", "이미 후기 수집이 실행 중입니다.");
         }
         run.finish(execute(run));
@@ -168,6 +174,10 @@ public class ReviewCollectServiceImpl implements ReviewCollectService {
         String m = MODE_RECOVER.equalsIgnoreCase(mode) ? MODE_RECOVER : MODE_RETRY.equalsIgnoreCase(mode) ? MODE_RETRY : MODE_NEW;
         int target = MODE_NEW.equals(m) ? Math.max(MIN_LIMIT, Math.min(MAX_LIMIT, limit)) : Integer.MAX_VALUE;
         Run run = new Run(target, parseSite(site), m, tistoryRss && MODE_NEW.equals(m), tistorySearchOn && MODE_NEW.equals(m));
+        if (naverRunning()) {
+            return new CollectJobStatus("IDLE", "ALL", 0, 0, 0, 0, 0, 0, 0, 0, Map.of(), null, 0,
+                    "다른 수집 실행 중(네이버 검색 API)이라 크롤링을 시작하지 않았습니다. 끝난 뒤 다시 누르세요.", m, lastFailed.size(), null);
+        }
         if (!tryStart(run)) {
             Run cur = current.get();
             return cur != null && "RUNNING".equals(cur.state) ? cur.status()
@@ -203,6 +213,18 @@ public class ReviewCollectServiceImpl implements ReviewCollectService {
         t.setDaemon(true);
         t.start();
         return run.status();
+    }
+
+    private boolean naverRunning() {
+        return runGuard != null && runGuard.isNaverRunning();
+    }
+
+    /** [11-14] 이번(또는 마지막) 실행의 자격증별 건수 */
+    @Override
+    public CertCountStatus certCountStatus() {
+        Run run = current.get();
+        if (run == null) return new CertCountStatus("CRAWL", "IDLE", Map.of());
+        return new CertCountStatus("CRAWL", run.state, CertCountStatus.from(run.certCounts));
     }
 
     @Override
@@ -299,6 +321,7 @@ public class ReviewCollectServiceImpl implements ReviewCollectService {
             if (run.queues.containsKey(ReviewSite.TISTORY)) {
                 finders.add(startFinder(run, ReviewSite.TISTORY, () -> findTistory(run)));
             }
+
         } else {
             Gathered g = gather(run.mode, run);
             run.notes.addAll(g.messages);
@@ -322,6 +345,7 @@ public class ReviewCollectServiceImpl implements ReviewCollectService {
         }
 
         for (Counter cnt : run.bySite.values()) {
+            if (cnt.jobId < 0) continue;      // [11-14] 출처 행이 없는 사이트는 DATA_SYNC_JOBS 에 기록하지 않음
             String status = cnt.failed.get() == 0 ? "SUCCESS" : (cnt.success.get() > 0 ? "PARTIAL" : "FAILED");
             syncJobRepository.finish(cnt.jobId, cnt.success.get(), cnt.failed.get(), cnt.skipped.get(),
                     status, cnt.failType, cnt.error);
@@ -538,7 +562,8 @@ public class ReviewCollectServiceImpl implements ReviewCollectService {
             }
             if (cnt == null) {
                 try {
-                    cnt = new Counter(syncJobRepository.start(sourceId, "REVIEW_DISCOVER"));
+                    // [11-14] DATA_SYNC_JOBS.source_id 는 NOT NULL → 출처 행이 없는 사이트는 기록하지 않는다
+                    cnt = new Counter(sourceId == null ? -1 : syncJobRepository.start(sourceId, "REVIEW_DISCOVER"));
                 } catch (Exception e) {
                     run.notes.add(site + " 실행 기록 시작 실패: " + e.getMessage());
                     return;
@@ -548,12 +573,21 @@ public class ReviewCollectServiceImpl implements ReviewCollectService {
             try {
                 Analysis a = analyze(c.url(), c.site(), sourceId, c.listedDate());
                 if (a.skipReason() != null) {
+                    if (a.certCode() != null && a.skipReason().startsWith("CERTIFICATIONS 에")) {
+                        run.certCounts.computeIfAbsent(a.certCode() + "|UNREGISTERED", k -> new AtomicInteger()).incrementAndGet();
+                    }
                     cnt.skipped.incrementAndGet();
                     notTargetUrls.add(c.url());
                     ledger.record(c.url(), site.name(), "SKIP");
                     log.info("저장 안 함 {} ({})", c.url(), a.skipReason());
                 } else {
-                    reviewRepository.insert(a.sourceId(), a.certId(), a.url(), a.postedAt(), a.authorHash(), a.review(), a.quality());
+                    if (a.sourceId() == null) {
+                        // [11-14] 출처 행이 없는 사이트 → source_id NULL 로 저장
+                        reviewRepository.insertWithNullableSource(null, a.certId(), a.url(), a.postedAt(), a.authorHash(), a.review(), a.quality());
+                    } else {
+                        reviewRepository.insert(a.sourceId(), a.certId(), a.url(), a.postedAt(), a.authorHash(), a.review(), a.quality());
+                    }
+                    run.certCounts.computeIfAbsent(a.certCode() + "|" + a.quality().reviewStatus(), k -> new AtomicInteger()).incrementAndGet();
                     ledger.record(c.url(), site.name(), "SAVED:" + a.quality().reviewStatus());
                     cnt.success.incrementAndGet();
                     if ("VALID".equals(a.quality().reviewStatus())) cnt.valid.incrementAndGet();
@@ -600,6 +634,8 @@ public class ReviewCollectServiceImpl implements ReviewCollectService {
         final Map<ReviewSite, java.util.concurrent.atomic.AtomicBoolean> discovering = new ConcurrentHashMap<>();
         final Set<String> seen = ConcurrentHashMap.newKeySet();
         volatile String velogPhase, tistoryPhase;
+        /** [11-14] "자격증코드|상태" → 건수 (자격증별 건수 API) */
+        final Map<String, AtomicInteger> certCounts = new ConcurrentHashMap<>();
         volatile boolean targetReached;
         final ConcurrentLinkedQueue<Candidate> failedUrls = new ConcurrentLinkedQueue<>();
         final Instant startedAt = Instant.now();
@@ -726,7 +762,7 @@ public class ReviewCollectServiceImpl implements ReviewCollectService {
             log.info("크롤링 후기 초기화: velog {}건, 티스토리 {}건 삭제, 메모리 기록 {}건 비움", dv, dt, memo);
             return new ResetReport(true, dv, dt, "삭제 완료: velog " + dv + "건, 티스토리 " + dt
                     + "건. 서버의 '대상 아님' 기록 " + memo + "건도 비웠습니다. " + agg
-                    + ". 지우기 직전 상태를 기록했습니다 → '복구 수집' 후 '복구율 확인'으로 비교할 수 있습니다.");
+                    + ". 지우기 직전 상태를 기록했습니다. 다시 모으려면 '크롤링 수집'을 실행하세요.");
         } finally {
             resetting = false;
         }
@@ -833,16 +869,16 @@ public class ReviewCollectServiceImpl implements ReviewCollectService {
 
         Optional<String> code = CertificateDetector.detect(page.title(), page.text());
         if (code.isEmpty()) {
-            return Analysis.skip(url, null, postedAt, "대상 자격증(정보처리기사·SQLD) 판단 불가 또는 둘 다 언급");
+            return Analysis.skip(url, null, postedAt, "대상 자격증(정보처리기사·SQLD·컴활 1급·ADsP) 판단 불가 또는 둘 이상 언급");
         }
         Optional<Long> certId = examRoundRepository.findCertificationId(code.get());
         if (certId.isEmpty()) {
-            return Analysis.skip(url, code.get(), postedAt, "CERTIFICATIONS 에 " + code.get() + " 없음 (db/03_seed.sql)");
+            return Analysis.skip(url, code.get(), postedAt, "CERTIFICATIONS 에 " + code.get() + " 없음 (db/03_seed.sql, 컴활·ADsP 는 db/09)");
         }
 
         ExtractedReview review = extractor.extract(page.title(), page.text());
-        if ("SQLD".equals(code.get()) && review.examType() != ExamType.WRITTEN) {
-            review = RuleBasedReviewExtractor.withExamType(review, ExamType.WRITTEN);   // SQLD 는 시험이 1종류
+        if (("SQLD".equals(code.get()) || "ADSP".equals(code.get())) && review.examType() != ExamType.WRITTEN) {
+            review = RuleBasedReviewExtractor.withExamType(review, ExamType.WRITTEN);   // SQLD·ADsP 는 시험이 1종류
         }
 
         LocalDate officialDate = null;

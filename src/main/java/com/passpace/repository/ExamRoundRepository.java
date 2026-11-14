@@ -19,6 +19,16 @@ public interface ExamRoundRepository {
 
     void touch(long examRoundId);
 
+    /** [11-14] 출처 번호 없이(NULL) 새 회차 저장 - dataq 일정 크롤링(2순위)처럼 DATA_SOURCES 행이 없는 출처용 */
+    default void insertWithNullableSource(long certificationId, Long sourceId, String examCode, ExamScheduleItem item) {
+        throw new UnsupportedOperationException("insertWithNullableSource 미구현");
+    }
+
+    /** [11-14] 날짜만 수정 (source_id 는 그대로 둔다) - 2순위 크롤링이 1순위 API 회차를 고칠 때 출처를 덮어쓰지 않게 */
+    default void updateDatesOnly(long examRoundId, ExamScheduleItem item) {
+        throw new UnsupportedOperationException("updateDatesOnly 미구현");
+    }
+
     void insertChangeLog(long examRoundId, Long syncLogId, StoredRound before, ExamScheduleItem after, String changedFieldsJson);
 
     /** 비교용 저장 값 */

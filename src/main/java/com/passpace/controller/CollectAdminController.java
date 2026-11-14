@@ -27,6 +27,10 @@ import com.passpace.util.ResponseUtil;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import com.passpace.service.NaverSearchReviewCollectService;
+import com.passpace.service.DataqScheduleCollectService;
+import org.springframework.beans.factory.annotation.Autowired;
+import com.passpace.repository.JdbcCollectDataQuery;
 
 /**
  * [용성] 관리자 수집 API  /admin/collect/**
@@ -48,6 +52,15 @@ public class CollectAdminController {
     private final ReviewUrlLedger ledger;
     private final DbStatusChecker dbStatusChecker;
     private final SourceRegistry sourceRegistry;
+
+    /** [11-14] 네이버 검색 API 영역 / 시험일정 2순위 수동 크롤링 (생성자는 그대로 두고 필드로 주입) */
+    @Autowired
+    private NaverSearchReviewCollectService naverCollectService;
+    @Autowired
+    private DataqScheduleCollectService dataqScheduleCollectService;
+    /** [11-14] 수집 데이터 보기 (읽기 전용) */
+    @Autowired
+    private JdbcCollectDataQuery collectDataQuery;
 
     public CollectAdminController(ExamCollectService examCollectService, ReviewCollectService reviewCollectService,
                                   StudyReferenceAggregator referenceAggregator,
@@ -104,6 +117,7 @@ public class CollectAdminController {
         var seeds = sourceRegistry.seeds();
         m.put("listings", sourceRegistry.listings());
         m.put("tistoryKeywords", sourceRegistry.tistoryKeywords().stream().map(k -> SourceRegistry.TISTORY_SEARCH + k).toList());
+        m.put("naverKeywords", sourceRegistry.naverKeywords().stream().map(k -> SourceRegistry.NAVER_SEARCH + k).toList());
         m.put("seedCount", seeds.size());
         m.put("seeds", seeds);
         m.put("listingFile", sourceRegistry.listingPath().toString());
@@ -121,6 +135,66 @@ public class CollectAdminController {
     @PostMapping("/admin/collect/sources/tistory-keyword")
     public ResponseEntity<?> addTistoryKeyword(@RequestParam("keyword") String keyword) {
         return ResponseUtil.SUCCESS(sourceRegistry.addTistoryKeyword(keyword));
+    }
+
+    /** [11-14] 네이버 검색 API 검색어 추가 (삭제는 /sources/remove 에 https://search.naver.com/search.naver?query=검색어) */
+    @PostMapping("/admin/collect/sources/naver-keyword")
+    public ResponseEntity<?> addNaverKeyword(@RequestParam("keyword") String keyword) {
+        return ResponseUtil.SUCCESS(sourceRegistry.addNaverKeyword(keyword));
+    }
+
+    // ---------------- [11-14] 네이버 검색 API 영역 (블로그·카페 요약문 + 뉴스 참고) ----------------
+
+    /** 네이버 수집 시작 (크롤링 실행 중이면 거절, 키가 없으면 "키 없음") */
+    @PostMapping("/admin/collect/naver/start")
+    public ResponseEntity<?> startNaver() {
+        return ResponseUtil.SUCCESS(naverCollectService.start());
+    }
+
+    /** 네이버 수집 진행 상황 + 오늘 사용량 + 최근 뉴스(화면 참고용) */
+    @GetMapping("/admin/collect/naver/status")
+    public ResponseEntity<?> naverStatus() {
+        return ResponseUtil.SUCCESS(naverCollectService.status());
+    }
+
+    /** 네이버 수집 중단 */
+    @PostMapping("/admin/collect/naver/cancel")
+    public ResponseEntity<?> cancelNaver() {
+        return ResponseUtil.SUCCESS(naverCollectService.cancel());
+    }
+
+    /** [11-14] 이번(또는 마지막) 실행 기준 자격증별 건수: 크롤링 영역 / 네이버 영역 */
+    @GetMapping("/admin/collect/status/by-cert")
+    public ResponseEntity<?> statusByCert() {
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("crawl", reviewCollectService.certCountStatus());
+        m.put("naver", naverCollectService.certCountStatus());
+        return ResponseUtil.SUCCESS(m);
+    }
+
+    /** [11-14] 수집 데이터 요약: 출처별 · 자격증별 × 상태(VALID·PENDING·EXCLUDED) 건수 */
+    @GetMapping("/admin/collect/data/summary")
+    public ResponseEntity<?> dataSummary() {
+        return ResponseUtil.SUCCESS(collectDataQuery.summary());
+    }
+
+    /** [11-14] 수집 후기 목록 (출처·자격증·상태·검색어 필터, 열 정렬, 한 쪽 10~200건) */
+    @GetMapping("/admin/collect/data/reviews")
+    public ResponseEntity<?> dataReviews(@RequestParam(value = "source", defaultValue = "ALL") String source,
+                                         @RequestParam(value = "cert", defaultValue = "ALL") String cert,
+                                         @RequestParam(value = "status", defaultValue = "ALL") String status,
+                                         @RequestParam(value = "q", defaultValue = "") String keyword,
+                                         @RequestParam(value = "sort", defaultValue = "id") String sort,
+                                         @RequestParam(value = "dir", defaultValue = "desc") String dir,
+                                         @RequestParam(value = "page", defaultValue = "0") int page,
+                                         @RequestParam(value = "size", defaultValue = "50") int size) {
+        return ResponseUtil.SUCCESS(collectDataQuery.reviews(source, cert, status, keyword, sort, dir, page, size));
+    }
+
+    /** [11-14] 시험일정 2순위: dataq 일정 페이지 크롤링 (관리자가 직접 실행, SQLD·ADsP) */
+    @PostMapping("/admin/collect/manual/dataq-schedule")
+    public ResponseEntity<?> collectDataqSchedule() {
+        return ResponseUtil.SUCCESS(dataqScheduleCollectService.collect());
     }
 
     /** 주소 여러 줄 추가 (글 주소 / velog 태그·검색 화면 / 티스토리 RSS) */
