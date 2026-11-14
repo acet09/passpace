@@ -35,9 +35,22 @@
         .board { background: var(--navy); color: #fff; padding: 22px 32px 26px; }
         .board-inner { max-width: 1180px; margin: 0 auto; }
         .board-top { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
-        .board h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
+        /* 왼쪽 홈 · 가운데 제목 · 오른쪽 버튼: 양쪽 칸 너비를 같게(flex 1) 해서 제목이 정중앙에 오도록 */
+        .board-home, .board-actions { flex: 1 1 0; }
+        .board-home { display: flex; justify-content: flex-start; }
+        .board-home a { display: inline-flex; align-items: center; gap: 10px; color: #fff; text-decoration: none;
+                        font-size: 21px; font-weight: 800; letter-spacing: -.065em; line-height: 1; }
+        .board-home .brand-mark { width: 33px; height: 36px; display: grid; place-items: center; border-radius: 10px;
+                                  background: rgba(255, 255, 255, .14); border: 1px solid rgba(255, 255, 255, .35); color: #fff; }
+        .board-home .brand-mark svg { width: 23px; height: 23px; }
+        .board-home .brand-dot { color: #fff; margin-left: -10px; }
+        .board-home a:hover .brand-mark { background: rgba(255, 255, 255, .24); }
+        .board h1 { flex: 0 1 auto; text-align: center; font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
         .board h1 small { display: block; font-size: 13px; font-weight: 400; color: #AFC0DD; margin-top: 2px; }
-        .board-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .board-actions { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
+        @media (max-width: 760px) {
+            .board-home, .board-actions, .board h1 { flex-basis: 100%; justify-content: center; }
+        }
         .board-actions .btn { background: transparent; color: #DCE6F7; border-color: #3C5585; }
         .board-actions .btn:hover { background: var(--navy-2); }
         .readouts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 20px; }
@@ -170,10 +183,17 @@
 
 <header class="board"><div class="board-inner">
     <div class="board-top">
+        <!-- 메인페이지 홈 버튼 (공통 헤더 로고와 같은 모양, 흰색 톤) -->
+        <div class="board-home">
+            <a href="/" aria-label="패스페이스 메인으로">
+                <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 28 28" fill="none"><path d="M6 19V12M14 19V6M22 19V3" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><path d="M6 25H22" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
+                패스페이스<span class="brand-dot" aria-hidden="true">.</span>
+            </a>
+        </div>
         <h1>데이터 수집 관리<small>PASS PACE 관리자 · 정보처리기사 · SQLD</small></h1>
         <div class="board-actions">
-            <button class="btn" type="button" onclick="toggleAll(true)">모두 펼치기</button>
-            <button class="btn" type="button" onclick="toggleAll(false)">모두 접기</button>
+            <!-- 펼치기·접기 토글 (처음엔 모든 섹션이 접힌 상태) -->
+            <button class="btn" type="button" id="toggleAllBtn" aria-pressed="false" onclick="toggleAll()">모두 펼치기</button>
             <!-- [JWT] 로그아웃 = 토큰 지우기 -->
             <button class="btn" type="button" onclick="PP.logout('/login')">로그아웃</button>
         </div>
@@ -211,7 +231,7 @@
     </nav>
 
     <main>
-        <details class="sec" id="sec-db" open>
+        <details class="sec" id="sec-db">
             <summary><h2>DB 상태</h2><span>연결 · 테이블별 행 수 · 빈 테이블</span></summary>
             <div class="sec-body">
                 <p class="status" id="dbSummary">확인 중...</p>
@@ -223,7 +243,7 @@
             </div>
         </details>
 
-        <details class="sec" id="sec-exam" open>
+        <details class="sec" id="sec-exam">
             <summary><h2>시험일정</h2><span>공공데이터 API · 정처기 15074408 · SQLD 15062838</span></summary>
             <div class="sec-body">
                 <p class="desc">application-local.yml 에 인증키가 없으면 <b>샘플 일정(실제 일정 아님)</b>으로 저장합니다.
@@ -245,7 +265,7 @@
             </div>
         </details>
 
-        <details class="sec" id="sec-sources" open>
+        <details class="sec" id="sec-sources">
             <summary><h2>수집 범위</h2><span>수집기가 글을 찾는 출발점 · 추가하면 다음 수집부터 반영</span></summary>
             <div class="sec-body">
                 <p class="status info" id="srcSummary">불러오는 중...</p>
@@ -303,7 +323,7 @@
             </div>
         </details>
 
-        <details class="sec" id="sec-collect" open>
+        <details class="sec" id="sec-collect">
             <summary><h2>후기 수집</h2><span>velog 검색어 · 티스토리 글 주소 · 수집 이력</span></summary>
             <div class="sec-body">
                 <details class="out">
@@ -349,7 +369,7 @@
             </div>
         </details>
 
-        <details class="sec recover" id="sec-recover" open>
+        <details class="sec recover" id="sec-recover">
             <summary><h2>복구</h2><span>크롤링 후기가 지워졌을 때</span></summary>
             <div class="sec-body">
                 <p class="desc">수집기는 찾은 글 주소와 판정 결과를 <b>수집 이력 파일</b>(프로젝트 폴더, 본문 없음)에 계속 기록합니다.
@@ -366,7 +386,7 @@
             </div>
         </details>
 
-        <details class="sec" id="sec-preview" open>
+        <details class="sec" id="sec-preview">
             <summary><h2>글 미리보기</h2><span>글 1개 판정 확인 · 저장하지 않음</span></summary>
             <div class="sec-body">
                 <div class="row">
@@ -379,7 +399,7 @@
             </div>
         </details>
 
-        <details class="sec" id="sec-ref" open>
+        <details class="sec" id="sec-ref">
             <summary><h2>참고 학습시간</h2><span>STUDY_REFERENCE_STATS</span></summary>
             <div class="sec-body">
                 <p class="desc">실제 수집 후기(더미·샘플 제외) 중 합격 후기의 총 공부시간을 자격증·시험 구분·전공별로 집계합니다.
@@ -424,9 +444,37 @@
         if (tone) el.dataset.tone = tone; else delete el.dataset.tone;
     }
 
-    function toggleAll(open) {
-        document.querySelectorAll('details').forEach(d => d.open = open);
+    /** 모든 섹션이 열려 있는지 */
+    function allSecOpen() {
+        return [...document.querySelectorAll('details.sec')].every(d => d.open);
     }
+
+    /** 토글 버튼 글자를 지금 상태에 맞춘다 (전부 열림 → "모두 접기", 하나라도 닫힘 → "모두 펼치기") */
+    function syncToggleBtn() {
+        const btn = document.getElementById('toggleAllBtn');
+        if (!btn) return;
+        const opened = allSecOpen();
+        btn.textContent = opened ? '모두 접기' : '모두 펼치기';
+        btn.setAttribute('aria-pressed', String(opened));
+    }
+
+    /** 토글: 하나라도 닫혀 있으면 모두 펼치고, 전부 열려 있으면 모두 접는다 */
+    function toggleAll() {
+        const open = !allSecOpen();
+        document.querySelectorAll('details').forEach(d => d.open = open);
+        syncToggleBtn();
+    }
+
+    // 섹션을 하나씩 열고 닫을 때도 버튼 글자를 맞춘다
+    document.querySelectorAll('details.sec').forEach(d => d.addEventListener('toggle', syncToggleBtn));
+
+    // 왼쪽 목차(#sec-…)를 누르면 접혀 있던 그 섹션을 연다
+    function openFromHash() {
+        const target = location.hash && document.getElementById(location.hash.slice(1));
+        if (target && target.matches('details.sec')) target.open = true;
+    }
+    window.addEventListener('hashchange', openFromHash);
+    openFromHash();
 
     /**
      * [JWT] 모든 관리자 API 호출이 이 함수를 거친다.
