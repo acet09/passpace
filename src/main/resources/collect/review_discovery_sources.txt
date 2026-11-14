@@ -40,6 +40,14 @@ https://velog.io/search?q=정보처리기사 실기 합격
 https://velog.io/search?q=SQLD 합격 후기
 https://velog.io/search?q=SQLD 후기
 https://velog.io/search?q=SQL 개발자 합격
+# [11-14] 컴활 1급·ADsP
+https://velog.io/tags/컴활1급
+https://velog.io/tags/ADsP
+https://velog.io/search?q=컴활 1급 합격 후기
+https://velog.io/search?q=ADsP 합격 후기
+
+# [11-14] 디시인사이드 정보처리 미니갤 목록 (페이지 번호는 수집기가 page= 로 넘김, 실행당 최대 쪽수 설정값)
+https://gall.dcinside.com/mini/board/lists/?id=dataprocessing
 #
 # 티스토리 (permission_checked_at 확인 전에는 건너뜀)
 #  - 블로그 RSS: https://블로그이름.tistory.com/rss   (전체 검색 페이지는 없고, /search 는 robots 금지인 경우가 많다)

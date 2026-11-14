@@ -16,7 +16,12 @@ public enum ReviewSite {
     /** 글 주소: https://velog.io/@아이디/글주소 */
     VELOG("velog", Pattern.compile("^https://velog\\.io/@[^/?#]+/[^/?#]+$")),
     /** 글 주소: https://블로그.tistory.com/123 또는 /entry/제목 (관리·검색·카테고리 페이지 제외) */
-    TISTORY("tistory", Pattern.compile("^https://[a-z0-9-]+\\.tistory\\.com/(?:\\d+|entry/[^?#]+)$"));
+    TISTORY("tistory", Pattern.compile("^https://[a-z0-9-]+\\.tistory\\.com/(?:\\d+|entry/[^?#]+)$")),
+    /**
+     * [11-14] 디시인사이드 마이너 갤러리 글: https://gall.dcinside.com/mini/board/view/?id=갤러리&no=번호
+     * (UrlText.canonical 이 id·no 만 남긴 모양). DATA_SOURCES 행이 없어 source_id 는 NULL 로 저장한다.
+     */
+    DCINSIDE("dcinside", Pattern.compile("^https://gall\\.dcinside\\.com/mini/board/view/\\?id=[A-Za-z0-9_]+&no=\\d+$"));
 
     private final String providerName;
     private final Pattern postUrl;
@@ -42,6 +47,7 @@ public enum ReviewSite {
         host = host.toLowerCase();
         if (host.equals("velog.io") || host.equals("v2.velog.io")) return Optional.of(VELOG);
         if (host.endsWith(".tistory.com") && !host.equals("www.tistory.com")) return Optional.of(TISTORY);
+        if (host.equals("gall.dcinside.com")) return Optional.of(DCINSIDE);
         return Optional.empty();
     }
 
@@ -54,8 +60,10 @@ public enum ReviewSite {
      * 작성자 구분값 (해시 전 원본, 저장하지 않음)
      *  velog   → 주소의 @아이디
      *  tistory → 블로그 하위도메인
+     *  dcinside → 주소에 작성자가 없어 null (글 페이지에서 DcinsideParser 가 뽑는다)
      */
     public String authorKey(String asciiUrl) {
+        if (this == DCINSIDE) return null;
         URI uri = URI.create(asciiUrl);
         if (this == VELOG) {
             String[] parts = uri.getRawPath().split("/");

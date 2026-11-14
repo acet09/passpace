@@ -190,7 +190,7 @@
                 패스페이스<span class="brand-dot" aria-hidden="true">.</span>
             </a>
         </div>
-        <h1>데이터 수집 관리<small>PASS PACE 관리자 · 정보처리기사 · SQLD</small></h1>
+        <h1>데이터 수집 관리<small>PASS PACE 관리자 · 정보처리기사 · SQLD · 컴활 1급 · ADsP</small></h1>
         <div class="board-actions">
             <!-- 펼치기·접기 토글 (처음엔 모든 섹션이 접힌 상태) -->
             <button class="btn" type="button" id="toggleAllBtn" aria-pressed="false" onclick="toggleAll()">모두 펼치기</button>
@@ -205,14 +205,14 @@
             <p class="detail">&nbsp;</p>
         </section>
         <section class="readout" id="chipJob">
-            <h2>후기 수집</h2>
+            <h2>크롤링 수집</h2>
             <p class="value">대기 중</p>
             <p class="detail">이번 서버 실행 중 수집 기록 없음</p>
         </section>
-        <section class="readout" id="chipRecover">
-            <h2>복구율</h2>
-            <p class="value">-</p>
-            <p class="detail">초기화 후 복구하면 표시됩니다</p>
+        <section class="readout" id="chipNaver">
+            <h2>네이버 검색 API</h2>
+            <p class="value">대기 중</p>
+            <p class="detail">이번 서버 실행 중 수집 기록 없음</p>
         </section>
     </div>
 </div></header>
@@ -222,12 +222,10 @@
         <a href="#sec-db">DB 상태</a>
         <a href="#sec-exam">시험일정</a>
         <a href="#sec-sources">수집 범위</a>
-        <a href="#sec-collect">후기 수집</a>
-        <a href="#sec-recover">복구</a>
-        <a href="#sec-preview">글 미리보기</a>
-        <a href="#sec-ref">참고 학습시간</a>
+        <a href="#sec-collect">크롤링 수집</a>
+        <a href="#sec-naver">네이버 검색 API</a>
         <div class="sep"></div>
-        <a href="#sec-reset" style="color:var(--danger)">크롤링 후기 초기화</a>
+        <a href="#sec-manual">수동 수집 (일정 2순위)</a>
     </nav>
 
     <main>
@@ -246,20 +244,21 @@
         <details class="sec" id="sec-exam">
             <summary><h2>시험일정</h2><span>공공데이터 API · 정처기 15074408 · SQLD 15062838</span></summary>
             <div class="sec-body">
-                <p class="desc">application-local.yml 에 인증키가 없으면 <b>샘플 일정(실제 일정 아님)</b>으로 저장합니다.
-                    결과는 EXAM_ROUNDS, 실행 기록은 DATA_SYNC_JOBS 에 남습니다.</p>
+                <p class="desc"><b>1순위: 공공데이터 API.</b> application-local.yml 에 인증키가 없거나 실패하면 그 사실만 기록하고 끝냅니다
+                    (샘플 일정으로 대신 채우지 않음). 그때는 아래 <a href="#sec-manual">수동 수집(2순위)</a>을 직접 실행하세요.
+                    결과는 EXAM_ROUNDS, 실행 기록은 DATA_SYNC_JOBS 에 남습니다. 컴활 1급은 상시 시험이라 일정 수집이 없습니다.</p>
                 <div class="row">
                     <button class="btn primary" onclick="run('/admin/collect/exam', 'examResult')">정보처리기사 일정 가져오기</button>
                 </div>
                 <details class="out"><summary>정보처리기사 결과</summary>
                     <pre class="result" id="examResult">아직 실행하지 않았습니다.</pre></details>
                 <div class="sub">
-                    <p class="desc">SQLD 는 큐넷 API 에 없어 <b>한국데이터산업진흥원 데이터 자격검정 시험 정보 API(15062838)</b>에서 가져옵니다.
-                        같은 인증키(data-go-kr-key)로 최근 2년의 SQLD 일반검정 회차만 저장합니다.</p>
+                    <p class="desc">SQLD·ADsP 는 큐넷 API 에 없어 <b>한국데이터산업진흥원 데이터 자격검정 시험 정보 API(15062838)</b>에서 가져옵니다.
+                        같은 인증키(data-go-kr-key)로 SQLD·ADsP 일반검정 회차를 저장합니다 (exam-year 가 0 이면 최근 2년, 정해 두면 그 연도만).</p>
                     <div class="row">
-                        <button class="btn primary" onclick="run('/admin/collect/sqld-schedule', 'sqldResult')">SQLD 일정 가져오기</button>
+                        <button class="btn primary" onclick="run('/admin/collect/sqld-schedule', 'sqldResult')">SQLD·ADsP 일정 가져오기</button>
                     </div>
-                    <details class="out"><summary>SQLD 결과</summary>
+                    <details class="out"><summary>SQLD·ADsP 결과</summary>
                         <pre class="result" id="sqldResult">아직 실행하지 않았습니다.</pre></details>
                 </div>
             </div>
@@ -290,6 +289,8 @@
                 <div class="tabs" role="tablist" aria-label="사이트별 수집 범위">
                     <button class="tab" role="tab" id="tab-velog" aria-selected="true" onclick="showTab('velog')">velog <span id="cntVelog">-</span></button>
                     <button class="tab" role="tab" id="tab-tistory" aria-selected="false" onclick="showTab('tistory')">티스토리 <span id="cntTistory">-</span></button>
+                    <button class="tab" role="tab" id="tab-dc" aria-selected="false" onclick="showTab('dc')">디시 <span id="cntDc">-</span></button>
+                    <button class="tab" role="tab" id="tab-naver" aria-selected="false" onclick="showTab('naver')">네이버 검색어 <span id="cntNaver">-</span></button>
                 </div>
 
                 <section class="srcpanel" id="panel-velog" role="tabpanel" aria-labelledby="tab-velog">
@@ -320,19 +321,41 @@
                     <ul class="srclist" id="listTistory"></ul>
                     <div class="inspect" id="inspectTistory" hidden></div>
                 </section>
+
+                <section class="srcpanel" id="panel-dc" role="tabpanel" aria-labelledby="tab-dc" hidden>
+                    <p class="note">디시인사이드 마이너 갤러리 목록 주소(https://gall.dcinside.com/mini/board/lists/?id=갤러리)를 등록하면
+                        수집할 때 1쪽부터 설정한 쪽 수(기본 5쪽)까지 읽고, 제목에 자격증 + 후기 단어가 함께 있는 글만 가져옵니다. 글 주소도 넣을 수 있습니다.</p>
+                    <div class="row" style="align-items:flex-start">
+                        <textarea id="dcInput" class="text" rows="2" placeholder="https://gall.dcinside.com/mini/board/lists/?id=dataprocessing"></textarea>
+                        <button class="btn" onclick="addDc()">주소 추가</button>
+                    </div>
+                    <input class="text filter" type="search" placeholder="목록에서 찾기" oninput="renderList('dc', this.value)">
+                    <ul class="srclist" id="listDc"></ul>
+                </section>
+
+                <section class="srcpanel" id="panel-naver" role="tabpanel" aria-labelledby="tab-naver" hidden>
+                    <p class="note">네이버 검색 API(블로그·카페·뉴스)에 보낼 검색어입니다. 검색어 1개 = 블로그·카페 × 정렬 2가지 × 최대 10쪽 + 뉴스 1쪽 (최대 약 41회 호출).</p>
+                    <div class="row">
+                        <input id="naverKeyword" class="text" type="text" maxlength="50" placeholder="검색어 (예: 컴활 1급 실기 합격)"
+                               onkeydown="if(event.key==='Enter')addNaverKeyword()">
+                        <button class="btn primary" onclick="addNaverKeyword()">검색어 추가</button>
+                    </div>
+                    <input class="text filter" type="search" placeholder="목록에서 찾기" oninput="renderList('naver', this.value)">
+                    <ul class="srclist" id="listNaver"></ul>
+                </section>
             </div>
         </details>
 
         <details class="sec" id="sec-collect">
-            <summary><h2>후기 수집</h2><span>velog 검색어 · 티스토리 글 주소 · 수집 이력</span></summary>
+            <summary><h2>크롤링 수집</h2><span>velog · 티스토리 · 디시 · 수집 이력</span></summary>
             <div class="sec-body">
                 <details class="out">
                     <summary>수집 방식과 정책</summary>
                     <div style="padding:12px 14px" class="desc">
                         velog 는 수집 범위의 <b>태그·검색 화면</b>에서 후기 글을 찾고(1단계만),
-                        티스토리는 등록된 <b>글 주소</b>와 (켜면) 블로그 RSS 를, 그리고 <b>수집 이력 파일</b>에서 저장했던 글을 후보로 씁니다.
-                        DATA_SOURCES 의 허용 확인 날짜(permission_checked_at)가 없는 사이트는 건너뜁니다.
-                        요청 간격은 velog 1.5초·티스토리 0.5초이고 robots.txt 의 Crawl-delay 가 더 크면 그 값을 따릅니다.
+                        티스토리는 등록된 <b>글 주소</b>와 (켜면) 블로그 RSS 를, 디시는 <b>미니갤 목록</b>을, 그리고 <b>수집 이력 파일</b>에서 저장했던 글을 후보로 씁니다.
+                        (11-14 크롤링 정책 폐기: 허용 확인 날짜·robots 검사는 설정으로 끌 수 있고 기본은 꺼짐. 디시 후기는 출처 번호 없이(source_id NULL) 저장)
+                        요청 간격은 velog·티스토리 설정값, 디시 2초입니다.
                         403·429 는 즉시 멈추고, 목록에 적힌 작성일이 3년 지난 글은 요청하지 않습니다.
                         원문과 작성자 아이디는 저장하지 않습니다.
                     </div>
@@ -343,9 +366,10 @@
                     </label>
                     <label class="field">사이트
                         <select id="site" onchange="showEstimate()">
-                            <option value="ALL">velog + 티스토리 동시</option>
+                            <option value="ALL">velog + 티스토리 + 디시 동시</option>
                             <option value="TISTORY">티스토리만</option>
                             <option value="VELOG">velog만</option>
+                            <option value="DCINSIDE">디시만</option>
                         </select>
                     </label>
                     <label class="field" style="flex-direction:row;align-items:center;gap:6px;color:var(--ink)">
@@ -356,70 +380,54 @@
                     </label>
                     <button class="btn primary" id="startBtn" onclick="startCollect('NEW')">수집 시작</button>
                     <button class="btn" id="cancelBtn" onclick="cancelCollect()" disabled>중단</button>
-                    <button class="btn" onclick="run('/admin/collect/reviews/discover', 'reviewResult')">후보만 찾아보기</button>
                 </div>
                 <p class="note" id="estimate"></p>
                 <div class="progress" role="progressbar" aria-label="수집 진행률"><div id="bar"></div></div>
                 <p class="progress-text" id="progressText">대기 중</p>
                 <p class="status info" id="phaseText" hidden></p>
+                <p class="status info" id="certCrawl">자격증별 건수: 수집 후 표시됩니다.</p>
                 <details class="out"><summary>수집 상태 자세히</summary>
                     <pre class="result" id="jobResult">아직 수집하지 않았습니다.</pre></details>
                 <p class="note">수집이 끝나면 참고 학습시간이 자동으로 다시 집계되어 챗봇에 바로 반영됩니다.
-                    화면을 닫아도 서버에서 계속 진행됩니다.</p>
+                    화면을 닫아도 서버에서 계속 진행됩니다. 네이버 검색 API 수집과 동시에는 실행되지 않습니다.</p>
             </div>
         </details>
 
-        <details class="sec recover" id="sec-recover">
-            <summary><h2>복구</h2><span>크롤링 후기가 지워졌을 때</span></summary>
+        <details class="sec" id="sec-naver">
+            <summary><h2>네이버 검색 API</h2><span>블로그 · 카페 요약문 · 뉴스(참고)</span></summary>
             <div class="sec-body">
-                <p class="desc">수집기는 찾은 글 주소와 판정 결과를 <b>수집 이력 파일</b>(프로젝트 폴더, 본문 없음)에 계속 기록합니다.
-                    후기가 지워져도 이 파일로 <b>한 번이라도 저장했던 글</b>을 목록 탐색 없이 바로 다시 수집하고,
-                    초기화 직전 기록과 비교해 복구율과 값 일치율을 보여 줍니다.</p>
+                <p class="desc">수집 범위의 <b>네이버 검색어</b>로 블로그·카페를 검색해 <b>제목 + 요약문</b>만 저장합니다 (출처 번호 없이, 사이트는 주소로 구분).
+                    요약문은 잘려 있어 <b>VALID 로는 저장하지 않고</b> PENDING(또는 광고·이상값 EXCLUDED)으로만 남깁니다.
+                    뉴스는 시험 개편·일정 변경 참고용으로 화면에만 보여 주고 DB 에 저장하지 않습니다.
+                    하루 호출은 설정 한도(기본 20,000회)를 넘으면 멈춥니다. 키는 application-local.yml 의 passpace.collect.naver.client-id·client-secret.</p>
                 <div class="row">
-                    <button class="btn primary" id="recoverBtn" onclick="startCollect('RECOVER')">복구 수집</button>
-                    <button class="btn" id="retryBtn" onclick="startCollect('RETRY')">실패한 글 다시 시도</button>
-                    <button class="btn" onclick="recoveryReport()">복구율 확인</button>
+                    <button class="btn primary" id="naverStartBtn" onclick="startNaver()">네이버 수집 시작</button>
+                    <button class="btn" id="naverCancelBtn" onclick="cancelNaver()" disabled>중단</button>
                 </div>
-                <p class="status info" id="recoverSummary">초기화 → 복구 수집을 실행하면 결과가 여기에 표시됩니다.</p>
-                <details class="out"><summary>복구 리포트 자세히 (못 살린 글과 이유)</summary>
-                    <pre class="result" id="recoverResult">아직 확인하지 않았습니다.</pre></details>
+                <p class="progress-text" id="naverProgress">대기 중</p>
+                <p class="status info" id="certNaver">자격증별 건수: 수집 후 표시됩니다.</p>
+                <details class="out"><summary>최근 뉴스 (참고, 저장 안 함)</summary>
+                    <ul class="srclist" id="naverNews"><li class="empty">아직 없습니다.</li></ul></details>
+                <details class="out"><summary>네이버 수집 상태 자세히</summary>
+                    <pre class="result" id="naverResult">아직 수집하지 않았습니다.</pre></details>
             </div>
         </details>
 
-        <details class="sec" id="sec-preview">
-            <summary><h2>글 미리보기</h2><span>글 1개 판정 확인 · 저장하지 않음</span></summary>
+        <!-- [11-14] 별도 관리자 페이지 대신 같은 화면 안의 "수동 수집" 섹션 (새 주소는 jwt/SecurityPaths 수정이 필요해 만들지 않음) -->
+        <details class="sec" id="sec-manual">
+            <summary><h2>수동 수집</h2><span>시험일정 2순위 · 관리자가 직접 실행</span></summary>
             <div class="sec-body">
+                <p class="desc">1순위(공공 API)로 일정을 못 가져왔을 때 관리자가 직접 실행합니다 (자동으로 넘어오지 않음).
+                    <b>dataq 시험일정 페이지</b>(SQLD·ADsP)를 HTML 로 읽어 새 회차는 출처 번호 없이 저장하고,
+                    이미 있는 회차는 날짜가 바뀐 경우만 고쳐 변경 기록을 남깁니다. 큐넷 일정 페이지는 아직 확인 전이라 없습니다.</p>
                 <div class="row">
-                    <input id="previewUrl" type="url" placeholder="https://velog.io/@아이디/글주소 또는 https://블로그.tistory.com/123"
-                           onkeydown="if(event.key==='Enter')preview()">
-                    <button class="btn primary" onclick="preview()">미리보기</button>
+                    <button class="btn primary" onclick="run('/admin/collect/manual/dataq-schedule', 'manualResult')">dataq 일정 가져오기 (SQLD·ADsP)</button>
                 </div>
-                <details class="out"><summary>미리보기 · 후보 찾기 · 초기화 결과</summary>
-                    <pre class="result" id="reviewResult">아직 실행하지 않았습니다.</pre></details>
+                <details class="out"><summary>수동 수집 결과</summary>
+                    <pre class="result" id="manualResult">아직 실행하지 않았습니다.</pre></details>
             </div>
         </details>
 
-        <details class="sec" id="sec-ref">
-            <summary><h2>참고 학습시간</h2><span>STUDY_REFERENCE_STATS</span></summary>
-            <div class="sec-body">
-                <p class="desc">실제 수집 후기(더미·샘플 제외) 중 합격 후기의 총 공부시간을 자격증·시험 구분·전공별로 집계합니다.
-                    표본이 10건 이상이면 <b>실측 평균(VERIFIED)</b>으로 저장되어 학습계획이 잠정값 대신 사용합니다.
-                    후기 수집이 끝나면 자동으로 다시 집계합니다.</p>
-                <div class="row"><button class="btn" onclick="run('/admin/collect/reference-stats', 'refResult')">지금 다시 집계</button></div>
-                <details class="out"><summary>집계 결과</summary>
-                    <pre class="result" id="refResult">아직 실행하지 않았습니다.</pre></details>
-            </div>
-        </details>
-
-        <details class="sec danger" id="sec-reset">
-            <summary><h2>크롤링 후기 초기화</h2><span>되돌릴 수 없음</span></summary>
-            <div class="sec-body">
-                <p class="desc">velog·티스토리에서 수집한 후기를 <b>VALID 포함 모두</b> 지웁니다.
-                    더미 후기·시험일정·회원 데이터와 수집 이력 파일은 지우지 않습니다.
-                    지우기 직전 상태를 기록하므로 복구 후 복구율을 비교할 수 있습니다. 수집 중에는 실행되지 않습니다.</p>
-                <div class="row"><button class="btn danger" onclick="resetReviews()">초기화…</button></div>
-            </div>
-        </details>
     </main>
 </div>
 
@@ -606,7 +614,7 @@
             render(st);
             if (st.state !== 'RUNNING') {
                 stopPolling();
-                if (st.mode === 'RECOVER' || st.mode === 'RETRY') recoveryReport();   // 복구가 끝나면 복구율 자동 표시
+                loadCertCounts();
             }
         } catch (e) { /* 다음 조회에서 다시 시도 */ }
     }
@@ -622,11 +630,86 @@
     }
 
     const STATE_LABEL = {IDLE: '대기 중', RUNNING: '수집 중', DONE: '완료', STOPPED: '중단됨(접근 거부·오류)', CANCELLED: '관리자 중단'};
+
+    // ---- [11-14] 자격증별 건수 (크롤링 · 네이버) ----
+    const CERT_LABEL = {'1320': '정보처리기사', SQLD: 'SQLD', CA1: '컴활 1급', ADSP: 'ADsP'};
+
+    function certText(c) {
+        const rows = Object.entries((c && c.byCert) || {});
+        if (!rows.length) return '자격증별 건수: 아직 없습니다.';
+        return '자격증별 건수 · ' + rows.map(([code, r]) => (CERT_LABEL[code] || code) + ' 저장 ' + r.saved
+            + ' (VALID ' + r.valid + ' / PENDING ' + r.pending + ' / EXCLUDED ' + r.excluded + ')'
+            + (r.unregistered ? ' · 자격증 미등록 ' + r.unregistered : '')).join(' | ');
+    }
+
+    async function loadCertCounts() {
+        try {
+            const r = await getJson('/admin/collect/status/by-cert');
+            document.getElementById('certCrawl').textContent = certText(r.crawl);
+            document.getElementById('certNaver').textContent = certText(r.naver);
+        } catch (e) { /* 다음에 다시 */ }
+    }
+
+    // ---- [11-14] 네이버 검색 API 영역 ----
+    let naverTimer = null;
+
+    async function startNaver() {
+        try {
+            renderNaver(await getJson('/admin/collect/naver/start', {method: 'POST'}));
+            startNaverPolling();
+        } catch (e) { alert(e.message); }
+    }
+
+    async function cancelNaver() {
+        try { renderNaver(await getJson('/admin/collect/naver/cancel', {method: 'POST'})); } catch (e) { alert(e.message); }
+    }
+
+    async function pollNaver() {
+        try {
+            const st = await getJson('/admin/collect/naver/status');
+            renderNaver(st);
+            if (st.job.state !== 'RUNNING') {
+                if (naverTimer) clearInterval(naverTimer);
+                naverTimer = null;
+                loadCertCounts();
+            }
+        } catch (e) { /* 다음 조회에서 다시 시도 */ }
+    }
+
+    function startNaverPolling() {
+        if (naverTimer) clearInterval(naverTimer);
+        naverTimer = setInterval(pollNaver, 3000);
+    }
+
+    function renderNaver(ns) {
+        const st = ns.job, running = st.state === 'RUNNING';
+        document.getElementById('naverStartBtn').disabled = running;
+        document.getElementById('naverCancelBtn').disabled = !running;
+        document.getElementById('naverProgress').textContent = (st.state === 'IDLE' ? '대기 중' : (STATE_LABEL[st.state] || st.state))
+            + ' · 처리 ' + st.processed + ' · 저장 ' + st.saved + ' · 건너뜀 ' + st.skipped + ' · 실패 ' + st.failed
+            + ' · 오늘 호출 ' + ns.usedToday + '/' + ns.dailyLimit + (ns.keyReady ? '' : ' · 키 없음')
+            + (running && st.phase ? ' · 지금: ' + st.phase : '');
+        document.getElementById('naverResult').textContent = JSON.stringify(st, null, 2);
+        const ul = document.getElementById('naverNews');
+        ul.innerHTML = '';
+        (ns.recentNews || []).slice(0, 30).forEach(n => {
+            const li = document.createElement('li');
+            const a = document.createElement('a');
+            a.href = n.link; a.target = '_blank'; a.rel = 'noopener';
+            a.textContent = (n.date ? n.date + ' · ' : '') + n.title;
+            li.append(a);
+            ul.append(li);
+        });
+        if (!ul.children.length) ul.innerHTML = '<li class="empty">아직 없습니다.</li>';
+        setReadout('chipNaver', STATE_LABEL[st.state] || st.state,
+            st.state === 'IDLE' ? st.message : '저장 ' + st.saved + ' (요약문 PENDING) · 오늘 호출 ' + ns.usedToday + '/' + ns.dailyLimit,
+            running ? 'run' : (st.state === 'DONE' ? 'ok' : (st.state === 'IDLE' ? '' : 'ng')));
+    }
     const MODE_LABEL = {NEW: '일반 수집', RECOVER: '복구 수집', RETRY: '실패분 다시 시도'};
 
     function render(st) {
         const running = st.state === 'RUNNING';
-        ['startBtn', 'recoverBtn', 'retryBtn'].forEach(id => document.getElementById(id).disabled = running);
+        ['startBtn'].forEach(id => document.getElementById(id).disabled = running);
         document.getElementById('cancelBtn').disabled = !running;
         const goal = Math.min(st.target || 0, st.candidates || st.target || 0) || st.target || 0;
         const pct = goal > 0 ? Math.min(100, Math.round(st.processed * 100 / goal)) : (st.state === 'DONE' ? 100 : 0);
@@ -685,10 +768,11 @@
     }
 
     // ---- 수집 범위 (velog · 티스토리 같은 구성) ----
-    let SRC = {velog: [], tistory: []};
+    let SRC = {velog: [], tistory: [], dc: [], naver: []};
+    const LIST_ID = {velog: 'listVelog', tistory: 'listTistory', dc: 'listDc', naver: 'listNaver'};
 
     function showTab(name) {
-        ['velog', 'tistory'].forEach(n => {
+        ['velog', 'tistory', 'dc', 'naver'].forEach(n => {
             document.getElementById('tab-' + n).setAttribute('aria-selected', n === name);
             document.getElementById('panel-' + n).hidden = n !== name;
         });
@@ -699,6 +783,8 @@
         try { t = decodeURIComponent(u); } catch (e) { /* 그대로 */ }
         if (t.startsWith('https://velog.io/search?q=')) return {kind: '검색어', text: t.slice(26)};
         if (t.startsWith('https://www.tistory.com/search?keyword=')) return {kind: '검색어', text: t.slice(39)};
+        if (t.startsWith('https://search.naver.com/search.naver?query=')) return {kind: '검색어', text: t.slice(44)};
+        if (t.includes('gall.dcinside.com/mini/board/lists')) return {kind: '목록', text: t};
         if (t.startsWith('https://velog.io/tags/')) return {kind: '태그', text: t.slice(22)};
         if (t.endsWith('/rss')) return {kind: 'RSS', text: t};
         return {kind: '글', text: t};
@@ -712,20 +798,24 @@
                 r.seeds.filter(u => u.includes('tistory.com')));
             const velogPosts = r.seeds.filter(u => u.includes('velog.io'));
             SRC.velog = SRC.velog.concat(velogPosts);
+            SRC.dc = r.listings.filter(u => u.includes('dcinside.com')).concat(r.seeds.filter(u => u.includes('dcinside.com')));
+            SRC.naver = r.naverKeywords || [];
             document.getElementById('cntVelog').textContent = SRC.velog.length;
             document.getElementById('cntTistory').textContent = SRC.tistory.length;
+            document.getElementById('cntDc').textContent = SRC.dc.length;
+            document.getElementById('cntNaver').textContent = SRC.naver.length;
             document.getElementById('srcSummary').textContent = 'velog ' + SRC.velog.length + '개 · 티스토리 ' + SRC.tistory.length
+                + '개 · 디시 ' + SRC.dc.length + '개 · 네이버 검색어 ' + SRC.naver.length
                 + '개 · 파일 위치: ' + r.listingFile.replace(/[\\/][^\\/]+$/, '');
             showEstimate();
-            renderList('velog', document.querySelector('#panel-velog .filter').value);
-            renderList('tistory', document.querySelector('#panel-tistory .filter').value);
+            ['velog', 'tistory', 'dc', 'naver'].forEach(n => renderList(n, document.querySelector('#panel-' + n + ' .filter').value));
         } catch (e) {
             document.getElementById('srcSummary').textContent = '불러오지 못했습니다: ' + e.message;
         }
     }
 
     function renderList(site, filter) {
-        const ul = document.getElementById(site === 'velog' ? 'listVelog' : 'listTistory');
+        const ul = document.getElementById(LIST_ID[site]);
         const f = (filter || '').trim().toLowerCase();
         const items = SRC[site].filter(u => !f || labelOf(u).text.toLowerCase().includes(f));
         ul.innerHTML = '';
@@ -746,15 +836,11 @@
             t.className = 'label';
             t.textContent = text;
             t.title = u;
-            const look = document.createElement('button');
-            look.className = 'btn';
-            look.textContent = kind === '글' ? '미리보기' : '찾은 글 보기';
-            look.onclick = () => kind === '글' ? previewInto(site, u) : inspect(site, u);
             const del = document.createElement('button');
             del.className = 'btn';
             del.textContent = '삭제';
             del.onclick = () => removeSource(u);
-            li.append(k, t, look, del);
+            li.append(k, t, del);
             ul.append(li);
         });
     }
@@ -863,6 +949,28 @@
         } catch (e) { alert(e.message); }
     }
 
+    async function addDc() {
+        const text = document.getElementById('dcInput').value;
+        if (!text.trim()) { alert('디시 주소를 입력하세요.'); return; }
+        try {
+            const r = await getJson('/admin/collect/sources/urls', {method: 'POST', body: new URLSearchParams({text})});
+            alert(r.message + (r.invalid.length ? '\n\n넣지 않은 주소:\n' + r.invalid.slice(0, 10).join('\n') : ''));
+            if (r.invalid.length === 0) document.getElementById('dcInput').value = '';
+            loadSources();
+        } catch (e) { alert(e.message); }
+    }
+
+    async function addNaverKeyword() {
+        const kw = document.getElementById('naverKeyword').value.trim();
+        if (!kw) { alert('검색어를 입력하세요.'); return; }
+        try {
+            const r = await getJson('/admin/collect/sources/naver-keyword', {method: 'POST', body: new URLSearchParams({keyword: kw})});
+            alert(r.message);
+            if (r.invalid.length === 0) document.getElementById('naverKeyword').value = '';
+            loadSources();
+        } catch (e) { alert(e.message); }
+    }
+
     async function removeSource(url) {
         if (!confirm('수집 범위에서 뺄까요?\n' + labelOf(url).text)) return;
         try {
@@ -894,7 +1002,10 @@
         // 화면을 열 때: DB 상태 확인, 실행 중인 수집이 있으면 이어서 표시
         showEstimate();
         checkDb();
-        recoveryReport(true).catch(() => {});
+        loadCertCounts();
+        pollNaver().then(() => {
+            if (document.getElementById('naverCancelBtn').disabled === false) startNaverPolling();
+        });
         loadSources();   // 화면을 열 때는 상황판만 채우고 결과칸은 접어 둔다
         pollStatus().then(() => {
             if (document.getElementById('cancelBtn').disabled === false) startPolling();

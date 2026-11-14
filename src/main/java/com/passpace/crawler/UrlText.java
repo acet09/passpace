@@ -27,6 +27,8 @@ public final class UrlText {
     /** 같은 글을 한 번만 저장하도록: http→https, query·fragment 제거, 끝 슬래시 제거 */
     public static String canonical(String url) {
         String s = toAscii(url);
+        String dc = dcinsidePost(s);
+        if (dc != null) return dc;
         int cut = s.length();
         for (char c : new char[]{'?', '#'}) {
             int i = s.indexOf(c);
@@ -36,5 +38,24 @@ public final class UrlText {
         if (s.startsWith("http://")) s = "https://" + s.substring(7);
         while (s.endsWith("/") && s.indexOf('/', 8) < s.length() - 1) s = s.substring(0, s.length() - 1);
         return s;
+    }
+
+    private static final java.util.regex.Pattern DC_VIEW = java.util.regex.Pattern.compile(
+            "^https?://gall\\.dcinside\\.com/mini/board/view/?\\?(.*)$");
+    private static final java.util.regex.Pattern DC_ID = java.util.regex.Pattern.compile("(?:^|&)id=([A-Za-z0-9_]+)");
+    private static final java.util.regex.Pattern DC_NO = java.util.regex.Pattern.compile("(?:^|&)no=(\\d+)");
+
+    /**
+     * [11-14] 디시인사이드 글은 주소의 query(id·no)가 글을 구분하므로 지우면 안 된다.
+     * page·search 같은 나머지 query 만 지우고 "…/view/?id=갤러리&no=번호" 한 모양으로 맞춘다. 디시 글 주소가 아니면 null
+     */
+    static String dcinsidePost(String ascii) {
+        if (ascii == null) return null;
+        java.util.regex.Matcher m = DC_VIEW.matcher(ascii.split("#", 2)[0]);
+        if (!m.matches()) return null;
+        java.util.regex.Matcher id = DC_ID.matcher(m.group(1));
+        java.util.regex.Matcher no = DC_NO.matcher(m.group(1));
+        if (!id.find() || !no.find()) return null;
+        return "https://gall.dcinside.com/mini/board/view/?id=" + id.group(1) + "&no=" + no.group(1);
     }
 }

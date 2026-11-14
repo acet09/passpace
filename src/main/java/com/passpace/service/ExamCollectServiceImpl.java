@@ -51,6 +51,15 @@ public class ExamCollectServiceImpl implements ExamCollectService {
     @Override
     public CollectResult collectExamSchedule() {
         boolean useApi = client.hasKey();
+        if (!useApi) {
+            // [11-14] 1순위(공공 API) 실패 → 샘플 일정으로 대신 채우지 않는다(실제 일정이 아니므로). 실패만 기록하고 끝낸다.
+            //         샘플 관련 코드·파일(readSample, sample_exam_schedule.json, SAMPLE_SCHEDULE=2)은 지우지 않고 호출만 막았다.
+            long noKeyJob = syncJobRepository.start(CollectSources.EXAM_SCHEDULE_API, "EXAM_SCHEDULE");
+            syncJobRepository.finish(noKeyJob, 0, 0, 0, "FAILED", "NO_KEY", "인증키 없음 - 샘플 일정으로 대신하지 않음");
+            return new CollectResult("EXAM_SCHEDULE", "API", 0, 0, 0, "FAILED",
+                    "공공데이터 인증키(passpace.collect.data-go-kr-key)가 없어 시험일정을 가져오지 못했습니다. "
+                            + "샘플 일정으로 대신하지 않습니다. 키를 넣거나 수동 수집(2순위)을 사용하세요.");
+        }
         long sourceId = useApi ? CollectSources.EXAM_SCHEDULE_API : CollectSources.SAMPLE_SCHEDULE;
         String mode = useApi ? "API" : "SAMPLE(인증키 없음 - 실제 일정 아님)";
         long certId = examRoundRepository.findCertificationId(examCode)

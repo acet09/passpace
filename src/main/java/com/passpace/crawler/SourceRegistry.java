@@ -44,7 +44,10 @@ public class SourceRegistry {
             "정처기 실기 합격 후기", "정처기 필기 합격 후기", "정보처리기사 실기 합격", "정보처리기사 필기 합격",
             "정처기 비전공 합격", "정처기 독학 합격", "정처기 직장인 합격", "정처기 하루 공부시간", "정처기 공부 계획",
             "정처기 벼락치기 합격", "정처기 실기 독학", "정처기 필기 일주일", "2026 정처기 실기", "2025 정처기 실기",
-            "SQLD 합격 후기", "SQLD 독학 합격", "SQLD 벼락치기");
+            "SQLD 합격 후기", "SQLD 독학 합격", "SQLD 벼락치기",
+            // [11-14] 컴활 1급·ADsP
+            "컴활 1급 합격 후기", "컴활 1급 필기 합격", "컴활 1급 실기 합격", "컴퓨터활용능력 1급 독학",
+            "ADsP 합격 후기", "ADsP 독학 합격", "ADsP 비전공 합격");
 
     /** 기본 velog 검색어 (검색어 1개 = 최근 글 약 20개). 연도·회차·필기/실기·전공·공부 방식 조합 */
     static final List<String> DEFAULT_VELOG_KEYWORDS = List.of(
@@ -54,7 +57,27 @@ public class SourceRegistry {
             "정처기 불합격", "정처기 재수", "정처기 취득", "정처기 1회", "정처기 2회", "정처기 3회",
             "정처기 2024", "정처기 2025", "정처기 2026", "2025 정보처리기사", "2026 정보처리기사",
             "SQLD 합격", "SQLD 독학", "SQLD 공부법", "SQLD 비전공", "SQLD 회고", "SQLD 취득",
-            "SQLD 벼락치기", "SQLD 2025", "SQLD 2026", "SQL 개발자 후기");
+            "SQLD 벼락치기", "SQLD 2025", "SQLD 2026", "SQL 개발자 후기",
+            // [11-14] 컴활 1급·ADsP
+            "컴활 1급 합격", "컴활 1급 실기 후기", "컴활 1급 필기 후기", "컴퓨터활용능력 1급",
+            "ADsP 합격", "ADsP 후기", "ADsP 독학", "ADsP 2026", "데이터분석 준전문가");
+
+    /** [11-14] 이번에 새로 넣은 기본 검색어 (이미 파일이 있는 PC 에도 서버 시작 시 한 번만 추가) */
+    static final List<String> NEW_VELOG_KEYWORDS_2026_11 = List.of(
+            "컴활 1급 합격", "컴활 1급 실기 후기", "컴활 1급 필기 후기", "컴퓨터활용능력 1급",
+            "ADsP 합격", "ADsP 후기", "ADsP 독학", "ADsP 2026", "데이터분석 준전문가");
+    static final List<String> NEW_TISTORY_KEYWORDS_2026_11 = List.of(
+            "컴활 1급 합격 후기", "컴활 1급 필기 합격", "컴활 1급 실기 합격", "컴퓨터활용능력 1급 독학",
+            "ADsP 합격 후기", "ADsP 독학 합격", "ADsP 비전공 합격");
+    /** [11-14] 디시인사이드 정보처리 미니갤 목록 (기본 목록 주소) */
+    static final String DCINSIDE_DEFAULT_LISTING = "https://gall.dcinside.com/mini/board/lists/?id=dataprocessing";
+    /** 한 번 적용 표시 파일: 있으면 위 새 기본값을 다시 넣지 않는다 (관리자가 지운 검색어가 되살아나지 않게) */
+    static final String DEFAULTS_DONE_FILE = ".defaults-2026-11.done";
+
+    // ---------------- [11-14] 네이버 검색 API 검색어 ----------------
+    static final String NAVER_KEYWORD_FILE = "naver_keywords.txt";
+    /** 화면·API 에서 네이버 검색어를 주소 모양으로 다루기 위한 앞부분 (파일에는 검색어만 저장, 삭제 API 공용) */
+    public static final String NAVER_SEARCH = "https://search.naver.com/search.naver?query=";
 
     /** 주소 추가 결과 */
     public record AddResult(int addedListings, int addedSeeds, int duplicates, List<String> invalid, String message) {
@@ -63,6 +86,9 @@ public class SourceRegistry {
     private final Path listingFile;
     private final Path seedFile;
     private final Path tistoryKeywordFile;
+    private Path naverKeywordFile;
+    private final Set<String> naverKeywords = new LinkedHashSet<>();
+    private final List<String> naverKeywordHeader = new ArrayList<>();
     private final Set<String> tistoryKeywords = new LinkedHashSet<>();
     private final List<String> tistoryKeywordHeader = new ArrayList<>();
     private final Set<String> listings = new LinkedHashSet<>();
@@ -93,12 +119,62 @@ public class SourceRegistry {
             read(seedFile, seedHeader, seeds);
             if (firstListing) {
                 for (String k : DEFAULT_VELOG_KEYWORDS) listings.add(VELOG_SEARCH + k);
+                listings.add(DCINSIDE_DEFAULT_LISTING);
                 save(listingFile, listingHeader, listings);
             }
+            applyNewDefaultsOnce(dir, firstListing);
+            initNaverKeywords(dir);
             log.info("수집 범위: 목록 {}개, 글 주소 {}개 ({})", listings.size(), seeds.size(), dir);
         } catch (IOException e) {
             log.warn("수집 범위 파일을 준비하지 못했습니다: {}", e.getMessage());
         }
+    }
+
+    /**
+     * [11-14] 이미 collect-data 파일이 있는 PC 에도 이번에 새로 넣은 기본값(컴활·ADsP 검색어, 디시 목록)을
+     * 파일에 없는 것만 한 번 추가한다. 추가 후 표시 파일을 만들어 다음 실행부터는 다시 넣지 않는다.
+     */
+    private void applyNewDefaultsOnce(Path dir, boolean firstListing) throws IOException {
+        Path done = dir.resolve(DEFAULTS_DONE_FILE);
+        if (Files.exists(done)) return;
+        if (!firstListing) {
+            boolean changed = false;
+            for (String k : NEW_VELOG_KEYWORDS_2026_11) changed |= listings.add(VELOG_SEARCH + k);
+            changed |= listings.add(DCINSIDE_DEFAULT_LISTING);
+            if (changed) save(listingFile, listingHeader, listings);
+            boolean changedT = false;
+            for (String k : NEW_TISTORY_KEYWORDS_2026_11) changedT |= tistoryKeywords.add(k);
+            if (changedT) save(tistoryKeywordFile, tistoryKeywordHeader, tistoryKeywords);
+        }
+        Files.writeString(done, "# 2026-11 기본 검색어(컴활·ADsP)·디시 목록을 한 번 추가함. 지우면 서버 시작 시 다시 추가\n",
+                StandardCharsets.UTF_8);
+    }
+
+    /** [11-14] 네이버 검색어: 처음 실행 시 resources/collect/naver_keywords.txt 를 data-dir 로 복사 */
+    private void initNaverKeywords(Path dir) throws IOException {
+        naverKeywordFile = dir.resolve(NAVER_KEYWORD_FILE);
+        if (!Files.exists(naverKeywordFile)) copyDefault("collect/" + NAVER_KEYWORD_FILE, naverKeywordFile);
+        read(naverKeywordFile, naverKeywordHeader, naverKeywords);
+    }
+
+    public synchronized List<String> naverKeywords() {
+        return List.copyOf(naverKeywords);
+    }
+
+    /** [11-14] 네이버 검색어 1개 추가 (티스토리 검색어 추가와 같은 모양) */
+    public synchronized AddResult addNaverKeyword(String keyword) {
+        String k = keyword == null ? "" : keyword.strip().replaceAll("\\s+", " ");
+        if (k.isEmpty() || k.length() > 50 || k.startsWith("http")) {
+            return new AddResult(0, 0, 0, List.of(keyword == null ? "" : keyword), "검색어는 1~50자 글자로 입력하세요 (주소가 아니라 검색어).");
+        }
+        if (naverKeywordFile == null) return new AddResult(0, 0, 0, List.of(k), "네이버 검색어 파일을 준비하지 못했습니다.");
+        if (!naverKeywords.add(k)) return new AddResult(0, 0, 1, List.of(), "이미 있는 검색어입니다.");
+        try {
+            save(naverKeywordFile, naverKeywordHeader, naverKeywords);
+        } catch (IOException e) {
+            return new AddResult(0, 0, 0, List.of(k), "파일 저장 실패: " + e.getMessage());
+        }
+        return new AddResult(1, 0, 0, List.of(), "네이버 검색어 1개 추가");
     }
 
     private static void copyDefault(String classpath, Path target) throws IOException {
@@ -204,7 +280,7 @@ public class SourceRegistry {
             return new AddResult(0, 0, dup, invalid, "파일 저장 실패: " + e.getMessage());
         }
         String msg = "목록 주소 " + addedL + "개, 글 주소 " + addedS + "개 추가 · 이미 있음 " + dup + "개"
-                + (invalid.isEmpty() ? "" : " · 넣지 않음 " + invalid.size() + "개 (velog·티스토리 글 주소, velog 태그·검색 화면, 티스토리 RSS 만 가능)");
+                + (invalid.isEmpty() ? "" : " · 넣지 않음 " + invalid.size() + "개 (velog·티스토리·디시 글 주소, velog 태그·검색 화면, 티스토리 RSS, 디시 미니갤 목록만 가능)");
         return new AddResult(addedL, addedS, dup, invalid, msg);
     }
 
@@ -223,6 +299,9 @@ public class SourceRegistry {
         if (site.get() == ReviewSite.VELOG && (path.startsWith("/tags/") || (path.equals("/search") && uri.getRawQuery() != null)))
             return "LISTING";
         if (site.get() == ReviewSite.TISTORY && path.equals("/rss")) return "LISTING";
+        // [11-14] 디시 마이너 갤러리 목록: /mini/board/lists/?id=갤러리
+        if (site.get() == ReviewSite.DCINSIDE && path.startsWith("/mini/board/lists")
+                && uri.getRawQuery() != null && uri.getRawQuery().contains("id=")) return "LISTING";
         return null;
     }
 
@@ -234,6 +313,14 @@ public class SourceRegistry {
                 String k = java.net.URLDecoder.decode(u.substring(TISTORY_SEARCH.length()), StandardCharsets.UTF_8);
                 if (tistoryKeywords.remove(k) || tistoryKeywords.remove(u.substring(TISTORY_SEARCH.length()))) {
                     save(tistoryKeywordFile, tistoryKeywordHeader, tistoryKeywords);
+                    return true;
+                }
+                return false;
+            }
+            if (u.startsWith(NAVER_SEARCH) && naverKeywordFile != null) {
+                String k = java.net.URLDecoder.decode(u.substring(NAVER_SEARCH.length()), StandardCharsets.UTF_8);
+                if (naverKeywords.remove(k) || naverKeywords.remove(u.substring(NAVER_SEARCH.length()))) {
+                    save(naverKeywordFile, naverKeywordHeader, naverKeywords);
                     return true;
                 }
                 return false;

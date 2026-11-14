@@ -6,6 +6,7 @@ import com.passpace.dto.collect.CollectDtos.DiscoverReport;
 import com.passpace.dto.collect.CollectDtos.PreviewReport;
 import com.passpace.dto.collect.CollectDtos.ResetReport;
 import com.passpace.dto.collect.CollectDtos.ListingInspect;
+import com.passpace.dto.collect.CertCountStatus;
 
 /**
  * [용성] 합격·불합격 후기 수집
@@ -57,4 +58,9 @@ public interface ReviewCollectService {
 
     /** 목록 주소 1개를 열어 어떤 후기 글이 잡히는지 보여 준다 (글 페이지는 가져오지 않고 저장도 안 함) */
     ListingInspect inspectListing(String url);
+
+    /** [11-14] 이번(또는 마지막) 크롤링 실행의 자격증별 건수. 구현이 없으면 빈 값 */
+    default CertCountStatus certCountStatus() {
+        return new CertCountStatus("CRAWL", "IDLE", java.util.Map.of());
+    }
 }
