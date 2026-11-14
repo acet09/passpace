@@ -69,6 +69,31 @@ public class JdbcExamRoundRepository implements ExamRoundRepository {
                 d(it.resultDate()), examRoundId);
     }
 
+    /** [11-14] insert 와 같은 SQL, source_id 만 NULL 허용 */
+    @Override
+    public void insertWithNullableSource(long certificationId, Long sourceId, String examCode, ExamScheduleItem it) {
+        jdbc.update("""
+                INSERT INTO EXAM_ROUNDS (certification_id, source_id, source_exam_code, exam_year, round_no, exam_type,
+                                         reg_start_at, reg_end_at, exam_date, exam_start_date, exam_end_date, result_date,
+                                         last_synced_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+                """,
+                certificationId, sourceId, examCode, it.examYear(), it.roundNo(), it.examType().name(),
+                ts(it.regStart()), ts(it.regEnd()), d(it.examStart()), d(it.examStart()), d(it.examEnd()), d(it.resultDate()));
+    }
+
+    /** [11-14] update 와 같지만 source_id 는 바꾸지 않는다 */
+    @Override
+    public void updateDatesOnly(long examRoundId, ExamScheduleItem it) {
+        jdbc.update("""
+                UPDATE EXAM_ROUNDS SET reg_start_at = ?, reg_end_at = ?, exam_date = ?,
+                       exam_start_date = ?, exam_end_date = ?, result_date = ?, last_synced_at = NOW()
+                WHERE exam_round_id = ?
+                """,
+                ts(it.regStart()), ts(it.regEnd()), d(it.examStart()), d(it.examStart()), d(it.examEnd()),
+                d(it.resultDate()), examRoundId);
+    }
+
     @Override
     public void touch(long examRoundId) {
         jdbc.update("UPDATE EXAM_ROUNDS SET last_synced_at = NOW() WHERE exam_round_id = ?", examRoundId);

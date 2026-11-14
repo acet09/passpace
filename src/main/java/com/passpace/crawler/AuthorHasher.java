@@ -22,6 +22,18 @@ public class AuthorHasher {
         this.salt = salt;
     }
 
+    /** [11-14] ReviewSite 가 아닌 출처(네이버 블로그 등)용. 사이트 이름만 문자열로 받는다 */
+    public String hashFor(String siteName, String authorKey) {
+        if (authorKey == null || authorKey.isBlank()) return null;
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            byte[] digest = md.digest((salt + "|" + siteName + "|" + authorKey.toLowerCase()).getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(digest);
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
     public String hash(ReviewSite site, String authorKey) {
         if (authorKey == null || authorKey.isBlank()) return null;
         try {

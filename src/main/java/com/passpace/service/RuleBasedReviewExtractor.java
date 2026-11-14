@@ -80,12 +80,22 @@ public class RuleBasedReviewExtractor implements ReviewExtractor {
     private static final String[][] SUBJECTS = {
             {"소프트웨어\\s*설계", "소프트웨어 설계"},
             {"소프트웨어\\s*개발", "소프트웨어 개발"},
-            {"데이터베이스(?:\\s*구축)?|DB\\s*구축", "데이터베이스 구축"},
+            {"데이터베이스(?!\\s*(?:일반|실무))(?:\\s*구축)?|DB\\s*구축", "데이터베이스 구축"},
             {"프로그래밍\\s*언어(?:\\s*활용)?", "프로그래밍 언어 활용"},
             {"정보\\s*시스템(?:\\s*구축\\s*관리)?", "정보시스템 구축관리"},
             {"정보처리\\s*실무", "정보처리 실무"},
             {"데이터\\s*모델링", "데이터 모델링의 이해"},
             {"SQL\\s*(?:기본|활용)", "SQL 기본 및 활용"},
+            // [11-14] 컴활 1급 (필기 3과목 / 실기 2과목)
+            {"컴퓨터\\s*일반", "컴퓨터 일반"},
+            {"스프레드\\s*시트\\s*일반", "스프레드시트 일반"},
+            {"데이터베이스\\s*일반", "데이터베이스 일반"},
+            {"스프레드\\s*시트\\s*실무|엑셀\\s*실기", "스프레드시트 실무"},
+            {"데이터베이스\\s*실무|액세스\\s*실기", "데이터베이스 실무"},
+            // [11-14] ADsP (필기 3과목)
+            {"데이터\\s*이해", "데이터 이해"},
+            {"데이터\\s*분석\\s*기획", "데이터분석 기획"},
+            {"데이터\\s*분석(?!\\s*(?:기획|준\\s*전문가|전문가|가))", "데이터분석"},
     };
     private static final Pattern[] SUBJECT_PATTERNS = java.util.Arrays.stream(SUBJECTS)
             .map(a -> Pattern.compile(a[0])).toArray(Pattern[]::new);
@@ -118,7 +128,7 @@ public class RuleBasedReviewExtractor implements ReviewExtractor {
                 r.prepDays(), r.dailyMinutes(), r.totalHours(), r.studySubjects(), r.studyMethod(), r.proof(), evidence);
     }
 
-    /** SQLD 처럼 필기·실기 구분이 없는 시험은 WRITTEN 으로 고정한 사본 */
+    /** SQLD·ADsP 처럼 필기·실기 구분이 없는 시험은 WRITTEN 으로 고정한 사본 */
     public static ExtractedReview withExamType(ExtractedReview r, ExamType examType) {
         ExtractedReview c = new ExtractedReview(r.passed(), examType, r.examYear(), r.roundNo(), r.majorType(),
                 r.prepDays(), r.dailyMinutes(), r.totalHours(), r.studySubjects(), r.studyMethod(), r.proof(), null);
