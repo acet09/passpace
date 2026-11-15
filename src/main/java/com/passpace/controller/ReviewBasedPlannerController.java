@@ -51,7 +51,7 @@ import java.util.regex.Pattern;
  *   크롤링 → PASS_REVIEWS → (StudyReferenceAggregator) → STUDY_REFERENCE_STATS 의 VERIFIED 행
  *          → StudyReferenceQuery (용성 제공 계약) → 여기 → MultiGoalPlanCalculator
  *
- *  - 과목별 평균 학습시간 = 합격 후기 총 학습시간 평균 × 과목 비율 (StudyReferenceQuery 가 계산)
+ *  - 과목별 평균 학습시간 = 합격 후기 총 학습시간 평균(StudyReferenceQuery) × 과목 비율(기존 카탈로그의 잠정 비율)
  *  - 후기 표본이 최소 표본(passpace.stats.min-sample)에 못 미치는 자격증은
  *    기존 플래너(MultiGoalPlannerController)의 값을 그대로 돌려준다 → 화면·계산이 예전과 같다
  *  - 응답 모양은 기존 /api/chat/planner/** 와 같다. 후기 기반 값이면 evidence.status 가 "REVIEW_VERIFIED"
@@ -195,6 +195,19 @@ public class ReviewBasedPlannerController {
             if (h == null || !(h.hours() > 0)) return goal;
         }
 
+        // 과목별 시간 = 후기 총 평균 × 이 자격증의 잠정 과목 비율(기존 카탈로그 값의 비율).
+        // 정처기·SQLD 는 DB 잠정값과 같은 비율이라 결과가 같고, DB 에 과목별 잠정값이 없는 자격증(ADsP·컴활)도
+        // 똑같이 나누지 않고 공식 문항 수·배점 비율로 나눈다.
+        double catalogTotal = goal.subjects().stream()
+                .mapToDouble(s -> s.baseHours() == null ? 0 : s.baseHours()).sum();
+        if (!(catalogTotal > 0)) return goal;
+        Map<String, Double> split = new HashMap<>();
+        for (SubjectCatalog s : goal.subjects()) {
+            if (s.baseHours() == null || !(s.baseHours() > 0)) return goal;
+            split.put(normalize(s.name()), Math.round(ref.totalHours() * s.baseHours() / catalogTotal * 100.0) / 100.0);
+        }
+        boolean officialWeights = StudyHoursEvidence.usesOfficialWeights(goal.evidence());
+
         int samples = ref.sampleCount();
         boolean sameGroup = ref.appliedMajor() != null && ref.appliedMajor() == userMajor;
         // 수집된 정보처리기사 필기 후기는 2026년 이전(5과목) 시험이다. 2027년 4과목의 직접 기록은 아니다.
@@ -207,14 +220,16 @@ public class ReviewBasedPlannerController {
         List<StudyHoursEvidence.SubjectEstimate> estimates = new ArrayList<>();
         for (SubjectCatalog s : goal.subjects()) {
             SubjectHours h = measured.get(normalize(s.name()));
+            double hours = split.get(normalize(s.name()));
             String type = "크롤링 합격 후기 " + samples + "건 실측 평균 × 과목 비율";
             String derivation = group + " " + samples + "건의 총 학습시간 평균 " + total + "시간 × 이 과목 비율 "
-                    + Math.round(h.hours() / ref.totalHours() * 100) + "% = " + hoursText(h.hours()) + "시간. "
+                    + Math.round(hours / ref.totalHours() * 100) + "% = " + hoursText(hours) + "시간. "
                     + (goal.subjects().size() == 1 ? "과목이 하나라 총 평균을 그대로 사용."
+                    : officialWeights ? "과목별 시간을 따로 적은 후기는 거의 없어 과목 비율은 공식 문항 수·배점 비율을 사용."
                     : "과목별 시간을 따로 적은 후기는 거의 없어 과목 비율은 잠정 비율(공개 학습일지 1건)을 사용.");
-            subjects.add(new SubjectCatalog(h.subjectId(), s.name(), h.hours(), true, type, 0, samples,
+            subjects.add(new SubjectCatalog(h.subjectId(), s.name(), hours, true, type, 0, samples,
                     sameSyllabus, derivation, sameGroup ? samples : 0, sameGroup ? sameSyllabus : 0));
-            estimates.add(new StudyHoursEvidence.SubjectEstimate(s.name(), h.hours(), 0, samples,
+            estimates.add(new StudyHoursEvidence.SubjectEstimate(s.name(), hours, 0, samples,
                     sameSyllabus, type, derivation));
         }
 
@@ -254,6 +269,7 @@ public class ReviewBasedPlannerController {
     static PlanRequest withServerHours(PlanRequest request, List<GoalCatalog> catalog) {
         if (request == null || request.goals() == null)
             throw new IllegalArgumentException("계획할 자격증이 없습니다.");
+        MultiGoalPlannerController.requireCertificationLimit(request.goals());
         Map<String, GoalCatalog> byKey = new HashMap<>();
         for (GoalCatalog g : catalog) byKey.put(g.key(), g);
         List<GoalInput> acceptedGoals = new ArrayList<>();

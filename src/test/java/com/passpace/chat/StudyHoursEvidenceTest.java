@@ -35,6 +35,41 @@ class StudyHoursEvidenceTest {
     }
 
     @Test
+    void newCertificatesSplitCollectedTotalByOfficialWeightsWithoutClaimingSubjectRecords() {
+        var adsp = StudyHoursEvidence.adsp();
+        assertEquals(List.of("데이터 이해", "데이터분석 기획", "데이터분석"),
+                adsp.subjects().stream().map(StudyHoursEvidence.SubjectEstimate::name).toList());
+        // 문항 수 10:10:30
+        assertEquals(List.of(8.74, 8.74, 26.22),
+                adsp.subjects().stream().map(StudyHoursEvidence.SubjectEstimate::hours).toList());
+        var written = StudyHoursEvidence.computerLiteracy1Written();
+        assertEquals(List.of("컴퓨터 일반", "스프레드시트 일반", "데이터베이스 일반"),
+                written.subjects().stream().map(StudyHoursEvidence.SubjectEstimate::name).toList());
+        assertEquals(2, written.observations().stream()
+                .filter(StudyHoursEvidence.Observation::usedForBaseline).count());
+        var practical = StudyHoursEvidence.computerLiteracy1Practical();
+        assertEquals(List.of(30.0, 30.0),
+                practical.subjects().stream().map(StudyHoursEvidence.SubjectEstimate::hours).toList());
+        // 기준값 = 근거 9건 환산값의 중앙값
+        double[] cases = practical.observations().stream()
+                .mapToDouble(StudyHoursEvidence.Observation::totalHours).sorted().toArray();
+        assertEquals(9, cases.length);
+        assertEquals(practical.referenceTotalHours(), cases[4]);
+        for (var e : List.of(adsp, written, practical)) {
+            assertTrue(StudyHoursEvidence.usesOfficialWeights(e));
+            assertEquals(e.referenceTotalHours(), e.subjects().stream().mapToDouble(
+                    StudyHoursEvidence.SubjectEstimate::hours).sum(), 0.02);
+            // 과목별로 직접 잰 기록은 없다고 표시한다
+            assertTrue(e.subjects().stream().allMatch(s -> s.directAuthorCount() == 0
+                    && s.directlyRecordedHours() == 0 && s.hours() > 0));
+            assertTrue(e.baselineAuthors() < 50);
+            assertTrue(e.warning().contains("50명"));
+            assertTrue(e.observations().stream().allMatch(o -> o.url().isEmpty() || o.url().startsWith("https://")));
+        }
+        assertFalse(StudyHoursEvidence.usesOfficialWeights(StudyHoursEvidence.sqld()));
+    }
+
+    @Test
     void allSourcesAreExternalEvidenceAndNoSubjectClaimIsFiftyPersonAverage() {
         for (var e : List.of(StudyHoursEvidence.informationProcessingWritten2027(),
                 StudyHoursEvidence.sqld(), StudyHoursEvidence.informationProcessingPractical())) {

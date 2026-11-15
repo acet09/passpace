@@ -106,6 +106,91 @@ class ReviewBasedPlannerControllerTest {
         assertTrue(ReviewBasedPlannerController.summarize(plan, List.of(goal)).contains("SQL 기본 및 활용: 후기 평균 24.0시간 × 이해도 1.3 = 31.2시간"));
     }
 
+    /** 기존 플래너가 만드는 임의 자격증 항목 */
+    private static GoalCatalog legacy(String key, String name, String examType, Qualification qualification) {
+        var byMajor = StudyHoursByMajor.resolve(qualification, MajorType.NON_MAJOR);
+        List<SubjectCatalog> subjects = byMajor.reference().subjects().stream().map(s ->
+                new SubjectCatalog(null, s.name(), s.hours(), true, s.referenceType(), s.directlyRecordedHours(),
+                        s.directAuthorCount(), s.matchingSyllabusAuthors(), s.derivation(), 0, 0)).toList();
+        return new GoalCatalog(key, name, examType, false, subjects, byMajor.reference(), byMajor, null, "안내", "");
+    }
+
+    /** 카탈로그 항목 그대로 계획 요청을 만든다 (모든 과목 이해도 보통) */
+    private static GoalInput request(GoalCatalog goal, LocalDate examDate) {
+        return new GoalInput(goal.key(), goal.certificationName(), examDate, goal.subjects().stream()
+                .map(s -> new SubjectInput(s.name(), 1.0, 2, 0, 0)).toList(), null);
+    }
+
+    @Test
+    void 과목별_잠정값이_DB에_없는_자격증은_공식_문항_수_비율로_나눈다() {
+        GoalCatalog adsp = legacy("db-4-WRITTEN", "ADsP", "WRITTEN", Qualification.ADSP);
+        // DB 에 과목별 잠정 행이 없으면 JdbcStudyReferenceQuery 는 총 시간을 과목 수로 똑같이 나눠 준다
+        StudyReference equalSplit = new StudyReference(4, ExamType.WRITTEN, null, 50.0, 42, 3.0, 225.0, true,
+                "합격 후기 42건 실측 평균", List.of(new SubjectHours(15, "데이터 이해", 16.67, ""),
+                new SubjectHours(16, "데이터분석 기획", 16.67, ""), new SubjectHours(17, "데이터분석", 16.67, "")));
+        GoalCatalog goal = ReviewBasedPlannerController.applyReference(adsp, equalSplit, MajorType.NON_MAJOR);
+
+        assertTrue(ReviewBasedPlannerController.isReviewBased(goal));
+        // 50시간 × 10:10:30
+        assertEquals(List.of(10.0, 10.0, 30.0), goal.subjects().stream().map(SubjectCatalog::baseHours).toList());
+        assertEquals(List.of(15L, 16L, 17L), goal.subjects().stream().map(SubjectCatalog::subjectId).toList());
+        assertTrue(goal.subjects().get(2).derivation().contains("공식 문항 수"));
+    }
+
+    @Test
+    void 자격증은_세_개까지_묶고_필기와_실기는_한_개로_센다() {
+        GoalCatalog ipeWritten = legacy("db-1-WRITTEN", "정보처리기사 필기 (2027~)", "WRITTEN", Qualification.IP_WRITTEN_2027);
+        GoalCatalog ipePractical = legacy("db-1-PRACTICAL", "정보처리기사 실기", "PRACTICAL", Qualification.IP_PRACTICAL);
+        GoalCatalog sqld = legacy("db-2-WRITTEN", "SQLD", "WRITTEN", Qualification.SQLD);
+        GoalCatalog caWritten = legacy("db-3-WRITTEN", "컴퓨터활용능력 1급 필기", "WRITTEN", Qualification.CA1_WRITTEN);
+        GoalCatalog caPractical = legacy("db-3-PRACTICAL", "컴퓨터활용능력 1급 실기", "PRACTICAL", Qualification.CA1_PRACTICAL);
+        GoalCatalog adsp = legacy("db-4-WRITTEN", "ADsP", "WRITTEN", Qualification.ADSP);
+        List<GoalCatalog> catalog = List.of(ipeWritten, ipePractical, sqld, caWritten, caPractical, adsp);
+        LocalDate exam = LocalDate.of(2027, 3, 6);
+
+        // 자격증 3개(정처기 필기+실기, 컴활 필기+실기, SQLD) = 목표 5개 → 허용
+        PlanRequest five = new PlanRequest(180, List.of(request(ipeWritten, exam), request(ipePractical, exam),
+                request(caWritten, exam), request(caPractical, exam), request(sqld, exam)));
+        assertEquals(5, ReviewBasedPlannerController.withServerHours(five, catalog).goals().size());
+
+        // 자격증 4개 → 거절
+        PlanRequest four = new PlanRequest(180, List.of(request(ipeWritten, exam), request(sqld, exam),
+                request(caWritten, exam), request(adsp, exam)));
+        var error = assertThrows(IllegalArgumentException.class,
+                () -> ReviewBasedPlannerController.withServerHours(four, catalog));
+        assertTrue(error.getMessage().contains("최대 3개"));
+    }
+
+    @Test
+    void 정처기_SQLD_ADsP_세_개를_하루_시간을_나눠_한_계획으로_만든다() {
+        GoalCatalog ipe = legacy("db-1-WRITTEN", "정보처리기사 필기 (2027~)", "WRITTEN", Qualification.IP_WRITTEN_2027);
+        GoalCatalog sqld = legacy("db-2-WRITTEN", "SQLD", "WRITTEN", Qualification.SQLD);
+        GoalCatalog adsp = legacy("db-4-WRITTEN", "ADsP", "WRITTEN", Qualification.ADSP);
+        LocalDate today = LocalDate.of(2026, 11, 16);
+        // 시험일이 서로 다르다: ADsP 2/7 → 정처기 3/3 → SQLD 3/7
+        PlanRequest fromBrowser = new PlanRequest(120, List.of(request(ipe, LocalDate.of(2027, 3, 3)),
+                request(sqld, LocalDate.of(2027, 3, 7)), request(adsp, LocalDate.of(2027, 2, 7))),
+                List.of(1, 2, 3, 4, 5));
+        PlanRequest accepted = ReviewBasedPlannerController.withServerHours(fromBrowser, List.of(ipe, sqld, adsp));
+        PlanResponse plan = new MultiGoalPlanCalculator().calculate(accepted, today);
+
+        // 23.93h + 19h + 43.7h, 과목별로 분 단위 올림 (브라우저가 보낸 1시간이 아니라 서버 기준시간)
+        assertEquals(1437 + 1140 + 2624, plan.totalRemainingMinutes());
+        assertTrue(plan.feasible());
+        assertEquals(List.of("ADsP", "정보처리기사 필기 (2027~)", "SQLD"),
+                plan.goals().stream().map(g -> g.certificationName()).toList());
+        assertTrue(plan.goals().stream().allMatch(g -> g.shortfallMinutes() == 0
+                && g.projectedCompletionDate().isBefore(g.examDate())));
+        assertTrue(plan.days().stream().allMatch(d -> d.allocatedMinutes() <= 120
+                && d.date().getDayOfWeek().getValue() <= 5));
+        // 세 자격증이 같은 주에 섞여 진행된다 (하나를 끝낸 뒤 다음으로 넘어가는 방식이 아님)
+        assertEquals(3, plan.days().stream().filter(d -> d.date().isBefore(today.plusDays(14)))
+                .flatMap(d -> d.allocations().stream()).map(a -> a.goalKey()).distinct().count());
+        String summary = ReviewBasedPlannerController.summarize(plan, List.of(ipe, sqld, adsp));
+        assertTrue(summary.contains("ADsP / 시작일"));
+        assertTrue(summary.contains("데이터분석: 잠정 26.2시간 × 이해도 1.0 = 26.2시간"));
+    }
+
     @Test
     void 목록에_없는_자격증이나_과목_누락은_거절한다() {
         GoalCatalog goal = legacySqld(MajorType.MAJOR);

@@ -65,6 +65,47 @@ public class MultiGoalPlannerController {
     public record ChatPlanPreviewRequest(PlanRequest plan, Long conId) { }
     public record ChatPlanPreviewResponse(PlanResponse plan, String answer) { }
 
+    /** 한 번에 묶어 계획할 수 있는 자격증 수 (같은 자격증의 필기·실기는 1개) */
+    public static final int MAX_CERTIFICATIONS = 3;
+
+    /** 플래너가 아는 자격증. demoCode 는 DB 에 자격증 행이 없을 때 쓰는 키("demo-{demoCode}-{시험구분}")의 일부. */
+    private enum Cert {
+        IPE("IPE"), SQLD("SQLD"), ADSP("ADSP"), CA1("CA1");
+
+        final String demoCode;
+
+        Cert(String demoCode) {
+            this.demoCode = demoCode;
+        }
+
+        /** CERTIFICATIONS 한 행이 어느 자격증인가. 코드(source_exam_code)가 우선이고 이름은 보조. 모르면 null */
+        static Cert of(String name, String sourceCode) {
+            String n = name == null ? "" : name;
+            String upper = n.toUpperCase(java.util.Locale.ROOT);
+            if ("1320".equals(sourceCode) || "정보처리기사".equals(n)) return IPE;
+            if ("SQLD".equals(sourceCode) || upper.contains("SQLD") || n.contains("SQL 개발자")) return SQLD;
+            if ("ADSP".equals(sourceCode) || upper.contains("ADSP") || n.contains("데이터분석 준전문가")) return ADSP;
+            if ("CA1".equals(sourceCode) || n.replace(" ", "").contains("컴퓨터활용능력1급")) return CA1;
+            return null;
+        }
+    }
+
+    /**
+     * 카탈로그 한 줄 (자격증 × 시험구분).
+     * temporaryInDatabase: DB 에 자격증이 있어도 과목 목록을 DB 가 아닌 내부 목록으로 쓰는 경우 (정처기 2027 필기).
+     * name 은 브라우저 저장값·계획 이름에 쓰이므로 바꾸지 않는다.
+     */
+    private record GoalSpec(Cert cert, String name, String examType, Qualification qualification,
+                            boolean temporaryInDatabase) { }
+
+    private static final List<GoalSpec> SPECS = List.of(
+            new GoalSpec(Cert.SQLD, "SQLD", "WRITTEN", Qualification.SQLD, false),
+            new GoalSpec(Cert.IPE, "정보처리기사 필기 (2027~)", "WRITTEN", Qualification.IP_WRITTEN_2027, true),
+            new GoalSpec(Cert.IPE, "정보처리기사 실기", "PRACTICAL", Qualification.IP_PRACTICAL, false),
+            new GoalSpec(Cert.ADSP, "ADsP", "WRITTEN", Qualification.ADSP, false),
+            new GoalSpec(Cert.CA1, "컴퓨터활용능력 1급 필기", "WRITTEN", Qualification.CA1_WRITTEN, false),
+            new GoalSpec(Cert.CA1, "컴퓨터활용능력 1급 실기", "PRACTICAL", Qualification.CA1_PRACTICAL, false));
+
     private final JdbcTemplate jdbc;
     private final UserStudyProfileQuery profileQuery;
     private final ChatRepository chatRepository;
@@ -91,38 +132,27 @@ public class MultiGoalPlannerController {
                 SELECT certification_id, cert_name, source_exam_code
                 FROM CERTIFICATIONS WHERE active_yn = 'Y' ORDER BY certification_id
                 """);
-        boolean foundSqlD = false;
-        boolean foundIpe = false;
+        // DB 에 등록된 자격증은 "db-{ID}-{시험구분}", 아직 없는 자격증은 "demo-…" 키의 내부 목록으로 제공한다.
+        Set<Cert> found = new HashSet<>();
         for (Map<String, Object> cert : certs) {
             long id = ((Number) cert.get("certification_id")).longValue();
-            String name = (String) cert.get("cert_name");
-            String sourceCode = (String) cert.get("source_exam_code");
-            boolean sqld = isSqld(name);
-            boolean ipe = "1320".equals(sourceCode) || "정보처리기사".equals(name);
-            if (!sqld && !ipe) continue;
-            if (sqld && !foundSqlD) {
-                foundSqlD = true;
-                goals.add(referenceGoal("db-" + id + "-WRITTEN", "SQLD", "WRITTEN", false,
-                        id, StudyHoursByMajor.resolve(Qualification.SQLD, major), true));
-            } else if (ipe && !foundIpe) {
-                foundIpe = true;
-                // 초기 DB의 필기 과목은 2026년 구 5과목. 2027년 새 4과목의 ID로 혼용하지 않는다.
-                goals.add(referenceGoal("db-" + id + "-WRITTEN", "정보처리기사 필기 (2027~)",
-                        "WRITTEN", true, null, StudyHoursByMajor.resolve(Qualification.IP_WRITTEN_2027, major), false));
-                goals.add(referenceGoal("db-" + id + "-PRACTICAL", "정보처리기사 실기",
-                        "PRACTICAL", false, id, StudyHoursByMajor.resolve(Qualification.IP_PRACTICAL, major), true));
+            Cert kind = Cert.of((String) cert.get("cert_name"), (String) cert.get("source_exam_code"));
+            if (kind == null || !found.add(kind)) continue;
+            for (GoalSpec spec : SPECS) {
+                if (spec.cert() != kind) continue;
+                // 정처기 필기: 초기 DB의 필기 과목은 2026년 구 5과목. 2027년 새 4과목의 ID로 혼용하지 않는다.
+                boolean useDbSubjects = !spec.temporaryInDatabase();
+                goals.add(referenceGoal("db-" + id + "-" + spec.examType(), spec.name(), spec.examType(),
+                        spec.temporaryInDatabase(), useDbSubjects ? id : null,
+                        StudyHoursByMajor.resolve(spec.qualification(), major), useDbSubjects));
             }
         }
-        if (!foundSqlD) {
-            goals.add(referenceGoal("demo-SQLD-WRITTEN", "SQLD", "WRITTEN", true, null,
-                    StudyHoursByMajor.resolve(Qualification.SQLD, major), false));
+        for (GoalSpec spec : SPECS) {
+            if (found.contains(spec.cert())) continue;
+            goals.add(referenceGoal("demo-" + spec.cert().demoCode + "-" + spec.examType(), spec.name(),
+                    spec.examType(), true, null, StudyHoursByMajor.resolve(spec.qualification(), major), false));
         }
-        if (!foundIpe) {
-            goals.add(referenceGoal("demo-IPE-WRITTEN", "정보처리기사 필기 (2027~)", "WRITTEN",
-                    true, null, StudyHoursByMajor.resolve(Qualification.IP_WRITTEN_2027, major), false));
-            goals.add(referenceGoal("demo-IPE-PRACTICAL", "정보처리기사 실기", "PRACTICAL",
-                    true, null, StudyHoursByMajor.resolve(Qualification.IP_PRACTICAL, major), false));
-        }
+        boolean foundSqlD = found.contains(Cert.SQLD);
         Integer profileDailyMinutes = null;
         String dailyTimeSource = "미설정";
         if (loginUser != null) {
@@ -149,7 +179,10 @@ public class MultiGoalPlannerController {
             }
         }
         return ResponseUtil.SUCCESS(new CatalogResponse(List.copyOf(goals), List.of(
-                "정보처리기사 2027년 필기 4과목, 실기 1과목, SQLD 2024년 이후 2과목을 지원합니다.",
+                "정보처리기사 2027년 필기 4과목·실기 1과목, SQLD 2과목, ADsP 3과목, " +
+                        "컴퓨터활용능력 1급 필기 3과목·실기 2과목을 지원합니다.",
+                "한 번에 자격증 " + MAX_CERTIFICATIONS + "개까지 묶어 계획할 수 있습니다 " +
+                        "(같은 자격증의 필기·실기는 1개로 셉니다). 묶은 자격증은 하루 공부시간을 함께 씁니다.",
                 "전공 여부는 로그인 정보(토큰)의 " + major.getLabel() + " 설정을 사용하며, 사용자가 요청으로 변경할 수 없습니다.",
                 "과목별 전공·비전공 통계는 분리 관리합니다. 표본 없는 집단은 50명 평균 대신 출처가 명시된 대체 계산값을 사용합니다.",
                 "사전 이해도 1.3/1.0/0.7은 사용자가 과목별로 직접 선택해야 합니다.",
@@ -185,6 +218,8 @@ public class MultiGoalPlannerController {
                 .toList();
         ProvisionalExamSchedule.Suggestion suggestion =
                 ProvisionalExamSchedule.forGoal(name, LocalDate.now());
+        // 상시시험(컴활)은 가상 목표일 없이 안내만 한다 → 사용자가 날짜를 직접 넣는다
+        if (suggestion == null) suggestion = ProvisionalExamSchedule.anytimeExam(name);
         return new GoalCatalog(key, name, examType, temporary, subjects, estimate, byMajor,
                 suggestion == null ? null : suggestion.targetDate(),
                 suggestion == null ? "공식 일정 또는 개인 목표일 직접 확인 필요" : suggestion.notice(),
@@ -246,6 +281,7 @@ public class MultiGoalPlannerController {
     private PlanRequest standardizeServerHours(PlanRequest request, MajorType major) {
         if (request == null || request.goals() == null)
             throw new IllegalArgumentException("계획할 자격증이 없습니다.");
+        requireCertificationLimit(request.goals());
         List<GoalInput> acceptedGoals = new ArrayList<>();
         for (GoalInput goal : request.goals()) {
             if (goal == null || goal.certificationName() == null || goal.subjects() == null)
@@ -278,28 +314,37 @@ public class MultiGoalPlannerController {
 
     private StudyHoursByMajor.GroupBaseline estimateFor(GoalInput goal, MajorType major) {
         String name = goal.certificationName();
-        if ("SQLD".equals(name) && goal.key() != null && goal.key().endsWith("-WRITTEN"))
-            return StudyHoursByMajor.resolve(Qualification.SQLD, major);
-        if ("정보처리기사 필기 (2027~)".equals(name) && goal.key() != null &&
-                goal.key().endsWith("-WRITTEN"))
-            return StudyHoursByMajor.resolve(Qualification.IP_WRITTEN_2027, major);
-        if ("정보처리기사 실기".equals(name) && goal.key() != null &&
-                goal.key().endsWith("-PRACTICAL"))
-            return StudyHoursByMajor.resolve(Qualification.IP_PRACTICAL, major);
+        for (GoalSpec spec : SPECS) {
+            if (spec.name().equals(name) && goal.key() != null && goal.key().endsWith("-" + spec.examType()))
+                return StudyHoursByMajor.resolve(spec.qualification(), major);
+        }
         throw new IllegalArgumentException("현재 지원하지 않는 자격증·시험 구분입니다: " + name);
     }
 
     private Qualification qualificationFor(String name) {
-        if ("SQLD".equals(name)) return Qualification.SQLD;
-        if (name.startsWith("정보처리기사 필기")) return Qualification.IP_WRITTEN_2027;
-        if ("정보처리기사 실기".equals(name)) return Qualification.IP_PRACTICAL;
+        for (GoalSpec spec : SPECS) {
+            if (spec.name().equals(name)) return spec.qualification();
+        }
         throw new IllegalArgumentException("지원하지 않는 시험 분류입니다: " + name);
     }
+
+    /**
+     * 한 번에 묶는 자격증 수 제한. 목표 키("db-3-WRITTEN", "db-3-PRACTICAL")에서 시험구분을 뗀 값이
+     * 같으면 같은 자격증이다 → 컴활 필기+실기는 1개로 센다.
+     */
+    public static void requireCertificationLimit(List<GoalInput> goals) {
+        Set<String> certifications = new HashSet<>();
+        for (GoalInput goal : goals) {
+            if (goal == null || goal.key() == null) continue;   // 빈 값은 뒤의 검증에서 거절한다
+            certifications.add(goal.key().replaceFirst("-(WRITTEN|PRACTICAL)$", ""));
+        }
+        if (certifications.size() > MAX_CERTIFICATIONS)
+            throw new IllegalArgumentException("한 번에 계획할 수 있는 자격증은 최대 " + MAX_CERTIFICATIONS
+                    + "개입니다 (같은 자격증의 필기·실기는 1개로 셉니다). 선택을 줄여 주세요.");
+    }
+
     private static String normalize(String name) {
         return name == null ? "" : name.replaceAll("\\s+", "").trim();
-    }
-    private static boolean isSqld(String name) {
-        return name != null && (name.toUpperCase().contains("SQLD") || name.contains("SQL 개발자"));
     }
     /**
      * 토큰에 담긴 전공 구분. 없으면 400 MISSING_MAJOR.

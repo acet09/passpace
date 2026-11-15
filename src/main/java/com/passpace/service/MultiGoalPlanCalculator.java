@@ -218,30 +218,32 @@ public class MultiGoalPlanCalculator {
             // 마감이 가까운 자격증을 우선하되 다른 자격증에 8분 같은 짧은 몫을 강제하지 않는다.
             List<Allocation> allocations = new ArrayList<>();
             int allocated = 0;
+            List<GoalWork> studiedToday = new ArrayList<>();
+            boolean someoneWaited = false;
             for (GoalWork g : active) {
-                if (capacity == 0) break;
                 int wanted = budgets.getOrDefault(g, 0);
                 if (wanted == 0) continue;
-                if (capacity < sessionMin && g.remaining >= sessionMin) continue;
                 int grant = Math.min(wanted, capacity);
-                if (grant < sessionMin && g.remaining >= sessionMin) continue;
                 // 남은 목표가 매우 작을 때만 최소 블록 미만의 '마지막 마무리' 배정을 허용한다.
-                if (grant < sessionMin && grant != g.remaining) continue;
-                int budget = grant;
-                for (SubjectWork subject : g.subjects) {
-                    if (budget <= 0) break;
-                    if (subject.remaining == 0) continue;
-                    int minutes = Math.min(budget, subject.remaining);
-                    subject.remaining -= minutes;
-                    g.remaining -= minutes;
-                    g.scheduled += minutes;
-                    budget -= minutes;
-                    allocated += minutes;
-                    allocations.add(new Allocation(g.input.key(), g.input.certificationName(),
-                            subject.input.name(), minutes));
+                if (grant <= 0 || (grant < sessionMin && grant != g.remaining)) {
+                    someoneWaited = true;   // 오늘 몫이 있었지만 자리가 모자라 블록을 못 받은 목표
+                    continue;
                 }
-                capacity -= grant - budget;
-                if (g.remaining == 0 && g.finishedOn == null) g.finishedOn = day;
+                int given = assign(g, grant, allocations, day);
+                capacity -= given;
+                allocated += given;
+                studiedToday.add(g);
+            }
+            // 자격증 3개처럼 여럿이 겹치면 뒤 순위 목표가 45분 블록을 못 받고 자투리 시간만 남는 날이 생긴다.
+            // 그 자투리를 버리면 뒤 순위 목표가 매일 밀리므로, 오늘 공부하는 목표(마감 빠른 순)에 얹어 진도를 당긴다.
+            // → 다음 날 그 목표의 몫이 줄어 밀린 목표가 온전한 블록을 받는다. 아무도 밀리지 않은 날은 그대로 둔다.
+            if (someoneWaited) {
+                for (GoalWork g : studiedToday) {
+                    if (capacity <= 0) break;
+                    int given = assign(g, Math.min(capacity, g.remaining), allocations, day);
+                    capacity -= given;
+                    allocated += given;
+                }
             }
             if (allocated > 0) days.add(new DaySchedule(day, request.dailyMinutes(),
                     allocated, List.copyOf(allocations)));
@@ -266,7 +268,10 @@ public class MultiGoalPlanCalculator {
         notices.add("학습시간은 과목별 입력 기준시간 × 사전 이해도(낮음 1.3 / 보통 1.0 / 높음 0.7)로 계산한 추정치입니다.");
         notices.add("진도와 실제 소요시간이 함께 입력되면 관측 속도를 보수적으로 반영해 남은 시간을 다시 계산합니다.");
         notices.add("각 목표는 독립적인 시작일(기본값 오늘)부터 시험일 전까지 배정하고, 같은 날의 하루 가용시간을 공유합니다.");
-        notices.add("공부 요일: " + weekdayLabels(allowedWeekdays) + ". 선택한 요일에만 배정하며, 하루 시간은 두 자격증이 함께 씁니다.");
+        notices.add("공부 요일: " + weekdayLabels(allowedWeekdays) + ". 선택한 요일에만 배정하며, 하루 시간은 선택한 자격증이 함께 씁니다.");
+        if (goals.size() > 1)
+            notices.add("같은 날 여러 자격증이 겹치면 시험일이 빠른 자격증부터 블록을 배정합니다. 블록을 못 받은 자격증이 있는 날은 "
+                    + "남는 자투리 시간을 그날 공부하는 자격증에 얹어 진도를 당기고, 밀린 자격증은 이후 학습일에 밀린 만큼 더 배정합니다.");
         notices.add("하루 가용시간은 상한이며 매일 전부 채우지 않습니다. 목표당 기본 학습 블록은 하루 시간이 45분 이상일 때 45분입니다(최종 잔여시간 제외).");
         notices.add("예상 학습량은 임시 기준시간을 활용합니다. 기출·복습/모의고사 추가 시간을 사실인 것처럼 자동 생성하지 않습니다.");
         if (hasNoAvailableWindow)
@@ -277,6 +282,37 @@ public class MultiGoalPlanCalculator {
                 minimumDailyMinutes, Math.max(0, minimumDailyMinutes - request.dailyMinutes()),
                 shortage == 0, List.copyOf(summaries), List.copyOf(checks),
                 List.copyOf(days), List.copyOf(notices));
+    }
+
+    /**
+     * 목표 g 에 minutes 분을 과목 순서대로 배정하고 실제 배정한 분을 돌려준다.
+     * 같은 날 같은 과목에 다시 배정하면 줄을 새로 만들지 않고 앞 줄에 더한다.
+     */
+    private static int assign(GoalWork g, int minutes, List<Allocation> allocations, LocalDate day) {
+        int budget = minutes;
+        for (SubjectWork subject : g.subjects) {
+            if (budget <= 0) break;
+            if (subject.remaining == 0) continue;
+            int part = Math.min(budget, subject.remaining);
+            subject.remaining -= part;
+            g.remaining -= part;
+            g.scheduled += part;
+            budget -= part;
+            boolean merged = false;
+            for (int i = 0; i < allocations.size(); i++) {
+                Allocation a = allocations.get(i);
+                if (a.goalKey().equals(g.input.key()) && a.subjectName().equals(subject.input.name())) {
+                    allocations.set(i, new Allocation(a.goalKey(), a.certificationName(),
+                            a.subjectName(), a.minutes() + part));
+                    merged = true;
+                    break;
+                }
+            }
+            if (!merged) allocations.add(new Allocation(g.input.key(), g.input.certificationName(),
+                    subject.input.name(), part));
+        }
+        if (g.remaining == 0 && g.finishedOn == null) g.finishedOn = day;
+        return minutes - budget;
     }
 
     private static Set<Integer> normalizeWeekdays(List<Integer> requested) {

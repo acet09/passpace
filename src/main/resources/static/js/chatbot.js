@@ -272,7 +272,7 @@ function initializeMultiGoalPlanner(root) {
         const group = node('div', 'pp-chat-weekday-setting');
         group.appendChild(node('strong', null, '② 공부할 요일 선택 (기본: 매일)'));
         group.appendChild(node('p', 'pp-chat-quick-description',
-            '선택한 요일에만 공부가 배정됩니다. 정처기·SQLD가 같은 학습 가능일을 공유합니다.'));
+            '선택한 요일에만 공부가 배정됩니다. 선택한 자격증이 같은 학습 가능일을 공유합니다.'));
         const presets = node('div', 'pp-chat-weekday-presets');
         for (const [id, title, days] of [
             ['all','매일',allWeekdays], ['weekday','월~금',[1,2,3,4,5]], ['weekend','토·일',[6,7]]]) {
@@ -366,6 +366,16 @@ function initializeMultiGoalPlanner(root) {
             status.textContent = e.message || '카탈로그 요청 실패';
         }
     }
+    // 한 번에 묶는 자격증 수 (서버 MultiGoalPlannerController.MAX_CERTIFICATIONS 와 같은 값).
+    // 목표 키에서 시험구분을 뗀 값이 같으면 같은 자격증 → 필기+실기는 1개로 센다.
+    const MAX_CERTS = 3;
+    const tooManyMessage = '자격증은 한 번에 ' + MAX_CERTS + '개까지 묶을 수 있습니다 (같은 자격증의 필기·실기는 1개로 셉니다).';
+    function certGroups(keys) {
+        return new Set(keys.map(key => String(key).replace(/-(WRITTEN|PRACTICAL)$/, '')));
+    }
+    function selectedKeys() {
+        return (catalog || []).filter(cert => state.goals[cert.key]?.selected).map(cert => cert.key);
+    }
     function renderCatalog() {
         choiceBox.replaceChildren();
         for (const cert of catalog) {
@@ -374,6 +384,12 @@ function initializeMultiGoalPlanner(root) {
             checked.type = 'checkbox';
             checked.checked = !!state.goals[cert.key]?.selected;
             checked.addEventListener('change', () => {
+                if (checked.checked && certGroups([cert.key, ...selectedKeys()]).size > MAX_CERTS) {
+                    checked.checked = false;
+                    showError(tooManyMessage);
+                    return;
+                }
+                showError('');
                 const g = state.goals[cert.key] || {startDate:localDate(), examDate:'', subjects:{}};
                 if (!g.examDate && cert.suggestedExamDate) g.examDate = cert.suggestedExamDate;
                 if (!g.startDate) g.startDate = localDate();
@@ -527,6 +543,7 @@ function initializeMultiGoalPlanner(root) {
                 startDate:g.startDate, examDate:g.examDate, subjects});
         }
         if (!goals.length) throw new Error('최소 한 개의 자격증을 선택해 주세요.');
+        if (certGroups(goals.map(g => g.key)).size > MAX_CERTS) throw new Error(tooManyMessage);
         if (!hasBrowserDailyPreference || !validDailyInput(daily.value))
             throw new Error('하루 공부 가능시간을 먼저 선택하거나 30~960분으로 직접 입력해 주세요.');
         if (!state.studyWeekdays.length)
@@ -576,7 +593,7 @@ function initializeMultiGoalPlanner(root) {
             + result.additionalDailyMinutes + '분 더 확보하거나 시험일을 조정해야 합니다.'));
         if (revised) header.appendChild(node('div', 'pp-chat-result-line',
             '재계획 제안: 진도·예상 소요시간 차이가 크거나 계획 후 ' + daysElapsed
-            + '일이 지났습니다. 남은 학습량과 두 자격증의 일정을 다시 배분했습니다.'));
+            + '일이 지났습니다. 남은 학습량과 선택한 자격증의 일정을 다시 배분했습니다.'));
         output.appendChild(header);
         for (const g of result.goals) {
             const card = node('section', 'pp-chat-result-card');
@@ -666,19 +683,62 @@ function initializeMultiGoalPlanner(root) {
         return found;
     }
 
+    /**
+     * 채팅 질문에서 찾을 자격증 표현. 서버 ChatServiceImpl 의 규칙과 같아야 한다.
+     * written / practical: 카탈로그의 certificationName 중 어느 항목인가 (실기가 없는 자격증은 practical 없음).
+     */
+    const CERT_WORDS = [
+        {id: 'IPE', pattern: /정처기|정보\s*처리\s*기사/g,
+            written: name => name.startsWith('정보처리기사 필기'), practical: name => name === '정보처리기사 실기'},
+        {id: 'SQLD', pattern: /SQLD|SQL\s*개발자/gi, written: name => name === 'SQLD'},
+        {id: 'ADSP', pattern: /ADsP|데이터\s*분석\s*준\s*전문가/gi, written: name => name === 'ADsP'},
+        // "컴활 2급"만 말한 경우는 제외. 급수를 말하지 않으면 1급으로 본다.
+        {id: 'CA1', pattern: /(?:컴활|컴퓨터\s*활용\s*능력)(?!\s*2\s*급)/g,
+            written: name => name === '컴퓨터활용능력 1급 필기', practical: name => name === '컴퓨터활용능력 1급 실기'}
+    ];
+    /**
+     * 질문에 나온 자격증과 시험구분: [{word, written, practical}] (나온 순서).
+     * 시험구분은 그 자격증 이름부터 다음 자격증 이름 전까지의 글에서 찾는다.
+     *   "정처기 필기랑 컴활 실기, ADsP" → 정처기 필기 / 컴활 실기 / ADsP
+     *   "정처기 필기 실기 둘 다" → 정처기 필기 + 실기
+     * 붙여 말하지 않은 자격증은 질문 전체에 "실기"만 있으면 실기, 아니면 필기.
+     */
+    function certsInMessage(message) {
+        const text = String(message || '');
+        const mentions = [];
+        for (const word of CERT_WORDS)
+            for (const m of text.matchAll(word.pattern)) mentions.push({word, index: m.index});
+        mentions.sort((a, b) => a.index - b.index);
+        const onlyPractical = /실기/.test(text) && !/필기/.test(text);
+        const wanted = new Map();
+        mentions.forEach((mention, i) => {
+            const part = text.slice(i === 0 ? 0 : mention.index,
+                i + 1 < mentions.length ? mentions[i + 1].index : text.length);
+            const entry = wanted.get(mention.word.id) || {word: mention.word, written: false, practical: false};
+            if (/필기/.test(part)) entry.written = true;
+            if (/실기/.test(part) && mention.word.practical) entry.practical = true;
+            wanted.set(mention.word.id, entry);
+        });
+        for (const entry of wanted.values()) {
+            if (entry.written || entry.practical) continue;
+            if (onlyPractical && entry.word.practical) entry.practical = true;
+            else entry.written = true;
+        }
+        return [...wanted.values()];
+    }
+
     /** 채팅 입력 -> 종목 자동 선택 -> 과목별 이해도 버튼 -> 같은 채팅창에서 계획 제안. */
     async function startChatPlan(message, addMessage, currentConversationId) {
         if (!catalog) await loadCatalog();
         if (!catalog) throw new Error('과목 목록을 불러오지 못했습니다. MariaDB 연결을 확인해 주세요.');
-        const wantSqld = /SQLD|SQL\s*개발자/i.test(message);
-        const wantIpe = /정처기|정보처리기사/.test(message);
-        const wantsPractical = wantIpe && /실기/.test(message) && !/필기/.test(message);
-        const active = catalog.filter(cert =>
-            wantSqld && cert.certificationName === 'SQLD' ||
-            wantIpe && (wantsPractical
-                ? cert.certificationName === '정보처리기사 실기'
-                : cert.certificationName.startsWith('정보처리기사 필기')));
-        if (!active.length) throw new Error('현재 지원하는 정처기 필기·실기 또는 SQLD를 찾지 못했습니다.');
+        const asking = certsInMessage(message);
+        if (asking.length > MAX_CERTS)
+            throw new Error(tooManyMessage + ' 질문의 자격증을 ' + MAX_CERTS + '개 이하로 줄여 다시 말씀해 주세요.');
+        const active = catalog.filter(cert => asking.some(entry =>
+            entry.written && entry.word.written(cert.certificationName) ||
+            entry.practical && entry.word.practical && entry.word.practical(cert.certificationName)));
+        if (!active.length)
+            throw new Error('현재 지원하는 자격증(정처기 필기·실기, SQLD, ADsP, 컴활 1급 필기·실기)을 찾지 못했습니다.');
         for (const cert of catalog) {
             const goal = state.goals[cert.key] ||= {selected:false, startDate:localDate(), examDate:'', subjects:{}};
             goal.selected = active.some(c => c.key === cert.key);
@@ -699,12 +759,17 @@ function initializeMultiGoalPlanner(root) {
         bubble.replaceChildren();
         bubble.appendChild(node('strong',null,'자동 학습계획 — 시간·요일·이해도 선택'));
         bubble.appendChild(node('p','pp-chat-quick-description',
+            '계획할 자격증 ' + asking.length + '개' + (active.length > asking.length ? '(시험 ' + active.length + '개)' : '') +
+            ': ' + active.map(cert => cert.certificationName).join(' · ') +
+            (active.length > 1 ? ' — 하루 공부시간을 나눠 한 장의 날짜별 계획으로 만듭니다.' : '')));
+        bubble.appendChild(node('p','pp-chat-quick-description',
             '공부 시작일과 끝낼 날짜는 아래 ③에서 자유롭게 정할 수 있습니다. 처음 채워진 끝 날짜는 2026년 공고의 월/일을 옮긴 임시 값(공식 시험일 아님)이니 원하는 날짜로 바꿔 주세요.'));
         // 하루 시간은 숨겨진 선택 설정이 아닌, 최초 1회 필수 입력이다.
         const timeSetup = node('section','pp-chat-quick-time');
         timeSetup.appendChild(node('strong',null,'① 하루 총 공부 가능시간을 선택해 주세요 (필수)'));
         timeSetup.appendChild(node('p','pp-chat-quick-description',
-            '정처기와 SQLD가 하루 시간을 함께 사용합니다. 데모의 150분은 자동으로 적용하지 않아요.'));
+            (active.length > 1 ? '위 자격증들이 하루 시간을 함께 사용합니다. ' : '') +
+            '데모의 150분은 자동으로 적용하지 않아요.'));
         addDailyChoices(timeSetup);
         const customLabel = node('label','pp-chat-time-custom-label','그 외 시간은 분 단위로 직접 입력');
         const customDaily = node('input','pp-chat-field-input');
@@ -732,13 +797,19 @@ function initializeMultiGoalPlanner(root) {
             ' · 끝낼 날짜 ' + (state.goals[cert.key].examDate || '미정');
         for (const cert of active) {
             const g = state.goals[cert.key];
-            const refresh = () => { if (periodTitles[cert.key]) periodTitles[cert.key].textContent = periodText(cert); };
+            const refresh = () => {
+                if (periodTitles[cert.key]) periodTitles[cert.key].textContent = periodText(cert);
+                updateReady();
+            };
             adjust.appendChild(field(cert.certificationName + ' 공부 시작일',g.startDate, v => {
                 g.startDate=v; refresh();
             }, {type:'date'}));
             adjust.appendChild(field(cert.certificationName + ' 끝낼 날짜 (시험일 또는 원하는 날)',g.examDate, v => {
                 g.examDate=v; refresh();
             }, {type:'date',min:localDate()}));
+            // 상시시험처럼 미리 채울 날짜가 없는 자격증: 이유를 알려 주고 직접 입력받는다
+            if (!g.examDate && cert.scheduleNotice)
+                adjust.appendChild(node('p','pp-chat-schedule-warning', cert.scheduleNotice));
         }
         bubble.appendChild(adjust);
         const totalBudgetMatch = /총\s*(\d{1,4})\s*시간/.exec(message);
@@ -793,9 +864,11 @@ function initializeMultiGoalPlanner(root) {
             const validTime = hasBrowserDailyPreference && validDailyInput(daily.value);
             const validWeekdays = state.studyWeekdays.length > 0;
             const validFamiliarity = missing.every(t => [1,2,3].includes(Number(t.familiarity)));
-            calculate.disabled = !validTime || !validWeekdays || !validFamiliarity;
+            const noDate = active.find(cert => !state.goals[cert.key].startDate || !state.goals[cert.key].examDate);
+            calculate.disabled = !validTime || !validWeekdays || !!noDate || !validFamiliarity;
             calculate.textContent = !validTime ? '하루 공부 가능시간을 먼저 선택해 주세요'
                 : !validWeekdays ? '공부할 요일을 하나 이상 선택해 주세요'
+                : noDate ? noDate.certificationName + ' 공부 기간(③)을 입력해 주세요'
                 : !validFamiliarity ? '과목별 이해도를 선택해 주세요'
                 : hasCalculated ? '변경된 입력으로 다시 계산' : '학습계획 자동 생성';
         }

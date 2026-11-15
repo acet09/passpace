@@ -107,6 +107,38 @@ class MultiGoalPlanCalculatorTest {
         assertTrue(response.days().stream().allMatch(day -> day.allocations().stream()
                 .mapToInt(Allocation::minutes).sum() <= 120));
     }
+    /**
+     * 하루 120분에 A·B가 각각 50분대를 쓰면 C 몫은 45분 블록에 못 미치는 자투리만 남는다.
+     * 자투리를 버리면 C는 A·B가 끝날 때까지 밀려 마지막에 시간이 모자란다 (총량으로는 충분한 일정인데도).
+     */
+    @Test
+    void threeOverlappingCertificationsAllFinishWhenTotalTimeIsEnough() {
+        var response = calculator.calculate(new PlanRequest(120, List.of(
+                goal("A", 40, sub("a", 30, 2, 0, 0)),
+                goal("B", 40, sub("b", 30, 2, 0, 0)),
+                goal("C", 40, sub("c", 12, 2, 0, 0)))), TODAY);
+        assertEquals(4320, response.totalRemainingMinutes());   // 40일 × 120분 = 4800분 안에 들어간다
+        assertTrue(response.minimumDailyMinutes() <= 120);
+        assertEquals(0, response.totalShortfallMinutes());
+        assertTrue(response.feasible());
+        assertTrue(response.days().stream().allMatch(d -> d.allocatedMinutes() <= 120));
+        // C는 A·B가 끝나기를 기다리지 않고 처음 2주 안에 공부를 시작한다
+        assertTrue(response.days().stream().filter(d -> d.date().isBefore(TODAY.plusDays(14)))
+                .anyMatch(d -> d.allocations().stream().anyMatch(a -> a.goalKey().equals("C"))));
+        // 하루에 같은 자격증·과목이 두 줄로 나뉘지 않고, 마지막 잔여시간이 아니면 45분 이상 블록이다
+        java.util.Map<String, Integer> left = new java.util.HashMap<>(
+                java.util.Map.of("A", 1800, "B", 1800, "C", 720));
+        for (var day : response.days()) {
+            assertEquals(day.allocations().size(), day.allocations().stream()
+                    .map(a -> a.goalKey() + "|" + a.subjectName()).distinct().count());
+            for (var a : day.allocations()) {
+                int before = left.get(a.goalKey());
+                assertTrue(a.minutes() >= 45 || a.minutes() == before, day.date() + " " + a);
+                left.put(a.goalKey(), before - a.minutes());
+            }
+        }
+    }
+
     @Test
     void eachCertificationMayStartOnDifferentDates() {
         var response = calculator.calculate(new PlanRequest(180, List.of(

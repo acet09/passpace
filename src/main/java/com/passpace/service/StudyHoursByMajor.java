@@ -21,7 +21,8 @@ import java.util.Set;
 public final class StudyHoursByMajor {
     private StudyHoursByMajor() { }
 
-    public enum Qualification { IP_WRITTEN_2027, IP_PRACTICAL, SQLD }
+    /** ADSP·CA1_*: 과목별 기록이 없어 수집 후기 총 시간을 공식 문항 수·배점 비율로 나눈 잠정값을 쓴다. */
+    public enum Qualification { IP_WRITTEN_2027, IP_PRACTICAL, SQLD, ADSP, CA1_WRITTEN, CA1_PRACTICAL }
 
     /** 작성자 중복 없이, 전공 여부가 원문에서 확인된 과목별 기록 사례 수. */
     public record Counts(int major, int related, int nonMajor, int unclassified,
@@ -94,6 +95,9 @@ public final class StudyHoursByMajor {
             case IP_WRITTEN_2027 -> StudyHoursEvidence.informationProcessingWritten2027();
             case SQLD -> StudyHoursEvidence.sqld();
             case IP_PRACTICAL -> StudyHoursEvidence.informationProcessingPractical();
+            case ADSP -> StudyHoursEvidence.adsp();
+            case CA1_WRITTEN -> StudyHoursEvidence.computerLiteracy1Written();
+            case CA1_PRACTICAL -> StudyHoursEvidence.computerLiteracy1Practical();
         };
         Counts counts = counts(qualification);
         int groupAuthors = switch (group) {
@@ -127,6 +131,10 @@ public final class StudyHoursByMajor {
             warning = "현재 " + group.getLabel() + " 과목별 확인 표본은 0명입니다. " +
                     "일정 계산이 가능하도록 다른 집단(전공자) 1명의 2026년 기록을 임시 참조합니다. " +
                     "이 시간은 " + group.getLabel() + " 평균이 아니며 2027년 출제기준 직접 기록도 아닙니다.";
+        } else if (StudyHoursEvidence.usesOfficialWeights(reference)) {
+            warning = "현재 " + group.getLabel() + " 과목별 기록은 0명입니다. " +
+                    "전공 구분 없이 모은 수집 합격 후기의 총 학습시간을 공식 문항 수·배점 비율로 나눈 " +
+                    "대체값을 사용합니다. 이 시간은 " + group.getLabel() + " 평균이 아닙니다.";
         } else {
             warning = "현재 " + group.getLabel() + " 여부가 확인된 과목별 기록은 0명입니다. " +
                     "전공 구분이 확인되지 않은 공개 합격자 사례를 계산용 대체값으로 사용합니다. " +
