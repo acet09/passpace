@@ -8,3 +8,13 @@ src/main/resources/application-local.yml
 logs/
 
 collect-data/
+.runtime/
+.env
+.env.*
+!.env.example
+android/local.properties
+android/key.properties
+*.jks
+*.keystore
+*.apk
+*.aab
