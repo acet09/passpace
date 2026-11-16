@@ -97,6 +97,11 @@ public class RuleBasedReviewExtractor implements ReviewExtractor {
             {"데이터\\s*분석\\s*기획", "데이터분석 기획"},
             {"데이터\\s*분석(?!\\s*(?:기획|준\\s*전문가|전문가|가))", "데이터분석"},
     };
+    /** [11-16] 과목별 시간 추출기(SubjectStudyExtractor)가 같은 사전을 쓰도록 공개. 사본을 돌려준다 */
+    static String[][] subjectAliases() {
+        return java.util.Arrays.stream(SUBJECTS).map(String[]::clone).toArray(String[][]::new);
+    }
+
     private static final Pattern[] SUBJECT_PATTERNS = java.util.Arrays.stream(SUBJECTS)
             .map(a -> Pattern.compile(a[0])).toArray(Pattern[]::new);
 

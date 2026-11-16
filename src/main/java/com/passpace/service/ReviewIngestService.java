@@ -5,6 +5,8 @@ import com.passpace.crawler.AuthorHasher;
 import com.passpace.domain.ExtractedReview;
 import com.passpace.dto.collect.CollectDtos.QualityResult;
 import com.passpace.repository.ExamRoundRepository;
+import com.passpace.repository.JdbcReviewSubjectMentionRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import com.passpace.repository.PassReviewRepository;
 import org.springframework.stereotype.Service;
 
@@ -39,6 +41,14 @@ public class ReviewIngestService {
     private final AuthorHasher authorHasher;
     /** 자격증 코드 → certification_id (행이 있을 때만 저장해 두고, 없으면 다음에 다시 찾는다) */
     private final Map<String, Long> certIds = new ConcurrentHashMap<>();
+    /** [11-16] 요약문에서도 과목 언급을 뽑아 둔다 (요약문 출처 후기는 VALID 가 아니므로 통계 반영은 팀 결정) */
+    private final SubjectStudyExtractor subjectExtractor = new SubjectStudyExtractor();
+    private JdbcReviewSubjectMentionRepository subjectMentions;
+
+    @Autowired(required = false)
+    void setSubjectMentions(JdbcReviewSubjectMentionRepository subjectMentions) {
+        this.subjectMentions = subjectMentions;
+    }
 
     public ReviewIngestService(ReviewExtractor extractor, ReviewQualityChecker qualityChecker,
                                PassReviewRepository reviewRepository, ExamRoundRepository examRoundRepository,
@@ -72,6 +82,10 @@ public class ReviewIngestService {
         QualityResult quality = qualityChecker.checkSnippet(review, text, postedAt);
         reviewRepository.insertWithNullableSource(null, certId, url, postedAt,
                 authorHasher.hashFor(siteName, authorKey), review, quality);
+        if (subjectMentions != null) {
+            subjectMentions.saveForUrl(url, certId,
+                    subjectExtractor.extract(text, review.dailyMinutes(), review.totalHours()));
+        }
         return new Outcome("SAVED_" + quality.reviewStatus(), code.get(), quality.reviewStatus(), quality.excludeReason());
     }
 

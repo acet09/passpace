@@ -19,7 +19,8 @@ import java.util.Optional;
  * [용성 → 동건 제공] 공통 계약 StudyReferenceQuery 구현. STUDY_REFERENCE_STATS 를 읽는다.
  *
  * 1) 해당 전공 VERIFIED → 2) 전공 전체 VERIFIED → 3) PROVISIONAL 순서로 자격증 전체 시간을 고른다.
- * 과목별 시간은 VERIFIED 총시간 × 잠정 과목 비율 (ReferenceMath.splitByRatio).
+ * 과목별 시간은 VERIFIED 총시간(중앙값) × 잠정 과목 비율 (ReferenceMath.splitByRatio).
+ * [11-16] 과목 비율은 동건 플래너가 정한다 (ReviewBasedPlannerController). 여기서는 기존 잠정 비율로만 나눈다.
  * 행 자체는 03_seed.sql(잠정값)과 StudyReferenceAggregator(후기 집계)가 만든다.
  */
 @Component
@@ -76,7 +77,7 @@ public class JdbcStudyReferenceQuery implements StudyReferenceQuery {
             for (int i = 0; i < subjectRows.size(); i++) {
                 Map<String, Object> r = subjectRows.get(i);
                 subjects.add(new SubjectHours(((Number) r.get("subject_id")).longValue(), (String) r.get("subject_name"),
-                        split.get(i), "총 학습시간 실측 " + sample + "건 평균 × 과목 비율(잠정)"));
+                        split.get(i), "총 학습시간 실측 " + sample + "건 중앙값 × 과목 비율(잠정)"));
             }
         } else {
             for (int i = 0; i < subjectRows.size(); i++) {

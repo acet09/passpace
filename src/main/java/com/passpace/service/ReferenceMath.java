@@ -1,6 +1,7 @@
 package com.passpace.service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -49,6 +50,39 @@ public final class ReferenceMath {
         }
         if (prepDays != null && prepDays > 0 && dailyMinutes != null && dailyMinutes > 0) {
             return round2(prepDays * dailyMinutes / 60.0);
+        }
+        return null;
+    }
+
+    /**
+     * [11-16] 중앙값. 소수의 아주 긴 준비기간(300시간 등)에 평균이 끌려가는 것을 막는다.
+     * 짝수 개면 가운데 두 값의 평균. 비어 있으면 0.
+     */
+    public static double median(List<Double> values) {
+        if (values == null || values.isEmpty()) {
+            return 0;
+        }
+        List<Double> sorted = new ArrayList<>(values);
+        Collections.sort(sorted);
+        int n = sorted.size();
+        double m = n % 2 == 1 ? sorted.get(n / 2) : (sorted.get(n / 2 - 1) + sorted.get(n / 2)) / 2.0;
+        return round2(m);
+    }
+
+    /**
+     * [11-16] 하루 공부시간이 없는 후기("3일컷", "일주일")를 위한 보충.
+     * reviewHours 로 계산이 안 되고 준비일수만 있으면, 같은 자격증·시험 후기들의 하루 공부시간 중앙값(fallbackDailyMinutes)을 곱한다.
+     * 보충값이 없으면 null (지금처럼 표본에서 빠진다).
+     */
+    public static Double reviewHoursWithFallback(Double totalHours, Integer prepDays, Integer dailyMinutes,
+                                                 Double fallbackDailyMinutes) {
+        Double h = reviewHours(totalHours, prepDays, dailyMinutes);
+        if (h != null) {
+            return h;
+        }
+        if (prepDays != null && prepDays > 0 && (dailyMinutes == null || dailyMinutes <= 0)
+                && fallbackDailyMinutes != null && fallbackDailyMinutes > 0) {
+            return round2(prepDays * fallbackDailyMinutes / 60.0);
         }
         return null;
     }
