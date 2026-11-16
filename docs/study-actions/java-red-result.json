@@ -1,0 +1,20 @@
+{
+  "phase": "red",
+  "exitCode": 1,
+  "tests": 2,
+  "failures": 2,
+  "errors": 0,
+  "skipped": 0,
+  "failedTests": [
+    {
+      "name": "planTaskChoicesExposeRealOwnedIdentifiers()",
+      "message": "java.lang.AssertionError: Status expected:<200> but was:<404>"
+    },
+    {
+      "name": "deleteRemovesOnlyOwnedRecordAndUpdatesStats()",
+      "message": "java.lang.AssertionError: Response status expected:<200> but was:<405>"
+    }
+  ],
+  "database": "verified disposable MariaDB",
+  "originalProjectWrites": false
+}

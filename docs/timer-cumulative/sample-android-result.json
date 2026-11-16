@@ -1,0 +1,1 @@
+{"mode":"SAMPLE mock API on actual Android emulator","checks":["save-fifteen-and-reset-clock","stored-time-retained-on-reselect","saved-fifteen-plus-current-five","second-save-twenty-not-double-counted"],"mockPosts":2,"savedSubjectMinutes":20,"realApiWrites":false,"measurementIsSynthetic":true}

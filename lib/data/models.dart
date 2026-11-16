@@ -1,0 +1,178 @@
+typedef Json = Map<String, dynamic>;
+
+Json object(Object? value) {
+  if (value is! Json) throw const FormatException('object expected');
+  return value;
+}
+
+List<Json> rows(Object? value) => (value as List).map(object).toList();
+List<String> strings(Object? value) => (value as List? ?? []).cast<String>();
+const majors = {'MAJOR': '전공', 'RELATED': '유사전공', 'NON_MAJOR': '비전공'};
+const levels = ['낯섦', '보통', '익숙함'];
+const weekdays = ['월', '화', '수', '목', '금', '토', '일'];
+
+DateTime dayInSeoul([DateTime? now]) {
+  final kst = (now ?? DateTime.now()).toUtc().add(const Duration(hours: 9));
+  return DateTime(kst.year, kst.month, kst.day);
+}
+
+DateTime plusDays(DateTime d, int n) => DateTime(d.year, d.month, d.day + n);
+String isoDay(DateTime d) =>
+    '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+String shortDay(DateTime d) => '${d.month}월 ${d.day}일';
+String durationLabel(int minutes) {
+  if (minutes < 60) return '$minutes분';
+  final rest = minutes % 60;
+  return '${minutes ~/ 60}시간${rest == 0 ? '' : ' $rest분'}';
+}
+
+class Profile {
+  final String id, name, email, major;
+  Profile.from(Json j)
+    : id = j['loginId'] as String,
+      name = j['nickname'] as String,
+      email = j['email'] as String? ?? '',
+      major = j['majorTypeLabel'] as String? ?? majors[j['majorType']] ?? '미설정';
+}
+
+class StudyTask {
+  final DateTime date;
+  final String exam, subject;
+  final int minutes;
+  StudyTask.from(Json j)
+    : date = DateTime.parse(j['date']),
+      exam = j['certificationName'] as String? ?? '',
+      subject = j['subjectName'] as String,
+      minutes = j['minutes'] as int;
+}
+
+class SavedPlan {
+  final int? id;
+  final String name;
+  final DateTime start, end;
+  final int version;
+  final Map<String, List<StudyTask>> byDay = {};
+  SavedPlan.from(Json j)
+    : id = j['planId'] as int?,
+      name = j['planName'] as String,
+      start = DateTime.parse(j['startDate']),
+      end = DateTime.parse(j['endDate']),
+      version = j['versionNo'] as int {
+    for (final item in rows(j['tasks']).map(StudyTask.from)) {
+      byDay.putIfAbsent(isoDay(item.date), () => []).add(item);
+    }
+  }
+  List<StudyTask> on(DateTime d) => byDay[isoDay(d)] ?? const [];
+  List<String> get exams => byDay.values
+      .expand((v) => v)
+      .map((t) => t.exam)
+      .where((e) => e.isNotEmpty)
+      .toSet()
+      .toList();
+  int get totalMinutes =>
+      byDay.values.expand((v) => v).fold(0, (n, t) => n + t.minutes);
+}
+
+class GoalData {
+  final int? roundId, minutes;
+  final DateTime? date;
+  final Map<String, int> familiarity;
+  final List<Json> rounds, subjects;
+  GoalData.from(Json j)
+    : this._(
+        object(j['goal'] ?? <String, dynamic>{}),
+        rows(j['examRounds']),
+        rows(j['subjects']),
+      );
+  GoalData._(Json goal, this.rounds, this.subjects)
+    : roundId = goal['examRoundId'] as int?,
+      minutes = goal['dailyMinutes'] as int?,
+      date = DateTime.tryParse(goal['targetExamDate'] as String? ?? ''),
+      familiarity = Map<String, int>.from(goal['familiarity'] ?? {});
+  Json? get selectedRound =>
+      rounds.where((r) => r['examRoundId'] == roundId).firstOrNull;
+  DateTime? get examDate =>
+      date ??
+      DateTime.tryParse(selectedRound?['examStartDate'] as String? ?? '');
+  String get examLabel => selectedRound?['label'] as String? ?? '나의 목표 시험';
+}
+
+class CatalogExam {
+  final String key, name;
+  final DateTime? suggested;
+  final String? scheduleNote, evidence;
+  final bool temporary;
+  final List<Json> subjects;
+  CatalogExam.from(Json j)
+    : key = j['key'] as String,
+      name = j['certificationName'] as String,
+      suggested = DateTime.tryParse(j['suggestedExamDate'] as String? ?? ''),
+      scheduleNote = j['scheduleNotice'] as String?,
+      temporary = j['temporaryCatalog'] == true,
+      evidence = (j['evidence'] as Json?)?['warning'] as String?,
+      subjects = rows(j['subjects']);
+}
+
+class Catalog {
+  final List<CatalogExam> exams;
+  final List<String> notices;
+  final int? minutes;
+  Catalog.from(Json j)
+    : exams = rows(j['goals']).map(CatalogExam.from).toList(),
+      notices = strings(j['notices']),
+      minutes = j['profileDailyMinutes'] as int?;
+}
+
+class Preview {
+  final int requiredMinutes, missingMinutes;
+  final bool feasible;
+  final List<Json> days;
+  final List<String> notices;
+  final int? minimumDailyMinutes;
+  final List<Json> goals;
+  late final List<Json> _orderedDays = [...days]
+    ..sort((a, b) => (a['date'] as String).compareTo(b['date'] as String));
+  int get calendarWeeks => _orderedDays.isEmpty
+      ? 0
+      : DateTime.parse(_orderedDays.last['date'])
+                    .difference(DateTime.parse(_orderedDays.first['date']))
+                    .inDays ~/
+                7 +
+            1;
+  List<Json> weekAt(int index) {
+    if (_orderedDays.isEmpty) return [];
+    final start = plusDays(
+      DateTime.parse(_orderedDays.first['date']),
+      index * 7,
+    );
+    final byDate = {for (final day in _orderedDays) day['date'] as String: day};
+    return List.generate(7, (i) {
+      final date = isoDay(plusDays(start, i));
+      return byDate[date] ??
+          {'date': date, 'allocatedMinutes': 0, 'allocations': <Json>[]};
+    });
+  }
+
+  Preview.from(Json j)
+    : requiredMinutes = j['totalRemainingMinutes'] as int,
+      missingMinutes = j['totalShortfallMinutes'] as int,
+      feasible = j['feasible'] as bool,
+      days = rows(j['days']),
+      notices = strings(j['notices']),
+      minimumDailyMinutes = j['minimumDailyMinutes'] as int?,
+      goals = rows(j['goals'] ?? []);
+}
+
+class Reply {
+  final int conversation;
+  final String answer;
+  final bool llm;
+  final List<String> sources;
+  final String? notice;
+  Reply.from(Json j)
+    : conversation = j['conId'] as int,
+      answer = j['answer'] as String,
+      llm = j['llmUsed'] == true,
+      notice = j['notice'] as String?,
+      sources = strings(j['sources']);
+}

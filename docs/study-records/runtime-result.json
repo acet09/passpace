@@ -1,0 +1,10 @@
+{
+  "entryPoint": "lib/main.dart",
+  "device": "Android emulator",
+  "installed": true,
+  "widgetInspector": "PassPaceApp / AuthScreen",
+  "hotReload": "succeeded",
+  "runtimeErrors": [],
+  "defaultServer8080": "not responding at final check",
+  "productionAccountWrites": false
+}

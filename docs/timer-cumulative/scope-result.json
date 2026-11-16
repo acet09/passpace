@@ -1,0 +1,53 @@
+{
+  "team": {
+    "baselineFiles": 202,
+    "unchanged": 202,
+    "changed": [],
+    "added": [],
+    "missing": []
+  },
+  "legacyBackend": {
+    "baselineFiles": 66,
+    "unchanged": 66,
+    "changed": [],
+    "added": [],
+    "missing": []
+  },
+  "app": {
+    "baselineFiles": 490,
+    "unchanged": 485,
+    "changed": [
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\README.md",
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\verification.md",
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\lib\\ui\\study_timer_progress.dart",
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\lib\\ui\\study_timer_screen.dart",
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\test\\study_timer_progress_test.dart"
+    ],
+    "added": [
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-cumulative\\analyze.log",
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-cumulative\\apk-build.log",
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-cumulative\\apk-result.json",
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-cumulative\\flutter-all.log",
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-cumulative\\git-before.txt",
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-cumulative\\green.log",
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-cumulative\\lint-fix.log",
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-cumulative\\plan.md",
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-cumulative\\red.log",
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-cumulative\\review-red.log",
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-cumulative\\runtime-result.json",
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-cumulative\\sample-android-result.json",
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-cumulative\\sample-android.log",
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-cumulative\\scope-before.json",
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-cumulative\\scope-result.json",
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-cumulative\\screenshots\\sample-after-first-save.png",
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-cumulative\\screenshots\\sample-after-second-save.png",
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-cumulative\\screenshots\\sample-cumulative-round.png",
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-cumulative\\verification.md",
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\integration_test\\timer_cumulative_preview_test.dart",
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\lib\\ui\\study_subject_history.dart",
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\test\\study_timer_cumulative_test.dart",
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\test_driver\\timer_cumulative_driver.dart"
+    ],
+    "missing": []
+  }
+}

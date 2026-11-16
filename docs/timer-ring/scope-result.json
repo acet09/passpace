@@ -1,0 +1,54 @@
+{
+  "team": {
+    "baselineFiles": 202,
+    "unchanged": 202,
+    "changed": [],
+    "added": [],
+    "missing": []
+  },
+  "legacyBackend": {
+    "baselineFiles": 66,
+    "unchanged": 66,
+    "changed": [],
+    "added": [],
+    "missing": []
+  },
+  "app": {
+    "baselineFiles": 465,
+    "unchanged": 461,
+    "changed": [
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\README.md",
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\verification.md",
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\lib\\ui\\study_task_picker.dart",
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\lib\\ui\\study_timer_screen.dart"
+    ],
+    "added": [
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-ring\\analyze.log",
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-ring\\apk-build.log",
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-ring\\apk-result.json",
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-ring\\flutter-all.log",
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-ring\\git-before.txt",
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-ring\\green.log",
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-ring\\plan.md",
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-ring\\primary-action-red.log",
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-ring\\red.log",
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-ring\\runtime-result.json",
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-ring\\sample-android-diagnostic.log",
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-ring\\sample-android-first.log",
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-ring\\sample-android-result.json",
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-ring\\sample-android-second.log",
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-ring\\sample-android.log",
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-ring\\scope-before.json",
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-ring\\scope-result.json",
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-ring\\screenshots\\normal-launch.png",
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-ring\\screenshots\\sample-current-subjects.png",
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-ring\\screenshots\\sample-timer-half.png",
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-ring\\verification.md",
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\integration_test\\timer_ring_preview_test.dart",
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\lib\\ui\\study_timer_progress.dart",
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\test\\study_timer_progress_test.dart",
+      "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\test_driver\\timer_ring_driver.dart"
+    ],
+    "missing": []
+  }
+}

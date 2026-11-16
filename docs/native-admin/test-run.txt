@@ -1,0 +1,90 @@
+00:00 +0: loading C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/admin_api_test.dart
+00:00 +0: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/admin_api_test.dart: 병렬 조회 중 권한 거부를 받은 뒤 도착한 데이터도 반환하지 않는다
+00:00 +1: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/admin_api_test.dart: 관리자 폼은 UTF-8으로 기존 서버에 보내며 배열·숫자 응답도 읽는다
+00:00 +2: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/admin_api_test.dart: 리다이렉트는 따르지 않고 토큰을 외부 주소로 전달하지 않는다
+00:00 +3: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/admin_api_test.dart: 403 뒤 추가 관리자 요청을 막으며 일반 로그인은 유지한다
+00:00 +4: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/admin_api_test.dart: 401은 기존 세션 만료 처리를 호출하고 다음 요청을 차단한다
+00:00 +5: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/admin_api_test.dart: 응답 대기 중 로그아웃하면 이전 관리자 데이터는 반환하지 않는다
+00:00 +6: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/admin_api_test.dart: 일반 회원·절대 주소·관리자 외 경로는 요청 전에 차단한다
+00:00 +7: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/admin_api_test.dart: HTML·망가진 JSON·연결 실패는 안내 가능한 오류로 처리한다
+00:00 +8: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/admin_entry_test.dart: 관리자 메뉴 표시는 만료·누락·불일치 토큰을 거부하고 세션을 수정하지 않는다
+00:00 +9: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/admin_entry_test.dart: 관리자는 내 정보에서 앱 내부 관리 화면에 진입하고 복귀한다: 320.0
+00:00 +10: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/admin_entry_test.dart: 관리자는 내 정보에서 앱 내부 관리 화면에 진입하고 복귀한다: 320.0
+00:00 +11: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/admin_entry_test.dart: 관리자는 내 정보에서 앱 내부 관리 화면에 진입하고 복귀한다: 320.0
+00:00 +12: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/admin_entry_test.dart: 관리자는 내 정보에서 앱 내부 관리 화면에 진입하고 복귀한다: 320.0
+00:00 +13: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/admin_entry_test.dart: 관리자는 내 정보에서 앱 내부 관리 화면에 진입하고 복귀한다: 320.0
+00:01 +14: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/admin_entry_test.dart: 관리자는 내 정보에서 앱 내부 관리 화면에 진입하고 복귀한다: 320.0
+00:01 +15: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/admin_entry_test.dart: 관리자는 내 정보에서 앱 내부 관리 화면에 진입하고 복귀한다: 320.0
+00:01 +16: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/admin_entry_test.dart: 관리자는 내 정보에서 앱 내부 관리 화면에 진입하고 복귀한다: 320.0
+00:01 +17: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/admin_native_test.dart: 상세 화면 뒤의 수집 화면은 앱 복귀 때도 조회하지 않으며 돌아오면 진행 조회를 잇는다
+00:01 +18: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/admin_native_test.dart: 상세 화면 뒤의 수집 화면은 앱 복귀 때도 조회하지 않으며 돌아오면 진행 조회를 잇는다
+00:01 +19: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/admin_native_test.dart: 상세 화면 뒤의 수집 화면은 앱 복귀 때도 조회하지 않으며 돌아오면 진행 조회를 잇는다
+00:01 +20: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/admin_native_test.dart: 상세 화면 뒤의 수집 화면은 앱 복귀 때도 조회하지 않으며 돌아오면 진행 조회를 잇는다
+00:01 +21: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/admin_native_test.dart: 상세 화면 뒤의 수집 화면은 앱 복귀 때도 조회하지 않으며 돌아오면 진행 조회를 잇는다
+00:01 +22: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/admin_native_test.dart: 상세 화면 뒤의 수집 화면은 앱 복귀 때도 조회하지 않으며 돌아오면 진행 조회를 잇는다
+00:02 +23: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/admin_native_test.dart: 상세 화면 뒤의 수집 화면은 앱 복귀 때도 조회하지 않으며 돌아오면 진행 조회를 잇는다
+00:02 +24: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/auth_entry_test.dart: 로그인 입력·오류·회원가입 복귀: 너비 320.0 글자 1.5
+00:02 +25: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/learning_plan_hub_test.dart: 전체 일정의 달력에서 빈 날짜를 선택하고 기존 목록으로 전환한다
+00:02 +26: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/learning_plan_hub_test.dart: 전체 일정의 달력에서 빈 날짜를 선택하고 기존 목록으로 전환한다
+00:02 +27: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/learning_plan_hub_test.dart: 전체 일정의 달력에서 빈 날짜를 선택하고 기존 목록으로 전환한다
+00:02 +28: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/learning_plan_hub_test.dart: 전체 일정의 달력에서 빈 날짜를 선택하고 기존 목록으로 전환한다
+00:02 +29: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/learning_plan_hub_test.dart: 전체 일정의 달력에서 빈 날짜를 선택하고 기존 목록으로 전환한다
+00:02 +30: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/learning_plan_hub_test.dart: 전체 일정의 달력에서 빈 날짜를 선택하고 기존 목록으로 전환한다
+00:02 +31: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/learning_plan_hub_test.dart: 전체 일정의 달력에서 빈 날짜를 선택하고 기존 목록으로 전환한다
+00:02 +32: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/learning_plan_hub_test.dart: 전체 일정의 달력에서 빈 날짜를 선택하고 기존 목록으로 전환한다
+00:03 +33: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/learning_plan_hub_test.dart: 전체 일정의 달력에서 빈 날짜를 선택하고 기존 목록으로 전환한다
+00:03 +34: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/widget_test.dart: 작은 휴대폰에서 로그인 후 주간 일정, 상담, 로그아웃이 이어진다
+00:03 +35: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/widget_test.dart: 작은 휴대폰에서 로그인 후 주간 일정, 상담, 로그아웃이 이어진다
+00:03 +36: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/widget_test.dart: 작은 휴대폰에서 로그인 후 주간 일정, 상담, 로그아웃이 이어진다
+00:03 +37: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/widget_test.dart: 작은 휴대폰에서 로그인 후 주간 일정, 상담, 로그아웃이 이어진다
+00:03 +38: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/widget_test.dart: 작은 휴대폰에서 로그인 후 주간 일정, 상담, 로그아웃이 이어진다
+00:03 +39: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/widget_test.dart: 작은 휴대폰에서 로그인 후 주간 일정, 상담, 로그아웃이 이어진다
+00:03 +40: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/ui_accessibility_test.dart: 앱의 계획·프로필·목표: 너비 320.0, 글자 1.5
+00:03 +41: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/admin_native_test.dart: 수집 입력·확인·취소와 폼 요청을 보존하고 화면 종료 후 조회를 멈춘다
+00:03 +42: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/learning_plan_hub_test.dart: 기본 설정을 접어도 탭 이동과 새로고침 후 접힌 상태를 유지한다
+00:03 +43: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/learning_plan_hub_test.dart: 기본 설정을 접어도 탭 이동과 새로고침 후 접힌 상태를 유지한다
+00:03 +44: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/learning_plan_hub_test.dart: 기본 설정을 접어도 탭 이동과 새로고침 후 접힌 상태를 유지한다
+00:03 +45: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/learning_plan_hub_test.dart: 기본 설정을 접어도 탭 이동과 새로고침 후 접힌 상태를 유지한다
+00:04 +46: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/learning_plan_hub_test.dart: 기본 설정을 접어도 탭 이동과 새로고침 후 접힌 상태를 유지한다
+00:04 +47: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/learning_plan_hub_test.dart: 기본 설정을 접어도 탭 이동과 새로고침 후 접힌 상태를 유지한다
+00:04 +48: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/learning_plan_hub_test.dart: 기본 설정을 접어도 탭 이동과 새로고침 후 접힌 상태를 유지한다
+00:04 +49: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/learning_plan_hub_test.dart: 기본 설정을 접어도 탭 이동과 새로고침 후 접힌 상태를 유지한다
+00:04 +50: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/learning_plan_hub_test.dart: 기본 설정을 접어도 탭 이동과 새로고침 후 접힌 상태를 유지한다
+00:04 +51: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/learning_plan_hub_test.dart: 기본 설정을 접어도 탭 이동과 새로고침 후 접힌 상태를 유지한다
+00:04 +52: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/learning_plan_hub_test.dart: 기본 설정을 접어도 탭 이동과 새로고침 후 접힌 상태를 유지한다
+00:05 +53: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/learning_plan_hub_test.dart: 기본 설정을 접어도 탭 이동과 새로고침 후 접힌 상태를 유지한다
+00:05 +54: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/ui_accessibility_test.dart: 앱의 계획·프로필·목표: 너비 320.0, 글자 2.0
+00:05 +55: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/admin_native_test.dart: 검색어 추가는 기존 폼 규격을 사용하고 삭제 취소는 요청하지 않는다
+00:05 +56: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/planner_features_test.dart: 변경 상세를 비교하고 외부에서 바뀐 계획은 재확인 후 저장한다
+00:05 +57: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/planner_features_test.dart: 변경 상세를 비교하고 외부에서 바뀐 계획은 재확인 후 저장한다
+00:05 +58: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/planner_features_test.dart: 변경 상세를 비교하고 외부에서 바뀐 계획은 재확인 후 저장한다
+00:05 +59: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/widget_test.dart: 큰 글자의 홈과 학습 항목 상담 동선에서 내용이 넘치지 않는다
+00:05 +60: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/learning_plan_hub_test.dart: 접은 상태에서 설정을 저장하면 펼쳐서 계획 작성 안내를 보여준다
+00:05 +61: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/learning_plan_hub_test.dart: 접은 상태에서 설정을 저장하면 펼쳐서 계획 작성 안내를 보여준다
+00:05 +62: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/learning_plan_hub_test.dart: 접은 상태에서 설정을 저장하면 펼쳐서 계획 작성 안내를 보여준다
+00:06 +63: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/learning_plan_hub_test.dart: 접은 상태에서 설정을 저장하면 펼쳐서 계획 작성 안내를 보여준다
+00:06 +64: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/planner_features_test.dart: 서버 저장 성공 뒤 초안 정리가 실패해도 저장 요청을 반복하지 않는다
+00:06 +65: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/admin_native_test.dart: 네이버 수집 시작·중단은 기존 상태 모양과 두 API를 사용한다
+00:06 +66: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/admin_native_test.dart: 네이버 수집 시작·중단은 기존 상태 모양과 두 API를 사용한다
+00:06 +67: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/learning_plan_hub_test.dart: 애니메이션 제거 설정에서도 내려간 학습계획에서 요약으로 돌아온다
+00:06 +68: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/ui_accessibility_test.dart: 앱의 계획·프로필·목표: 너비 360.0, 글자 2.0
+00:06 +69: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/admin_native_test.dart: 관리 화면·수집 입력·조회 조건은 작은 화면과 큰 글자에서 넘치지 않는다 320.0/1.5
+00:06 +70: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/admin_native_test.dart: 관리 화면·수집 입력·조회 조건은 작은 화면과 큰 글자에서 넘치지 않는다 320.0/1.5
+00:06 +71: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/learning_plan_hub_test.dart: 다시 불러오는 동안에도 보고 있던 일정과 위치를 유지한다
+00:07 +72: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/ui_accessibility_test.dart: 앱의 계획·프로필·목표: 너비 412.0, 글자 1.5
+00:07 +73: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/ui_accessibility_test.dart: 앱의 계획·프로필·목표: 너비 412.0, 글자 1.5
+00:07 +74: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/learning_plan_hub_test.dart: 홈·내 정보의 목표 동선은 학습계획 한곳으로 모인다
+00:07 +75: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/learning_plan_hub_test.dart: 홈·내 정보의 목표 동선은 학습계획 한곳으로 모인다
+00:07 +76: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/admin_native_test.dart: 관리 화면·수집 입력·조회 조건은 작은 화면과 큰 글자에서 넘치지 않는다 360.0/1.5
+00:07 +77: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/ui_accessibility_test.dart: 앱의 계획·프로필·목표: 너비 412.0, 글자 2.0
+00:07 +78: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/learning_plan_hub_test.dart: 설정 저장 후 같은 화면에서 불러온 값으로 계획 작성을 이어간다
+00:07 +79: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/learning_plan_hub_test.dart: 설정 저장 후 같은 화면에서 불러온 값으로 계획 작성을 이어간다
+00:07 +80: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/learning_plan_hub_test.dart: 설정 저장 후 같은 화면에서 불러온 값으로 계획 작성을 이어간다
+00:07 +81: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/learning_plan_hub_test.dart: 설정 저장 후 같은 화면에서 불러온 값으로 계획 작성을 이어간다
+00:08 +82: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/admin_native_test.dart: 관리 화면·수집 입력·조회 조건은 작은 화면과 큰 글자에서 넘치지 않는다 360.0/2.0
+00:08 +83: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/learning_plan_hub_test.dart: 설정 취소와 저장 실패는 기존 일정과 입력을 유지한다
+00:08 +84: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/admin_native_test.dart: 관리 화면·수집 입력·조회 조건은 작은 화면과 큰 글자에서 넘치지 않는다 412.0/1.5
+00:08 +85: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/learning_plan_hub_test.dart: 조회 오류는 다른 영역을 막지 않는다: 목표 오류 true
+00:08 +86: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/admin_native_test.dart: 관리 화면·수집 입력·조회 조건은 작은 화면과 큰 글자에서 넘치지 않는다 412.0/2.0
+00:08 +87: C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/admin_native_test.dart: 관리 화면·수집 입력·조회 조건은 작은 화면과 큰 글자에서 넘치지 않는다 412.0/2.0
+00:08 +88: All tests passed!

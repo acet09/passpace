@@ -1,0 +1,35 @@
+00:00 +0: loading C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/auth_entry_test.dart
+00:00 +0: 소개 문구와 로그인은 유지하고 세 단계 안내만 제거한다
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: no matching candidates
+  Actual: _TextWidgetFinder:<Found 1 widget with text "목표 설정": [
+            Text("목표 설정", inherit: true, color: Color(alpha: 1.0000, red: 0.0980, green: 0.1569,
+blue: 0.2510, colorSpace: ColorSpace.sRGB), size: 12.0, weight: 600, textAlign: center,
+dependencies: [DefaultSelectionStyle, DefaultTextStyle, MediaQuery]),
+          ]>
+   Which: means one was found but none were expected
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///C:/Users/std66/Documents/ChatGPT/PASS_FACE%20_%20TEST/passpace_mobile/test/auth_entry_test.dart:25:7)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///C:/Users/std66/Documents/ChatGPT/PASS_FACE%20_%20TEST/passpace_mobile/test/auth_entry_test.dart line 25
+The test description was:
+  소개 문구와 로그인은 유지하고 세 단계 안내만 제거한다
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:01 +0 -1: 소개 문구와 로그인은 유지하고 세 단계 안내만 제거한다 [E]
+  Test failed. See exception logs above.
+  The test description was: 소개 문구와 로그인은 유지하고 세 단계 안내만 제거한다
+  
+00:01 +0 -1: Some tests failed.
+
+Failing tests:
+  C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/auth_entry_test.dart: 소개 문구와 로그인은 유지하고 세 단계 안내만 제거한다
