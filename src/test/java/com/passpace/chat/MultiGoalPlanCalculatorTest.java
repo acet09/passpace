@@ -140,6 +140,36 @@ class MultiGoalPlanCalculatorTest {
     }
 
     @Test
+    void perCertificationDailyMinutesCapEachGoal() {
+        var request = new PlanRequest(180, List.of(
+                new GoalInput("ipe", "정처기", TODAY.plusDays(20),
+                        List.of(sub("개발", 30, 2, 0, 0)), TODAY, 120),
+                new GoalInput("sql", "SQLD", TODAY.plusDays(20),
+                        List.of(sub("SQL", 15, 2, 0, 0)), TODAY, 60)));
+        var response = calculator.calculate(request, TODAY);
+        assertTrue(response.feasible());
+        assertEquals(120, response.goals().get(0).dailyMinutes());
+        for (var day : response.days()) {
+            int ipe = day.allocations().stream().filter(a -> a.goalKey().equals("ipe"))
+                    .mapToInt(Allocation::minutes).sum();
+            int sql = day.allocations().stream().filter(a -> a.goalKey().equals("sql"))
+                    .mapToInt(Allocation::minutes).sum();
+            assertTrue(ipe <= 120, day.date() + " 정처기 " + ipe);
+            assertTrue(sql <= 60, day.date() + " SQLD " + sql);
+        }
+        // 상한이 필요량보다 작으면 남는 학습량과 필요한 최소 시간을 알린다.
+        var tight = calculator.calculate(new PlanRequest(180, List.of(
+                new GoalInput("sql", "SQLD", TODAY.plusDays(10),
+                        List.of(sub("SQL", 15, 2, 0, 0)), TODAY, 60))), TODAY);
+        assertFalse(tight.feasible());
+        assertEquals(900 - 600, tight.totalShortfallMinutes());
+        assertTrue(tight.notices().stream().anyMatch(n -> n.contains("최소 하루 90분")));
+        assertThrows(IllegalArgumentException.class, () -> calculator.calculate(new PlanRequest(180, List.of(
+                new GoalInput("sql", "SQLD", TODAY.plusDays(10),
+                        List.of(sub("SQL", 15, 2, 0, 0)), TODAY, 10))), TODAY));
+    }
+
+    @Test
     void eachCertificationMayStartOnDifferentDates() {
         var response = calculator.calculate(new PlanRequest(180, List.of(
                 new GoalInput("ipe", "정처기", TODAY.plusDays(80),

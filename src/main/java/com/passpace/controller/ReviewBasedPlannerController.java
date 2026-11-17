@@ -296,7 +296,7 @@ public class ReviewBasedPlannerController {
             }
             // 날짜는 사용자가 자유롭게 정한다 (시험일이 아니어도 됨). 범위 검사는 계산기가 한다: 끝 날짜는 내일~540일 이내, 시작일은 끝 날짜 이전
             acceptedGoals.add(new GoalInput(goal.key(), goal.certificationName(), goal.examDate(),
-                    List.copyOf(accepted), goal.startDate()));
+                    List.copyOf(accepted), goal.startDate(), goal.dailyMinutes()));
         }
         return new PlanRequest(request.dailyMinutes(), List.copyOf(acceptedGoals), request.studyWeekdays());
     }
@@ -312,7 +312,9 @@ public class ReviewBasedPlannerController {
             boolean fromReviews = known != null && isReviewBased(known);
             sb.append(goal.certificationName()).append(" / 시작일 ").append(goal.startDate())
                     .append(" / 목표일 ").append(goal.examDate())
-                    .append(" / 남은 ").append(hoursText(goal.remainingMinutes() / 60.0)).append("시간 / 기준시간: ")
+                    .append(" / 남은 ").append(hoursText(goal.remainingMinutes() / 60.0)).append("시간")
+                    .append(goal.dailyMinutes() == null ? "" : " / 하루 최대 " + goal.dailyMinutes() + "분")
+                    .append(" / 기준시간: ")
                     .append(fromReviews
                             ? groupLabel(known) + " 합격 후기 " + known.evidence().baselineAuthors() + "건 실측 평균 "
                             + hoursText(known.evidence().referenceTotalHours()) + "시간"

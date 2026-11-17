@@ -270,7 +270,9 @@ public class MultiGoalPlannerController {
                     .append(" / 목표일 ").append(goal.examDate())
                     .append(" / 남은 ")
                     .append(String.format(java.util.Locale.ROOT, "%.1f", goal.remainingMinutes() / 60.0))
-                    .append("시간\n");
+                    .append("시간")
+                    .append(goal.dailyMinutes() == null ? "" : " / 하루 최대 " + goal.dailyMinutes() + "분")
+                    .append("\n");
         }
         if (!result.feasible()) sb.append("현재 가능시간으로 모두 완료하기 어려워 일정 조정이 필요합니다.\n");
         sb.append("2027년 목표일은 2026년 공고의 월/일을 옮긴 가상 날짜이며 공식 시험일이 아닙니다. ")
@@ -307,7 +309,7 @@ public class MultiGoalPlannerController {
                     goal.examDate().isBefore(LocalDate.of(2027, 1, 1)))
                 throw new IllegalArgumentException("2027년 4과목 목록은 2027년 이후 필기 시험에만 적용합니다.");
             acceptedGoals.add(new GoalInput(goal.key(), goal.certificationName(), goal.examDate(),
-                    List.copyOf(accepted), goal.startDate()));
+                    List.copyOf(accepted), goal.startDate(), goal.dailyMinutes()));
         }
         return new PlanRequest(request.dailyMinutes(), List.copyOf(acceptedGoals), request.studyWeekdays());
     }
