@@ -81,28 +81,99 @@ int _minutesOf(RegExpMatch m) =>
     (m[2] == null ? 0 : 30) +
     (int.tryParse(m[3] ?? m[4] ?? '') ?? 0);
 
-/// 질문 속 자격증별 하루 시간: "SQLD 1시간, 정처기는 하루 2시간".
-/// 자격증 이름 바로 뒤(다음 자격증 이름 전)에 적힌 시간만 그 자격증의 것으로 본다.
-({int? sqld, int? ipe}) examMinutesInMessage(String message) {
-  final names = RegExp(
-    r'(SQLD|SQL\s*개발자)|(?:정처기|정보처리기사)(?:\s*(?:필기|실기))?',
-    caseSensitive: false,
-  ).allMatches(message).toList();
-  final time = RegExp(r'^[^\d,.·/]{0,10}?' + _amount);
-  int? sqld, ipe;
-  for (final (i, name) in names.indexed) {
-    final end = i + 1 < names.length ? names[i + 1].start : message.length;
-    final m = time.firstMatch(message.substring(name.end, end));
-    if (m == null) continue;
-    final minutes = _minutesOf(m);
-    if (!validDailyMinutes(minutes)) continue;
-    if (name[1] != null) {
-      sqld ??= minutes;
-    } else {
-      ipe ??= minutes;
-    }
+/// 채팅 계획이 알아듣는 자격증. 이름 규칙은 웹 chatbot.js 의 CERT_WORDS 와 같다.
+class _Cert {
+  final String id;
+  final RegExp word;
+  final bool Function(String name) written;
+  final bool Function(String name)? practical;
+  const _Cert(this.id, this.word, this.written, [this.practical]);
+}
+
+final _certs = [
+  _Cert(
+    'IPE',
+    RegExp(r'정처기|정보\s*처리\s*기사'),
+    (n) => n.startsWith('정보처리기사 필기'),
+    (n) => n == '정보처리기사 실기',
+  ),
+  _Cert(
+    'SQLD',
+    RegExp(r'SQLD|SQL\s*개발자', caseSensitive: false),
+    (n) => n == 'SQLD',
+  ),
+  _Cert(
+    'ADSP',
+    RegExp(r'ADsP|데이터\s*분석\s*준\s*전문가', caseSensitive: false),
+    (n) => n == 'ADsP',
+  ),
+  // "컴활 2급"만 말한 경우는 제외. 급수를 말하지 않으면 1급으로 본다.
+  _Cert(
+    'CA1',
+    RegExp(r'(?:컴활|컴퓨터\s*활용\s*능력)(?!\s*2\s*급)'),
+    (n) => n == '컴퓨터활용능력 1급 필기',
+    (n) => n == '컴퓨터활용능력 1급 실기',
+  ),
+];
+
+/// 한 번에 묶을 수 있는 자격증 수 (같은 자격증의 필기·실기는 1개).
+const maxChatPlanCerts = 3;
+
+// 질문에 자격증 이름이 나온 자리 (나온 순서).
+List<({_Cert cert, int start, int end})> _mentions(String message) => [
+  for (final cert in _certs)
+    for (final m in cert.word.allMatches(message))
+      (cert: cert, start: m.start, end: m.end),
+]..sort((a, b) => a.start.compareTo(b.start));
+
+/// 질문에 나온 자격증과 시험구분 (나온 순서).
+/// 시험구분은 그 자격증 이름부터 다음 자격증 이름 전까지의 글에서 찾는다.
+/// 붙여 말하지 않은 자격증은 질문 전체에 "실기"만 있으면 실기, 아니면 필기.
+List<({String id, bool written, bool practical})> certsInMessage(
+  String message,
+) {
+  final found = _mentions(message);
+  final onlyPractical = message.contains('실기') && !message.contains('필기');
+  final wanted = <String, ({bool written, bool practical})>{};
+  for (final (i, mention) in found.indexed) {
+    final part = message.substring(
+      i == 0 ? 0 : mention.start,
+      i + 1 < found.length ? found[i + 1].start : message.length,
+    );
+    final before = wanted[mention.cert.id];
+    wanted[mention.cert.id] = (
+      written: (before?.written ?? false) || part.contains('필기'),
+      practical:
+          (before?.practical ?? false) ||
+          (part.contains('실기') && mention.cert.practical != null),
+    );
   }
-  return (sqld: sqld, ipe: ipe);
+  return [
+    for (final e in wanted.entries)
+      if (e.value.written || e.value.practical)
+        (id: e.key, written: e.value.written, practical: e.value.practical)
+      else if (onlyPractical &&
+          _certs.firstWhere((c) => c.id == e.key).practical != null)
+        (id: e.key, written: false, practical: true)
+      else
+        (id: e.key, written: true, practical: false),
+  ];
+}
+
+/// 질문 속 자격증별 하루 시간(자격증 id → 분): "SQLD 1시간, 정처기는 하루 2시간".
+/// 자격증 이름 바로 뒤(다음 자격증 이름 전)에 적힌 시간만 그 자격증의 것으로 본다.
+Map<String, int> examMinutesInMessage(String message) {
+  final found = _mentions(message);
+  final time = RegExp(r'^\s*(?:1\s*급)?[^\d,.·/]{0,12}?' + _amount);
+  final minutes = <String, int>{};
+  for (final (i, mention) in found.indexed) {
+    final end = i + 1 < found.length ? found[i + 1].start : message.length;
+    final m = time.firstMatch(message.substring(mention.end, end));
+    if (m == null) continue;
+    final n = _minutesOf(m);
+    if (validDailyMinutes(n)) minutes.putIfAbsent(mention.cert.id, () => n);
+  }
+  return minutes;
 }
 
 /// 질문 한 건에서 열린 계획 카드의 상태. 목록에서 스크롤로 사라져도 유지된다.
@@ -135,24 +206,30 @@ class ChatPlanSetup {
     ChatPlanInputs inputs,
     DateTime today,
   ) {
-    final sqld = RegExp(
-      r'SQLD|SQL\s*개발자',
-      caseSensitive: false,
-    ).hasMatch(message);
-    final ipe = RegExp('정처기|정보처리기사').hasMatch(message);
-    final practical = ipe && message.contains('실기') && !message.contains('필기');
-    final active = catalog.exams
-        .where(
-          (e) =>
-              sqld && e.name == 'SQLD' ||
-              ipe &&
-                  (practical
-                      ? e.name == '정보처리기사 실기'
-                      : e.name.startsWith('정보처리기사 필기')),
-        )
-        .toList();
+    final asking = certsInMessage(message);
+    if (asking.length > maxChatPlanCerts) {
+      throw const ApiError(
+        '자격증은 한 번에 $maxChatPlanCerts개까지 묶을 수 있어요 (같은 자격증의 필기·실기는 1개로 셉니다). '
+        '질문의 자격증을 줄여 다시 말씀해 주세요.',
+      );
+    }
+    // 이 시험이 질문의 어느 자격증에 해당하는가 (해당 없으면 null).
+    String? certOf(CatalogExam e) {
+      for (final entry in asking) {
+        final cert = _certs.firstWhere((c) => c.id == entry.id);
+        if (entry.written && cert.written(e.name) ||
+            entry.practical && (cert.practical?.call(e.name) ?? false)) {
+          return entry.id;
+        }
+      }
+      return null;
+    }
+
+    final active = catalog.exams.where((e) => certOf(e) != null).toList();
     if (active.isEmpty) {
-      throw const ApiError('현재 지원하는 정처기 필기·실기 또는 SQLD를 찾지 못했어요.');
+      throw const ApiError(
+        '현재 지원하는 자격증(정처기 필기·실기, SQLD, ADsP, 컴활 1급 필기·실기)을 찾지 못했어요.',
+      );
     }
     final limit = plusDays(today, 540);
     final asked = datesInMessage(message, today);
@@ -172,13 +249,15 @@ class ChatPlanSetup {
       if (asked.end != null) goal.end = asked.end;
     }
     // 자격증마다 시간이 적혀 있으면 나눠 넣고, 아니면 하루 총 시간으로 읽는다.
+    // 한 자격증의 필기·실기를 함께 고르면 어느 쪽 시간인지 알 수 없어 나누지 않는다.
     final each = examMinutesInMessage(message);
-    final own = [
-      for (final e in active) e.name == 'SQLD' ? each.sqld : each.ipe,
-    ];
+    final own = [for (final e in active) each[certOf(e)]];
     final ownTotal = own.fold(0, (sum, n) => sum + (n ?? 0));
     final divided =
-        active.length >= 2 && !own.contains(null) && ownTotal <= 960;
+        active.length >= 2 &&
+        active.map(certOf).toSet().length == active.length &&
+        !own.contains(null) &&
+        ownTotal <= 960;
     final daily = divided ? ownTotal : dailyMinutesInMessage(message);
     if (divided) {
       inputs.update(() {
@@ -202,6 +281,10 @@ class ChatPlanSetup {
       divided,
     );
   }
+
+  /// 모든 시험의 끝낼 날짜가 정해졌는가 (상시시험은 처음에 비어 있다).
+  bool datesChosen(ChatPlanInputs inputs) =>
+      exams.every((e) => inputs.goals[e.key]?.end != null);
 
   /// 이 카드에서 자격증별 시간을 쓰는가 (자격증이 둘 이상일 때만 의미가 있다).
   bool splits(ChatPlanInputs inputs) => exams.length >= 2 && inputs.split;

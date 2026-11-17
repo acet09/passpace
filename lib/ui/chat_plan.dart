@@ -108,6 +108,8 @@ class _ChatPlanCardState extends State<ChatPlanCard> {
             : '하루 공부 가능시간을 먼저 선택해 주세요')
       : inputs.weekdays.isEmpty
       ? '공부할 요일을 하나 이상 선택해 주세요'
+      : !setup.datesChosen(inputs)
+      ? '끝낼 날짜를 선택해 주세요'
       : !setup.familiarityChosen(inputs)
       ? '과목별 이해도를 선택해 주세요'
       : setup.result != null
@@ -117,6 +119,7 @@ class _ChatPlanCardState extends State<ChatPlanCard> {
   bool get _ready =>
       setup.dailyTotal(inputs) != null &&
       inputs.weekdays.isNotEmpty &&
+      setup.datesChosen(inputs) &&
       setup.familiarityChosen(inputs);
 
   Future<void> _calculate() async {

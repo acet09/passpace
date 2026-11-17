@@ -49,12 +49,14 @@ void main() {
 
   test('자격증별 하루 시간을 읽고, 한쪽만 있으면 하루 총 시간으로 본다', () {
     final each = examMinutesInMessage('SQLD 1시간, 정처기는 하루 2시간 30분으로 계획');
-    expect(each.sqld, 60);
-    expect(each.ipe, 150);
+    expect(each, {'SQLD': 60, 'IPE': 150});
     final shared = examMinutesInMessage('정처기랑 SQLD 하루 2시간 계획');
-    expect(shared.ipe, isNull);
-    expect(shared.sqld, 120);
-    expect(examMinutesInMessage('SQLD 계획 세워줘').sqld, isNull);
+    expect(shared, {'SQLD': 120});
+    expect(examMinutesInMessage('SQLD 계획 세워줘'), isEmpty);
+    expect(examMinutesInMessage('ADsP 1시간 컴활 1급 필기는 하루 90분'), {
+      'ADSP': 60,
+      'CA1': 90,
+    });
 
     final catalog = Catalog.from({
       'goals': [
@@ -101,6 +103,64 @@ void main() {
       rows(total.buildRequest(inputs)['goals']).first
           .containsKey('dailyMinutes'),
       isFalse,
+    );
+  });
+
+  test('ADsP·컴활 1급과 필기·실기 구분을 알아듣고 3개까지만 묶는다', () {
+    String read(String message) => certsInMessage(message)
+        .map(
+          (c) => '${c.id}${c.written ? ' 필기' : ''}${c.practical ? ' 실기' : ''}',
+        )
+        .join(', ');
+    expect(read('정처기 필기랑 컴활 실기, ADsP 계획'), 'IPE 필기, CA1 실기, ADSP 필기');
+    expect(read('정처기 필기 실기 둘 다'), 'IPE 필기 실기');
+    expect(read('데이터분석 준전문가 준비'), 'ADSP 필기');
+    expect(read('컴퓨터활용능력 1급 실기 계획'), 'CA1 실기');
+    expect(read('컴활 2급 계획'), '');
+
+    final catalog = Catalog.from({
+      'goals': [
+        for (final name in [
+          'SQLD',
+          '정보처리기사 필기 (2027~)',
+          '정보처리기사 실기',
+          'ADsP',
+          '컴퓨터활용능력 1급 필기',
+          '컴퓨터활용능력 1급 실기',
+        ])
+          {'key': name, 'certificationName': name, 'subjects': []},
+      ],
+      'notices': [],
+    });
+    final today = DateTime(2026, 11, 17);
+    final inputs = ChatPlanInputs();
+    final setup = ChatPlanSetup.from(
+      'ADsP 1시간, 컴활 필기 2시간 계획 세워줘',
+      catalog,
+      inputs,
+      today,
+    );
+    expect(setup.exams.map((e) => e.name), ['ADsP', '컴퓨터활용능력 1급 필기']);
+    expect(setup.splitFromQuestion, isTrue);
+    expect(setup.dailyTotal(inputs), 180);
+    // 상시시험은 목표일이 비어 있어 날짜를 고르기 전에는 준비되지 않는다.
+    expect(setup.datesChosen(inputs), isFalse);
+
+    // 한 자격증의 필기·실기를 함께 고르면 시간을 나누지 않는다.
+    final both = ChatPlanSetup.from(
+      '컴활 필기 실기 하루 2시간 계획',
+      catalog,
+      inputs,
+      today,
+    );
+    expect(both.exams.length, 2);
+    expect(both.splitFromQuestion, isFalse);
+    expect(both.dailyTotal(inputs), 120);
+
+    expect(
+      () =>
+          ChatPlanSetup.from('정처기, SQLD, ADsP, 컴활 계획', catalog, inputs, today),
+      throwsA(isA<ApiError>()),
     );
   });
 
