@@ -125,6 +125,126 @@ public final class StudyHoursEvidence {
                         "한 과목만 있는 실기. 작성자 1명의 전체 학습시간을 사용")));
     }
 
+    /**
+     * 과목별 학습 기록이 없는 자격증의 상태값: 총 학습시간(수집 후기 소표본)을
+     * 공식 문항 수·배점 비율로 나눈 잠정값. 과목별 실측이 아니다.
+     */
+    public static final String OFFICIAL_WEIGHT_STATUS = "PROVISIONAL_OFFICIAL_WEIGHT_SPLIT";
+
+    public static boolean usesOfficialWeights(CertificateEstimate estimate) {
+        return estimate != null && OFFICIAL_WEIGHT_STATUS.equals(estimate.status());
+    }
+
+    /**
+     * ADsP 3과목 (객관식 50문항: 데이터 이해 10 · 데이터분석 기획 10 · 데이터분석 30).
+     * 총 시간은 패스페이스가 수집한 합격 후기 42건의 평균을 2026-11-15에 옮겨 적은 값이다.
+     * DB에 후기 실측 평균(VERIFIED)이 있으면 ReviewBasedPlannerController가 그 값으로 바꾼다.
+     * 여기 값은 후기가 없는 DB에서도 계획을 계산할 수 있게 하는 대체값이다.
+     */
+    public static CertificateEstimate adsp() {
+        double total = 43.70;
+        return new CertificateEstimate(
+                "ADsP — 2024 개정 이후 (3과목, 객관식 50문항)",
+                "수집 합격 후기 42건의 총 학습시간 평균 43.7시간을 공식 문항 수 비율(10:10:30)로 배분.",
+                "과목별 학습시간을 직접 잰 값이 아닙니다. 총 시간은 2026-11-15 기준 수집 후기 42건의 평균(3~225시간으로 " +
+                "개인차 큼)이고, 과목별 시간은 문항 수 비율로 나눈 잠정값입니다. 과목당 50명 기준 미충족입니다.",
+                total, 42, 42, OFFICIAL_WEIGHT_STATUS,
+                List.of(new Observation("패스페이스 수집 ADsP 합격 후기 42건 집계 (2026-11-15 기준)", 2026, total,
+                        "작성자당 1건·최근 3년 합격 후기 42건의 총 학습시간 평균. " +
+                        "총 시간을 적지 않은 글은 준비기간×하루시간으로 환산", true, "", true)),
+                officialWeightEstimate(List.of("데이터 이해", "데이터분석 기획", "데이터분석"),
+                        new int[]{10, 10, 30}, total, "수집 후기 42건 평균 × 공식 문항 수 비율 — 과목별 실측 아님",
+                        "공식 문항 수: 데이터 이해 10 · 데이터분석 기획 10 · 데이터분석 30 (총 50문항)."));
+    }
+
+    /**
+     * 컴퓨터활용능력 1급 필기 3과목 (과목당 20문항).
+     * 수집 합격 후기 중 준비기간·하루시간이 함께 적힌 글은 3건뿐이다 (최소 표본 10건 미달).
+     * 자동 추출값이 글 제목과 맞지 않는 1건을 빼고 2건(28시간, 49시간)의 평균을 쓴다.
+     */
+    public static CertificateEstimate computerLiteracy1Written() {
+        double total = 38.5;
+        return new CertificateEstimate(
+                "컴퓨터활용능력 1급 필기 — 2024~2026 출제기준 (3과목)",
+                "수집 합격 후기 2건의 준비기간×하루시간 환산값(28시간, 49시간) 평균 38.5시간을 " +
+                "과목당 20문항 동일 비율로 배분.",
+                "합격 후기 2건의 환산값이며 대표 평균이 아닙니다. 과목별 학습시간을 직접 잰 값도 아닙니다. " +
+                "과목당 50명 기준 미충족입니다.",
+                total, 2, 2, OFFICIAL_WEIGHT_STATUS,
+                List.of(collected("컴활 1급 필기 합격 후기", 2026, 14, 120,
+                                "https://rootingforme.tistory.com/entry/컴활-1급-필기-1트-합격후기", true),
+                        collected("컴활 1급 필기 합격 후기", 2025, 14, 210,
+                                "https://yonggun03.tistory.com/36", true),
+                        new Observation("컴활 1급 필기 합격 후기 (육아 병행)", 2025, 63,
+                                "글 제목은 18일·하루 3~4시간(약 63시간)인데 수집기 자동 추출값은 240일×4시간. " +
+                                "값이 서로 달라 기준값 계산에서 제외", true,
+                                "https://misbasetherapy.tistory.com/entry/컴활-필기-1급-합격-후기-육아병행-공부시간-18일-하루-3-4시간1트-합격",
+                                false)),
+                officialWeightEstimate(List.of("컴퓨터 일반", "스프레드시트 일반", "데이터베이스 일반"),
+                        new int[]{20, 20, 20}, total, "수집 후기 2건 환산 평균 × 공식 문항 수 비율 — 과목별 실측 아님",
+                        "공식 문항 수: 과목당 20문항 (총 60문항)."));
+    }
+
+    /**
+     * 컴퓨터활용능력 1급 실기 2과목 (스프레드시트 실무·데이터베이스 실무, 각 100점·45분).
+     * 수집 합격 후기 중 준비기간·하루시간이 함께 적힌 글 9건 (최소 표본 10건 미달).
+     * 24.5~600시간으로 편차가 커서 평균(약 139시간) 대신 중앙값 60시간을 쓴다.
+     */
+    public static CertificateEstimate computerLiteracy1Practical() {
+        double total = 60.0;
+        return new CertificateEstimate(
+                "컴퓨터활용능력 1급 실기 — 2024~2026 출제기준 (2과목)",
+                "수집 합격 후기 9건의 준비기간×하루시간 환산값 중 중앙값 60시간을 두 과목 동일 배점(각 100점)으로 배분. " +
+                "270·600시간 같은 극단값의 영향을 줄이려고 평균 대신 중앙값 사용.",
+                "합격 후기 9건의 환산값이며 대표 평균이 아닙니다 (24.5~600시간으로 개인차 큼). " +
+                "과목별 학습시간을 직접 잰 값도 아닙니다. 과목당 50명 기준 미충족입니다.",
+                total, 9, 9, OFFICIAL_WEIGHT_STATUS,
+                List.of(collected("컴활 1급 실기 합격 후기", 2025, 7, 210, "https://pddktudh.tistory.com/10", true),
+                        collected("컴활 1급 실기 합격 후기", 2025, 14, 180, "https://acejumin6.tistory.com/46", true),
+                        collected("컴활 1급 실기 단기합격 글", 2026, 14, 180,
+                                "https://naeplan.tistory.com/entry/2026-컴퓨터활용능력-1급-완전-정복-가이드-실기-단기합격-로드맵", true),
+                        collected("컴활 1급 실기 합격 후기", 2026, 20, 150, "https://hidell.tistory.com/2173", true),
+                        collected("컴활 1급·2급 비교 글", 2026, 60, 60,
+                                "https://gnsolution7.tistory.com/entry/컴퓨터활용능력-1급-vs-2급-독학인강학원-비용·기간·합격률체감까지-“현실-비교”-가이드", true),
+                        collected("컴활 1급 실기 합격 후기", 2025, 28, 150, "https://yoonraccoon.tistory.com/409", true),
+                        collected("컴활 1급 2개월 합격 후기", 2025, 60, 90,
+                                "https://studydrawer.tistory.com/entry/컴활-1급-자격증-2개월-만에-합격한-후기", true),
+                        collected("컴활 1급 실기 합격 후기", 2026, 90, 180, "https://infoguide-note.tistory.com/30", true),
+                        collected("컴활 1급 실기 합격 후기", 2025, 300, 120, "https://sungjangtong.tistory.com/182", true)),
+                officialWeightEstimate(List.of("스프레드시트 실무", "데이터베이스 실무"),
+                        new int[]{100, 100}, total, "수집 후기 9건 환산 중앙값 × 공식 배점 비율 — 과목별 실측 아님",
+                        "공식 배점: 스프레드시트 실무 100점 · 데이터베이스 실무 100점 (각 45분)."));
+    }
+
+    /** 수집기가 글에서 자동으로 읽은 준비기간·하루시간. 사람이 원문을 다시 확인한 값은 아니다. */
+    private static Observation collected(String title, int year, int prepDays, int dailyMinutes,
+                                         String url, boolean usedForBaseline) {
+        String daily = dailyMinutes % 60 == 0 ? (dailyMinutes / 60) + "시간"
+                : (dailyMinutes / 60) + "시간 " + (dailyMinutes % 60) + "분";
+        return new Observation(title, year, round2(prepDays * dailyMinutes / 60.0),
+                "준비 " + prepDays + "일 × 하루 " + daily + " 환산 (수집기 자동 추출값)", true, url, usedForBaseline);
+    }
+
+    /** 총 시간을 공식 문항 수·배점 비율로 나눈다. 과목별로 직접 기록된 시간·작성자는 0이다. */
+    private static List<SubjectEstimate> officialWeightEstimate(List<String> subjects, int[] weights,
+                                                                double totalHours, String referenceType,
+                                                                String weightBasis) {
+        if (subjects.size() != weights.length || !(totalHours > 0))
+            throw new IllegalArgumentException("과목 비중 구조 불일치");
+        int sum = 0;
+        for (int w : weights) {
+            if (w <= 0) throw new IllegalArgumentException("과목 비중이 필요합니다");
+            sum += w;
+        }
+        List<SubjectEstimate> results = new ArrayList<>();
+        for (int i = 0; i < subjects.size(); i++) {
+            double hours = round2(totalHours * weights[i] / sum);
+            results.add(new SubjectEstimate(subjects.get(i), hours, 0, 0, 0, referenceType,
+                    "총 " + totalHours + "시간 × 비중 " + weights[i] + "/" + sum + " = " + hours + "시간. " + weightBasis));
+        }
+        return List.copyOf(results);
+    }
+
     private static List<SubjectEstimate> proportionalCaseEstimate(
             List<String> subjects, int[] directMinutes, int sharedMinutes,
             int directAuthors, int matchedStandardAuthors,

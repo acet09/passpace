@@ -272,7 +272,7 @@ function initializeMultiGoalPlanner(root) {
         const group = node('div', 'pp-chat-weekday-setting');
         group.appendChild(node('strong', null, '② 공부할 요일 선택 (기본: 매일)'));
         group.appendChild(node('p', 'pp-chat-quick-description',
-            '선택한 요일에만 공부가 배정됩니다. 정처기·SQLD가 같은 학습 가능일을 공유합니다.'));
+            '선택한 요일에만 공부가 배정됩니다. 선택한 자격증이 같은 학습 가능일을 공유합니다.'));
         const presets = node('div', 'pp-chat-weekday-presets');
         for (const [id, title, days] of [
             ['all','매일',allWeekdays], ['weekday','월~금',[1,2,3,4,5]], ['weekend','토·일',[6,7]]]) {
@@ -341,11 +341,15 @@ function initializeMultiGoalPlanner(root) {
     if (tabWeekdays) addWeekdayChoices(tabWeekdays);
     daily.addEventListener('input', () => setDailyPreference(daily.value));
 
+    // 서버가 크롤링 합격 후기의 실측 평균을 적용한 자격증인가 (ReviewBasedPlannerController)
+    function fromReviews(cert) {
+        return cert?.evidence?.status === 'REVIEW_VERIFIED';
+    }
     async function loadCatalog() {
         loaded = true;
         status.textContent = '자격증·과목 목록 불러오는 중…';
         try {
-            const data = await PP.api('/api/chat/planner/catalog');
+            const data = await PP.api('/api/chat/planner/review-based/catalog');
             catalog = data.goals || [];
             catalogMajorLabel = data.loginMajorLabel || major;
             const sourceIsDemo = /데모|대역|고정/.test(data.dailyTimeSource || '');
@@ -362,6 +366,16 @@ function initializeMultiGoalPlanner(root) {
             status.textContent = e.message || '카탈로그 요청 실패';
         }
     }
+    // 한 번에 묶는 자격증 수 (서버 MultiGoalPlannerController.MAX_CERTIFICATIONS 와 같은 값).
+    // 목표 키에서 시험구분을 뗀 값이 같으면 같은 자격증 → 필기+실기는 1개로 센다.
+    const MAX_CERTS = 3;
+    const tooManyMessage = '자격증은 한 번에 ' + MAX_CERTS + '개까지 묶을 수 있습니다 (같은 자격증의 필기·실기는 1개로 셉니다).';
+    function certGroups(keys) {
+        return new Set(keys.map(key => String(key).replace(/-(WRITTEN|PRACTICAL)$/, '')));
+    }
+    function selectedKeys() {
+        return (catalog || []).filter(cert => state.goals[cert.key]?.selected).map(cert => cert.key);
+    }
     function renderCatalog() {
         choiceBox.replaceChildren();
         for (const cert of catalog) {
@@ -370,6 +384,12 @@ function initializeMultiGoalPlanner(root) {
             checked.type = 'checkbox';
             checked.checked = !!state.goals[cert.key]?.selected;
             checked.addEventListener('change', () => {
+                if (checked.checked && certGroups([cert.key, ...selectedKeys()]).size > MAX_CERTS) {
+                    checked.checked = false;
+                    showError(tooManyMessage);
+                    return;
+                }
+                showError('');
                 const g = state.goals[cert.key] || {startDate:localDate(), examDate:'', subjects:{}};
                 if (!g.examDate && cert.suggestedExamDate) g.examDate = cert.suggestedExamDate;
                 if (!g.startDate) g.startDate = localDate();
@@ -394,11 +414,13 @@ function initializeMultiGoalPlanner(root) {
             if (cert.majorEvidence) {
                 const grp = cert.majorEvidence;
                 const detail = node('div', 'pp-chat-group-reference' + (grp.fallback ? ' pp-chat-group-fallback' : ''));
-                detail.appendChild(node('div', 'pp-chat-group-title',
-                    '기준 집단: ' + grp.userMajorLabel + ' · 같은 집단의 근거 작성자 ' + grp.groupAuthors + '명' +
+                detail.appendChild(node('div', 'pp-chat-group-title', fromReviews(cert)
+                    ? '기준: 크롤링한 합격 후기 ' + cert.evidence.baselineAuthors + '건 실측 평균 · ' +
+                        (grp.fallback ? '전공 구분 없는 전체 후기' : grp.userMajorLabel + ' 후기')
+                    : '기준 집단: ' + grp.userMajorLabel + ' · 같은 집단의 근거 작성자 ' + grp.groupAuthors + '명' +
                     (grp.fallback ? ' · 대체자료 사용 중' : ' · 같은 집단의 과거 기록 적용')));
                 const counts = grp.groupCounts || {};
-                detail.appendChild(node('div', 'pp-chat-group-counts',
+                if (!fromReviews(cert)) detail.appendChild(node('div', 'pp-chat-group-counts',
                     '기록 분류 — 전공 ' + (counts.major || 0) + '명 / 유사전공 ' +
                     (counts.related || 0) + '명 / 비전공 ' + (counts.nonMajor || 0) +
                     '명 / 전공 확인 불가 ' + (counts.unclassified || 0) + '명'));
@@ -418,13 +440,15 @@ function initializeMultiGoalPlanner(root) {
             if (cert.evidence) {
                 const ev = cert.evidence;
                 const info = node('details', 'pp-chat-evidence-details');
-                info.appendChild(node('summary', null,
-                    '과목별 기준시간 근거 · 공개 원문 ' + ev.observations.length + '건 (50명 실측 평균 아님)'));
+                info.appendChild(node('summary', null, fromReviews(cert)
+                    ? '과목별 기준시간 근거 · 크롤링 합격 후기 ' + ev.baselineAuthors + '건 실측 평균'
+                    : '과목별 기준시간 근거 · 공개 원문 ' + ev.observations.length + '건 (50명 실측 평균 아님)'));
                 info.appendChild(node('p', 'pp-chat-evidence-text',
                     '계산에 사용한 작성자 ' + ev.baselineAuthors + '명 · 해당 출제기준 실제 기록자 ' +
                     ev.matchingSyllabusAuthors + '명 · 원문 사례 전체시간 ' +
                     Number(ev.referenceTotalHours).toFixed(2) + '시간'));
-                info.appendChild(node('p', 'pp-chat-evidence-text', '임시 계산 방식: ' + ev.method));
+                info.appendChild(node('p', 'pp-chat-evidence-text',
+                    (fromReviews(cert) ? '계산 방식: ' : '임시 계산 방식: ') + ev.method));
                 info.appendChild(node('p', 'pp-chat-evidence-warning', ev.warning));
                 const sources = node('ol', 'pp-chat-evidence-sources');
                 for (const observation of ev.observations) {
@@ -467,11 +491,12 @@ function initializeMultiGoalPlanner(root) {
                 item.appendChild(choices);
                 const fields = node('div', 'pp-chat-subject-fields');
                 const baseline = Number(subject.baseHours);
-                fields.appendChild(node('div', 'pp-chat-baseline',
-                    '잠정 계획 기준: ' + (baseline > 0 ? baseline.toFixed(2) + '시간' : '자료 없음') +
+                fields.appendChild(node('div', 'pp-chat-baseline', fromReviews(cert)
+                    ? '후기 기반 평균 학습시간: ' + baseline.toFixed(2) + '시간 · 이해도 가중치 적용 전 · ' + subject.referenceType
+                    : '잠정 계획 기준: ' + (baseline > 0 ? baseline.toFixed(2) + '시간' : '자료 없음') +
                     ' · 이해도 가중치 적용 전 · 집단별 실측 평균 아님' +
                     (cert.majorEvidence?.fallback ? ' · 다른 집단/미분류 사례의 대체값' : ' · 같은 집단 1명 사례')));
-                fields.appendChild(node('div', 'pp-chat-source-count',
+                if (!fromReviews(cert)) fields.appendChild(node('div', 'pp-chat-source-count',
                     '원본 사례의 과목별 부분 기록 ' + Number(subject.directlyRecordedHours).toFixed(2) +
                     '시간 · 전체 작성자 ' + subject.directAuthorCount +
                     '명 · 내 집단의 해당 과목 기록 ' + subject.majorGroupSubjectAuthors +
@@ -518,6 +543,7 @@ function initializeMultiGoalPlanner(root) {
                 startDate:g.startDate, examDate:g.examDate, subjects});
         }
         if (!goals.length) throw new Error('최소 한 개의 자격증을 선택해 주세요.');
+        if (certGroups(goals.map(g => g.key)).size > MAX_CERTS) throw new Error(tooManyMessage);
         if (!hasBrowserDailyPreference || !validDailyInput(daily.value))
             throw new Error('하루 공부 가능시간을 먼저 선택하거나 30~960분으로 직접 입력해 주세요.');
         if (!state.studyWeekdays.length)
@@ -531,7 +557,7 @@ function initializeMultiGoalPlanner(root) {
         button.disabled = true;
         button.textContent = '계산 중…';
         try {
-            const result = await PP.api('/api/chat/planner/preview', {method: 'POST', body: payload});
+            const result = await PP.api('/api/chat/planner/review-based/preview', {method: 'POST', body: payload});
             const previous = state.previous;
             const previousDate = state.lastCalculatedOn;
             const previousTotal = state.lastTotalRemaining;
@@ -549,6 +575,7 @@ function initializeMultiGoalPlanner(root) {
             state.history = state.history.slice(0, 8);
             save();
             renderResult(result, previous, state.version, revised, daysElapsed);
+            addSaveButton(output, payload);
         } catch (e) {showError(e.message || '계산 실패');}
         finally {button.disabled = false; button.textContent = '통합 계획 계산 / 진도 반영 재계획';}
     });
@@ -566,7 +593,7 @@ function initializeMultiGoalPlanner(root) {
             + result.additionalDailyMinutes + '분 더 확보하거나 시험일을 조정해야 합니다.'));
         if (revised) header.appendChild(node('div', 'pp-chat-result-line',
             '재계획 제안: 진도·예상 소요시간 차이가 크거나 계획 후 ' + daysElapsed
-            + '일이 지났습니다. 남은 학습량과 두 자격증의 일정을 다시 배분했습니다.'));
+            + '일이 지났습니다. 남은 학습량과 선택한 자격증의 일정을 다시 배분했습니다.'));
         output.appendChild(header);
         for (const g of result.goals) {
             const card = node('section', 'pp-chat-result-card');
@@ -604,6 +631,27 @@ function initializeMultiGoalPlanner(root) {
                 .filter(d=>d.shortageMinutes>0).map(d=>d.deadline+' 기준 '+totalHours(d.shortageMinutes)).join(', ')));
         output.appendChild(notes);
     }
+    /** 방금 계산한 계획을 마이페이지 "학습 계획" 칸에 넣는다 (서버가 같은 요청으로 다시 계산해 저장). */
+    function addSaveButton(parent, request) {
+        const wrap = node('div', 'pp-chat-result-line');
+        const saveButton = node('button', 'pp-chat-plan-calc', '이 계획을 마이페이지에 넣기');
+        saveButton.type = 'button';
+        const note = node('span', 'pp-chat-quick-description', '');
+        saveButton.addEventListener('click', async () => {
+            saveButton.disabled = true;
+            note.textContent = ' 저장 중…';
+            try {
+                const saved = await PP.api('/api/chat/planner/review-based/save', {method: 'POST', body: request});
+                note.textContent = ' 마이페이지에 넣었습니다 (' + saved.days + '일치). 이전에 넣은 챗봇 계획은 이 계획으로 바뀝니다.';
+                saveButton.textContent = '마이페이지에 넣기 완료';
+            } catch (e) {
+                note.textContent = ' 저장 실패: ' + (e.message || '오류');
+                saveButton.disabled = false;
+            }
+        });
+        wrap.append(saveButton, note);
+        parent.appendChild(wrap);
+    }
     function addDay(parent, day) {
         const line = node('div','pp-chat-result-day');
         const weekday = '일월화수목금토'[new Date(day.date + 'T12:00:00').getDay()];
@@ -613,19 +661,84 @@ function initializeMultiGoalPlanner(root) {
         parent.appendChild(line);
     }
 
+    /**
+     * 질문 속 공부 기간: "11월 20일부터", "2027-01-10까지", "1/10 까지" → {start, end} (YYYY-MM-DD, 없으면 null).
+     * 연도가 없으면 올해, 이미 지난 날짜면 내년으로 본다. "부터"·"까지"·"시험"이 붙은 날짜만 읽는다 ("3월 20일 시험" → 끝낼 날짜).
+     */
+    function datesInMessage(message) {
+        const today = localDate();
+        const found = {start: null, end: null};
+        const pattern = /(?:(20\d{2})\s*[년.\-\/]\s*)?(\d{1,2})\s*(?:월|[.\-\/])\s*(\d{1,2})\s*일?\s*(부터|까지|시험)/g;
+        for (const m of String(message || '').matchAll(pattern)) {
+            const month = Number(m[2]), day = Number(m[3]);
+            if (month < 1 || month > 12 || day < 1 || day > 31) continue;
+            const make = y => y + '-' + String(month).padStart(2,'0') + '-' + String(day).padStart(2,'0');
+            let text = make(m[1] ? Number(m[1]) : Number(today.slice(0,4)));
+            if (!m[1] && text < today) text = make(Number(today.slice(0,4)) + 1);
+            const d = new Date(text + 'T12:00:00');
+            if (Number.isNaN(d.getTime()) || d.getDate() !== day) continue;      // 2월 30일 같은 날짜
+            if (m[4] === '부터') found.start = text; else found.end = text;
+        }
+        if (found.start && found.end && found.start >= found.end) return {start: null, end: null};
+        return found;
+    }
+
+    /**
+     * 채팅 질문에서 찾을 자격증 표현. 서버 ChatServiceImpl 의 규칙과 같아야 한다.
+     * written / practical: 카탈로그의 certificationName 중 어느 항목인가 (실기가 없는 자격증은 practical 없음).
+     */
+    const CERT_WORDS = [
+        {id: 'IPE', pattern: /정처기|정보\s*처리\s*기사/g,
+            written: name => name.startsWith('정보처리기사 필기'), practical: name => name === '정보처리기사 실기'},
+        {id: 'SQLD', pattern: /SQLD|SQL\s*개발자/gi, written: name => name === 'SQLD'},
+        {id: 'ADSP', pattern: /ADsP|데이터\s*분석\s*준\s*전문가/gi, written: name => name === 'ADsP'},
+        // "컴활 2급"만 말한 경우는 제외. 급수를 말하지 않으면 1급으로 본다.
+        {id: 'CA1', pattern: /(?:컴활|컴퓨터\s*활용\s*능력)(?!\s*2\s*급)/g,
+            written: name => name === '컴퓨터활용능력 1급 필기', practical: name => name === '컴퓨터활용능력 1급 실기'}
+    ];
+    /**
+     * 질문에 나온 자격증과 시험구분: [{word, written, practical}] (나온 순서).
+     * 시험구분은 그 자격증 이름부터 다음 자격증 이름 전까지의 글에서 찾는다.
+     *   "정처기 필기랑 컴활 실기, ADsP" → 정처기 필기 / 컴활 실기 / ADsP
+     *   "정처기 필기 실기 둘 다" → 정처기 필기 + 실기
+     * 붙여 말하지 않은 자격증은 질문 전체에 "실기"만 있으면 실기, 아니면 필기.
+     */
+    function certsInMessage(message) {
+        const text = String(message || '');
+        const mentions = [];
+        for (const word of CERT_WORDS)
+            for (const m of text.matchAll(word.pattern)) mentions.push({word, index: m.index});
+        mentions.sort((a, b) => a.index - b.index);
+        const onlyPractical = /실기/.test(text) && !/필기/.test(text);
+        const wanted = new Map();
+        mentions.forEach((mention, i) => {
+            const part = text.slice(i === 0 ? 0 : mention.index,
+                i + 1 < mentions.length ? mentions[i + 1].index : text.length);
+            const entry = wanted.get(mention.word.id) || {word: mention.word, written: false, practical: false};
+            if (/필기/.test(part)) entry.written = true;
+            if (/실기/.test(part) && mention.word.practical) entry.practical = true;
+            wanted.set(mention.word.id, entry);
+        });
+        for (const entry of wanted.values()) {
+            if (entry.written || entry.practical) continue;
+            if (onlyPractical && entry.word.practical) entry.practical = true;
+            else entry.written = true;
+        }
+        return [...wanted.values()];
+    }
+
     /** 채팅 입력 -> 종목 자동 선택 -> 과목별 이해도 버튼 -> 같은 채팅창에서 계획 제안. */
     async function startChatPlan(message, addMessage, currentConversationId) {
         if (!catalog) await loadCatalog();
         if (!catalog) throw new Error('과목 목록을 불러오지 못했습니다. MariaDB 연결을 확인해 주세요.');
-        const wantSqld = /SQLD|SQL\s*개발자/i.test(message);
-        const wantIpe = /정처기|정보처리기사/.test(message);
-        const wantsPractical = wantIpe && /실기/.test(message) && !/필기/.test(message);
-        const active = catalog.filter(cert =>
-            wantSqld && cert.certificationName === 'SQLD' ||
-            wantIpe && (wantsPractical
-                ? cert.certificationName === '정보처리기사 실기'
-                : cert.certificationName.startsWith('정보처리기사 필기')));
-        if (!active.length) throw new Error('현재 지원하는 정처기 필기·실기 또는 SQLD를 찾지 못했습니다.');
+        const asking = certsInMessage(message);
+        if (asking.length > MAX_CERTS)
+            throw new Error(tooManyMessage + ' 질문의 자격증을 ' + MAX_CERTS + '개 이하로 줄여 다시 말씀해 주세요.');
+        const active = catalog.filter(cert => asking.some(entry =>
+            entry.written && entry.word.written(cert.certificationName) ||
+            entry.practical && entry.word.practical && entry.word.practical(cert.certificationName)));
+        if (!active.length)
+            throw new Error('현재 지원하는 자격증(정처기 필기·실기, SQLD, ADsP, 컴활 1급 필기·실기)을 찾지 못했습니다.');
         for (const cert of catalog) {
             const goal = state.goals[cert.key] ||= {selected:false, startDate:localDate(), examDate:'', subjects:{}};
             goal.selected = active.some(c => c.key === cert.key);
@@ -634,18 +747,29 @@ function initializeMultiGoalPlanner(root) {
             if (!goal.startDate) goal.startDate = localDate();
             if (!goal.subjects) goal.subjects = {};
         }
+        // 질문에 "11월 20일부터 1월 10일까지"처럼 날짜가 있으면 그 날짜를 공부 기간으로 쓴다
+        const asked = datesInMessage(message);
+        for (const cert of active) {
+            if (asked.start) state.goals[cert.key].startDate = asked.start;
+            if (asked.end) state.goals[cert.key].examDate = asked.end;
+        }
         save();
         const messageItem = addMessage('', 'pp-chat-bot');
         const bubble = messageItem.querySelector('.pp-chat-bubble');
         bubble.replaceChildren();
         bubble.appendChild(node('strong',null,'자동 학습계획 — 시간·요일·이해도 선택'));
         bubble.appendChild(node('p','pp-chat-quick-description',
-            '학습 시작일은 자격증별로 기본 오늘이며 변경할 수 있습니다. 시험일은 2026년 공고의 월/일을 2027년으로 옮긴 임시 목표일(공식 아님)입니다.'));
+            '계획할 자격증 ' + asking.length + '개' + (active.length > asking.length ? '(시험 ' + active.length + '개)' : '') +
+            ': ' + active.map(cert => cert.certificationName).join(' · ') +
+            (active.length > 1 ? ' — 하루 공부시간을 나눠 한 장의 날짜별 계획으로 만듭니다.' : '')));
+        bubble.appendChild(node('p','pp-chat-quick-description',
+            '공부 시작일과 끝낼 날짜는 아래 ③에서 자유롭게 정할 수 있습니다. 처음 채워진 끝 날짜는 2026년 공고의 월/일을 옮긴 임시 값(공식 시험일 아님)이니 원하는 날짜로 바꿔 주세요.'));
         // 하루 시간은 숨겨진 선택 설정이 아닌, 최초 1회 필수 입력이다.
         const timeSetup = node('section','pp-chat-quick-time');
         timeSetup.appendChild(node('strong',null,'① 하루 총 공부 가능시간을 선택해 주세요 (필수)'));
         timeSetup.appendChild(node('p','pp-chat-quick-description',
-            '정처기와 SQLD가 하루 시간을 함께 사용합니다. 데모의 150분은 자동으로 적용하지 않아요.'));
+            (active.length > 1 ? '위 자격증들이 하루 시간을 함께 사용합니다. ' : '') +
+            '데모의 150분은 자동으로 적용하지 않아요.'));
         addDailyChoices(timeSetup);
         const customLabel = node('label','pp-chat-time-custom-label','그 외 시간은 분 단위로 직접 입력');
         const customDaily = node('input','pp-chat-field-input');
@@ -663,16 +787,29 @@ function initializeMultiGoalPlanner(root) {
         bubble.appendChild(timeSetup);
         // 채팅 자동계획에서도 탭과 동일한 주간 학습 요일을 선택한다.
         addWeekdayChoices(bubble);
-        const adjust = node('details','pp-chat-quick-adjust');
-        adjust.appendChild(node('summary',null,'자격증별 공부 시작일·시험일 바꾸기 (선택)')); 
+        const adjust = node('section','pp-chat-quick-time');
+        adjust.appendChild(node('strong',null,'③ 공부 기간을 정해 주세요 (자유롭게 변경 가능)'));
+        adjust.appendChild(node('p','pp-chat-quick-description',
+            '시작일부터 끝낼 날짜 전날까지 계획을 짭니다. 끝낼 날짜는 시험일이 아니어도 됩니다.' +
+            (asked.start || asked.end ? ' 질문에 적은 날짜를 먼저 넣어 두었습니다.' : '')));
+        const periodTitles = {};
+        const periodText = cert => cert.certificationName + ' · 공부 시작 ' + (state.goals[cert.key].startDate || '미정') +
+            ' · 끝낼 날짜 ' + (state.goals[cert.key].examDate || '미정');
         for (const cert of active) {
             const g = state.goals[cert.key];
+            const refresh = () => {
+                if (periodTitles[cert.key]) periodTitles[cert.key].textContent = periodText(cert);
+                updateReady();
+            };
             adjust.appendChild(field(cert.certificationName + ' 공부 시작일',g.startDate, v => {
-                g.startDate=v;
+                g.startDate=v; refresh();
             }, {type:'date'}));
-            adjust.appendChild(field(cert.certificationName + ' 목표 시험일',g.examDate, v => {
-                g.examDate=v;
+            adjust.appendChild(field(cert.certificationName + ' 끝낼 날짜 (시험일 또는 원하는 날)',g.examDate, v => {
+                g.examDate=v; refresh();
             }, {type:'date',min:localDate()}));
+            // 상시시험처럼 미리 채울 날짜가 없는 자격증: 이유를 알려 주고 직접 입력받는다
+            if (!g.examDate && cert.scheduleNotice)
+                adjust.appendChild(node('p','pp-chat-schedule-warning', cert.scheduleNotice));
         }
         bubble.appendChild(adjust);
         const totalBudgetMatch = /총\s*(\d{1,4})\s*시간/.exec(message);
@@ -682,15 +819,23 @@ function initializeMultiGoalPlanner(root) {
         }
         const missing = [];
         for (const cert of active) {
-            bubble.appendChild(node('h4','pp-chat-quick-cert', cert.certificationName + ' · 공부 시작 ' + state.goals[cert.key].startDate + ' · 목표일 ' + state.goals[cert.key].examDate));
-            if (cert.majorEvidence?.fallback)
+            periodTitles[cert.key] = node('h4','pp-chat-quick-cert', periodText(cert));
+            bubble.appendChild(periodTitles[cert.key]);
+            if (fromReviews(cert))
+                bubble.appendChild(node('p','pp-chat-quick-description',
+                    '내 전공 구분: ' + (cert.majorEvidence?.userMajorLabel || catalogMajorLabel) + ' · ' +
+                    (cert.majorEvidence?.warning ||
+                        '크롤링한 합격 후기 ' + cert.evidence.baselineAuthors + '건의 평균 학습시간으로 계산합니다.')));
+            else if (cert.majorEvidence?.fallback)
                 bubble.appendChild(node('p','pp-chat-quick-description',
                     '전공별 표본 부족: 집단 평균이 아닌 임시 추정시간을 사용합니다.'));
             for (const sub of cert.subjects) {
                 const target = state.goals[cert.key].subjects[sub.name] ||= {
                     familiarity:null,progressPercent:0,actualMinutes:0};
                 const row = node('div','pp-chat-quick-subject');
-                row.appendChild(node('div','pp-chat-quick-subject-label',sub.name));
+                row.appendChild(node('div','pp-chat-quick-subject-label',sub.name +
+                    (Number(sub.baseHours) > 0 ? ' · ' + (fromReviews(cert) ? '후기 평균 ' : '잠정 ') +
+                        Number(sub.baseHours).toFixed(1) + '시간' : '')));
                 const buttons = node('div','pp-chat-level-options');
                 for (const [level,label] of [[1,'낮음'],[2,'보통'],[3,'높음']]) {
                     const btn = node('button','pp-chat-level-option',label);
@@ -719,9 +864,11 @@ function initializeMultiGoalPlanner(root) {
             const validTime = hasBrowserDailyPreference && validDailyInput(daily.value);
             const validWeekdays = state.studyWeekdays.length > 0;
             const validFamiliarity = missing.every(t => [1,2,3].includes(Number(t.familiarity)));
-            calculate.disabled = !validTime || !validWeekdays || !validFamiliarity;
+            const noDate = active.find(cert => !state.goals[cert.key].startDate || !state.goals[cert.key].examDate);
+            calculate.disabled = !validTime || !validWeekdays || !!noDate || !validFamiliarity;
             calculate.textContent = !validTime ? '하루 공부 가능시간을 먼저 선택해 주세요'
                 : !validWeekdays ? '공부할 요일을 하나 이상 선택해 주세요'
+                : noDate ? noDate.certificationName + ' 공부 기간(③)을 입력해 주세요'
                 : !validFamiliarity ? '과목별 이해도를 선택해 주세요'
                 : hasCalculated ? '변경된 입력으로 다시 계산' : '학습계획 자동 생성';
         }
@@ -738,7 +885,7 @@ function initializeMultiGoalPlanner(root) {
             messageArea.replaceChildren();
             try {
                 const request = makeRequest();
-                const result = await PP.api('/api/chat/planner/preview-chat',
+                const result = await PP.api('/api/chat/planner/review-based/preview-chat',
                     {method: 'POST', body: {plan: request, conId: currentConversationId()}});
                 const plan = result.plan;
                 messageArea.appendChild(node('p','pp-chat-quick-description',result.answer));
@@ -756,7 +903,14 @@ function initializeMultiGoalPlanner(root) {
                 for (const g of plan.goals) {
                     messageArea.appendChild(node('p','pp-chat-quick-goal',
                         g.certificationName + ': ' + g.startDate + '부터 ' + g.examDate + ' 전까지 ' +
-                        (g.remainingMinutes/60).toFixed(1) + '시간')); 
+                        (g.remainingMinutes/60).toFixed(1) + '시간'));
+                    // 과목별: 평균 학습시간 × 이해도 가중치 = 계획에 넣은 시간
+                    const basis = fromReviews((catalog || []).find(c => c.key === g.key)) ? '후기 평균 ' : '잠정 ';
+                    for (const s of g.subjects || []) {
+                        messageArea.appendChild(node('p','pp-chat-quick-description',
+                            '· ' + s.name + ': ' + basis + Number(s.baseHours).toFixed(1) + '시간 × 이해도 ' +
+                            s.weight + ' = ' + (s.remainingMinutes/60).toFixed(1) + '시간'));
+                    }
                 }
                 const firstWeek = node('details','pp-chat-quick-adjust');
                 firstWeek.open = true;
@@ -769,12 +923,13 @@ function initializeMultiGoalPlanner(root) {
                     firstWeek.appendChild(rest);
                 }
                 messageArea.appendChild(firstWeek);
+                addSaveButton(messageArea, request);
                 if (plan.additionalDailyMinutes>0)
                     messageArea.appendChild(node('p','pp-chat-evidence-warning',
                         '현재 일정은 학습시간이 부족합니다. 최소 하루 '+plan.minimumDailyMinutes+'분이 필요합니다.'));
                 messageArea.appendChild(node('p','pp-chat-evidence-warning',
                     '하루 공부 가능시간은 상한입니다. 선택한 요일에 45분 이상 블록으로 분산하며 마지막 잔여시간은 짧을 수 있습니다. ' +
-                    '기출·복습 시간은 아직 추가 산정하지 않았습니다. 근거는 소수 후기 기반 임시 추정치이고 시험일은 가상 목표일입니다.')); 
+                    '기출·복습 시간은 아직 추가 산정하지 않았습니다. 기준시간 근거는 자격증별 안내(합격 후기 실측 평균 또는 잠정 추정치)를 확인하세요. 시험일은 가상 목표일일 수 있습니다.')); 
                 state.previous=Object.fromEntries(plan.goals.map(g=>[g.key,g.remainingMinutes]));
                 state.lastCalculatedOn=plan.calculatedOn;
                 state.lastTotalRemaining=plan.totalRemainingMinutes;

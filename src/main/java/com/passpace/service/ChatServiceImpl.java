@@ -96,7 +96,7 @@ public class ChatServiceImpl implements ChatService {
         // 종목을 제시하며 학습계획을 요청하면 Java 통합 플래너에서 계산하도록
         // 빠른 사전 이해도 선택을 연다. 이 경로는 Ollama 조건 추출을 호출하지 않는다.
         boolean certMention = mentionsSqlD(message) || message.contains("정처기")
-                || message.contains("정보처리기사");
+                || message.contains("정보처리기사") || mentionsAdsp(message) || mentionsComputer1(message);
         boolean planMention = message.contains("계획") || message.contains("공부")
                 || message.contains("준비") || message.contains("따고") || message.contains("따려")
                 || message.contains("시간 분배") || message.contains("시간배분");
@@ -106,12 +106,28 @@ public class ChatServiceImpl implements ChatService {
             String text = "말씀하신 자격증의 학습계획을 계산할게요. "
                     + "2027년 시험일정이 확정되지 않은 경우 2026년 일정의 월/일을 옮긴 가상 목표일을 사용합니다. "
                     + "먼저 하루 전체 공부 가능시간을 직접 선택한 뒤, 과목별 사전 이해도를 클릭해 주세요. "
-                    + "정처기와 SQLD는 선택한 하루 시간을 함께 사용하며 나머지 시간 배분은 Java가 계산합니다.";
+                    + "자격증은 한 번에 3개까지 묶을 수 있고(정처기·SQLD·ADsP·컴활 1급), 묶은 자격증은 선택한 하루 시간을 "
+                    + "함께 사용하며 나머지 시간 배분은 Java가 계산합니다.";
             return reply(conId, text, "AUTO_PLAN_SETUP");
         }
         if (mentionsSqlD(message)) {
             return reply(conId, "SQLD는 데이터 모델링의 이해, SQL 기본 및 활용 2과목입니다. "
                     + "'SQLD 계획 세워줘'라고 입력하면 직접 계산할 수 있어요.", null);
+        }
+        // ADsP·컴활 1급도 별도 자격증이다. 아래의 정보처리기사 단일 계획·과목 안내로 흘러가지 않게 여기서 답한다.
+        if (mentionsAdsp(message)) {
+            return reply(conId, "ADsP는 데이터 이해, 데이터분석 기획, 데이터분석 3과목입니다. "
+                    + "'ADsP 계획 세워줘'라고 입력하면 직접 계산할 수 있어요.", null);
+        }
+        if (COMPUTER2_WORD.matcher(message).find() && !mentionsComputer1(message)) {
+            // 지원하지 않는 자격증을 정보처리기사 계획으로 계산해 버리지 않게 막는다
+            return reply(conId, "컴퓨터활용능력 2급은 아직 지원하지 않습니다. "
+                    + "지금은 정보처리기사, SQLD, ADsP, 컴퓨터활용능력 1급 계획을 만들 수 있어요.", null);
+        }
+        if (mentionsComputer1(message)) {
+            return reply(conId, "컴퓨터활용능력 1급은 필기 3과목(컴퓨터 일반, 스프레드시트 일반, 데이터베이스 일반)과 "
+                    + "실기 2과목(스프레드시트 실무, 데이터베이스 실무)입니다. "
+                    + "'컴활 1급 필기 계획 세워줘'라고 입력하면 직접 계산할 수 있어요.", null);
         }
         // 단순 인사나 안내 요청에서는 느린 Ollama 조건 추출을 실행할 필요가 없다.
         if (!isPlan) return reply(conId, guideAnswer(message, current, certId), null);
@@ -171,14 +187,33 @@ public class ChatServiceImpl implements ChatService {
         }
         if (message.contains("고마") || message.contains("감사"))
             return "도움이 되었다니 다행입니다. 시험일이나 하루 공부시간을 변경하고 싶으면 이어서 말씀해 주세요.";
-        return "정보처리기사 필기·실기 학습계획과 SQLD 통합 계획을 도와드릴 수 있어요. "
-                + "복수 자격증은 '통합 학습계획' 탭에서 자격증별 시험일과 과목별 사전 이해도를 선택해 주세요. "
+        return "정보처리기사 필기·실기, SQLD, ADsP, 컴퓨터활용능력 1급 학습계획을 도와드릴 수 있어요. "
+                + "자격증은 3개까지 묶을 수 있습니다. 예: '정처기 필기랑 SQLD, ADsP 같이 계획 짜줘'. "
+                + "'통합 학습계획' 탭에서 자격증별 시험일과 과목별 사전 이해도를 직접 고를 수도 있어요. "
                 + "단일 정보처리기사 계획은 시험일을 알려 주시면 학습 프로필의 하루 가능시간을 먼저 확인합니다.";
     }
 
     /** SQLD는 별도 자격증이며 정보처리기사 기본 종목코드로 계산하면 안 된다. */
     private static boolean mentionsSqlD(String message) {
         return message != null && message.toUpperCase(java.util.Locale.ROOT).contains("SQLD");
+    }
+
+    private static final java.util.regex.Pattern ADSP_WORD =
+            java.util.regex.Pattern.compile("(?i)ADsP|데이터\\s*분석\\s*준\\s*전문가");
+    /** "컴활 2급"만 말한 경우는 지원 대상(1급)이 아니다. 급수를 말하지 않으면 1급으로 본다. */
+    private static final java.util.regex.Pattern COMPUTER1_WORD =
+            java.util.regex.Pattern.compile("(?:컴활|컴퓨터\\s*활용\\s*능력)(?!\\s*2\\s*급)");
+
+    private static final java.util.regex.Pattern COMPUTER2_WORD =
+            java.util.regex.Pattern.compile("(?:컴활|컴퓨터\\s*활용\\s*능력)\\s*2\\s*급");
+
+    /** chatbot.js 의 자격증 찾기 규칙과 같아야 한다 (서버가 플래너를 열었는데 화면이 자격증을 못 찾는 일 방지). */
+    static boolean mentionsAdsp(String message) {
+        return message != null && ADSP_WORD.matcher(message).find();
+    }
+
+    static boolean mentionsComputer1(String message) {
+        return message != null && COMPUTER1_WORD.matcher(message).find();
     }
 
     /** 현재 /api/chat 단일 종목 인터페이스는 유지하고, 복수 목표는 통합 플래너로 안내한다. */

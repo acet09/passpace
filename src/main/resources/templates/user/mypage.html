@@ -106,6 +106,17 @@
         </form>
     </section>
     </div>
+
+    <!-- [동건] 챗봇에서 "마이페이지에 넣기"로 저장한 학습 계획 (임시 최소 화면, 내용은 /js/mypage-plan.js 가 채운다) -->
+    <section class="goal-section" id="saved-plan-section" aria-labelledby="saved-plan-title" style="margin-top:24px">
+        <div class="panel-heading"><span class="panel-icon" aria-hidden="true">03</span><div><h2 id="saved-plan-title">학습 계획</h2><p id="saved-plan-name">챗봇에서 만든 계획을 일별·주별·월별로 확인해요.</p></div></div>
+        <div id="saved-plan-tabs" style="display:flex;gap:8px;margin-bottom:8px">
+            <button type="button" data-mode="day" aria-pressed="true">일별</button>
+            <button type="button" data-mode="week" aria-pressed="false">주별</button>
+            <button type="button" data-mode="month" aria-pressed="false">월별</button>
+        </div>
+        <div id="saved-plan-body" style="max-height:420px;overflow:auto"></div>
+    </section>
 </main>
 <footer th:replace="~{fragments/layout :: footer}"></footer>
 <div th:replace="~{fragments/chatbot :: widget}"></div>
@@ -234,5 +245,6 @@
     });
 })();
 </script>
+<script th:src="@{/js/mypage-plan.js}" src="/js/mypage-plan.js"></script>
 </body>
 </html>
