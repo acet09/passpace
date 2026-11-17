@@ -22,6 +22,7 @@ import com.passpace.constant.CollectSources;
 import com.passpace.dto.collect.CollectDtos.QualityResult;
 import com.passpace.service.ReviewQualityChecker.PageContext;
 import com.passpace.repository.ExamRoundRepository;
+import com.passpace.repository.JdbcReviewSubjectMentionRepository;
 import com.passpace.repository.PassReviewRepository;
 import com.passpace.repository.SyncJobRepository;
 import com.passpace.crawler.RecoveryReporter;
@@ -96,6 +97,9 @@ public class ReviewCollectServiceImpl implements ReviewCollectService {
     private final RecoveryReporter recoveryReporter;
     private final SourceRegistry sources;
     private final TistorySearchBrowser tistorySearch;
+    // [11-16] 과목별 공부 정보 (생성자는 그대로 두고 setter 로 받는다. 없으면 저장하지 않음)
+    private final SubjectStudyExtractor subjectExtractor = new SubjectStudyExtractor();
+    private JdbcReviewSubjectMentionRepository subjectMentions;
     /** 티스토리 검색어를 마지막으로 검색한 시각 (같은 검색어는 6시간에 한 번만) */
     private final Map<String, Long> searchReadAt = new ConcurrentHashMap<>();
     private static final long SEARCH_TTL_MS = 6L * 60 * 60 * 1000;
@@ -138,6 +142,12 @@ public class ReviewCollectServiceImpl implements ReviewCollectService {
         this.tistorySearch = tistorySearch;
         this.tistoryRssMax = tistoryRssMax;
         this.maxPerRun = maxPerRun;
+    }
+
+    /** [11-16] 과목 언급 저장소. 테이블(db/10)이 없어도 저장소 쪽에서 건너뛰므로 수집은 그대로 동작한다 */
+    @Autowired(required = false)
+    void setSubjectMentions(JdbcReviewSubjectMentionRepository subjectMentions) {
+        this.subjectMentions = subjectMentions;
     }
 
     // =====================================================================
@@ -587,6 +597,10 @@ public class ReviewCollectServiceImpl implements ReviewCollectService {
                     } else {
                         reviewRepository.insert(a.sourceId(), a.certId(), a.url(), a.postedAt(), a.authorHash(), a.review(), a.quality());
                     }
+                    if (subjectMentions != null && !a.subjects().isEmpty()) {
+                        int n = subjectMentions.saveForUrl(a.url(), a.certId(), a.subjects());
+                        if (n > 0) log.info("과목 언급 {}건 저장 {}", n, a.url());
+                    }
                     run.certCounts.computeIfAbsent(a.certCode() + "|" + a.quality().reviewStatus(), k -> new AtomicInteger()).incrementAndGet();
                     ledger.record(c.url(), site.name(), "SAVED:" + a.quality().reviewStatus());
                     cnt.success.incrementAndGet();
@@ -893,13 +907,17 @@ public class ReviewCollectServiceImpl implements ReviewCollectService {
             // 전재 금지 글은 값도 남기지 않는다 (같은 글을 다시 가져오지 않도록 URL·사유만 기록)
             review = new ExtractedReview(null, null, null, null, null, null, null, null, null, null, false, null);
         }
-        return new Analysis(url, sourceId, certId.get(), code.get(), postedAt, page.authorHash(), review, quality, null);
+        // [11-16] 과목별 공부 정보 (본문은 메모리에서만 사용, 전재 금지 글은 뽑지 않음)
+        List<SubjectStudyExtractor.Mention> subjects = page.noReprint() ? List.of()
+                : subjectExtractor.extract((page.title() == null ? "" : page.title()) + "\n" + page.text(), review.dailyMinutes(), review.totalHours());
+        return new Analysis(url, sourceId, certId.get(), code.get(), postedAt, page.authorHash(), review, quality, null, subjects);
     }
 
     record Analysis(String url, Long sourceId, long certId, String certCode, LocalDate postedAt, String authorHash,
-                    ExtractedReview review, QualityResult quality, String skipReason) {
+                    ExtractedReview review, QualityResult quality, String skipReason,
+                    List<SubjectStudyExtractor.Mention> subjects) {
         static Analysis skip(String url, String certCode, LocalDate postedAt, String reason) {
-            return new Analysis(url, null, 0, certCode, postedAt, null, null, null, reason);
+            return new Analysis(url, null, 0, certCode, postedAt, null, null, null, reason, List.of());
         }
     }
 

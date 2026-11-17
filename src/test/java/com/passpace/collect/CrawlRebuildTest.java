@@ -55,6 +55,22 @@ class CrawlRebuildTest {
                 .containsExactly("컴활 1급 실기 합격 후기", "ADsP 독학 합격");
     }
 
+    @Test
+    void 합격_후기_단어가_없는_컴활_제목도_후보로_남긴다() {
+        // [11-16] 컴활 후기 제목에 자주 나오는 표현: 3일컷·독학·취득·따기·공부기간
+        List<ReviewLinkFilter.Candidate> found = ReviewLinkFilter.filter(List.of(
+                new ListingLink("https://a.tistory.com/1", "컴활 1급 실기 3일컷", null),
+                new ListingLink("https://b.tistory.com/2", "컴활 1급 필기 독학 일주일", null),
+                new ListingLink("https://c.tistory.com/3", "컴활1급 취득 과정", null),
+                new ListingLink("https://d.tistory.com/4", "컴퓨터활용능력 1급 따기", null),
+                new ListingLink("https://e.tistory.com/5", "컴활 1급 공부기간 정리", null),
+                new ListingLink("https://f.tistory.com/6", "컴활 1급 엑셀 함수 정리", null),   // 후기 단어 없음 → 제외
+                new ListingLink("https://g.tistory.com/7", "컴활 2급 3일컷", null)));          // 2급 → 제외
+        assertThat(found).extracting(ReviewLinkFilter.Candidate::label).containsExactly(
+                "컴활 1급 실기 3일컷", "컴활 1급 필기 독학 일주일", "컴활1급 취득 과정",
+                "컴퓨터활용능력 1급 따기", "컴활 1급 공부기간 정리");
+    }
+
     // ---------------- 네이버 검색 API 응답 정리 ----------------
 
     @Test

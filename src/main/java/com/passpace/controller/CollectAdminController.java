@@ -61,6 +61,9 @@ public class CollectAdminController {
     /** [11-14] 수집 데이터 보기 (읽기 전용) */
     @Autowired
     private JdbcCollectDataQuery collectDataQuery;
+    /** [11-16] 이미 저장한 후기의 과목 언급 채우기 */
+    @Autowired
+    private com.passpace.service.SubjectMentionBackfillService subjectBackfill;
 
     public CollectAdminController(ExamCollectService examCollectService, ReviewCollectService reviewCollectService,
                                   StudyReferenceAggregator referenceAggregator,
@@ -271,6 +274,18 @@ public class CollectAdminController {
     @PostMapping("/admin/collect/reviews/preview")
     public ResponseEntity<?> previewReview(@RequestParam("url") String url) {
         return ResponseUtil.SUCCESS(reviewCollectService.preview(url));
+    }
+
+    /** [11-16] 이미 저장한 후기의 본문을 다시 읽어 과목 언급(REVIEW_SUBJECT_MENTIONS)만 채운다. PASS_REVIEWS 는 바꾸지 않음 */
+    @PostMapping("/admin/collect/reviews/subject-backfill")
+    public ResponseEntity<?> backfillSubjects(@RequestParam(value = "limit", defaultValue = "30") int limit) {
+        return ResponseUtil.SUCCESS(subjectBackfill.run(limit));
+    }
+
+    /** [11-16] 과목 언급 채우기 남은 양·진행 상황 */
+    @GetMapping("/admin/collect/reviews/subject-backfill/status")
+    public ResponseEntity<?> backfillSubjectsStatus() {
+        return ResponseUtil.SUCCESS(subjectBackfill.status());
     }
 
     /** 참고 학습시간(STUDY_REFERENCE_STATS) 다시 집계: 실측 표본 10건 이상이면 잠정값 대신 쓰인다 */

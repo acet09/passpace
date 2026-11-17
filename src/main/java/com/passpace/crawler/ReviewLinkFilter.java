@@ -23,7 +23,12 @@ public final class ReviewLinkFilter {
     /** [11-14] 대상이 아닌 비슷한 자격증 (먼저 지운 뒤 CERT_WORD 를 찾는다): 정보처리산업기사·기능사, 컴활 2급, SQLP, ADP */
     static final Pattern OTHER_CERT = Pattern.compile("정보처리\\s*(?:산업기사|기능사)|정처산기|정처기능사"
             + "|(?:컴퓨터\\s*활용\\s*능력|컴활)\\s*2\\s*급|(?i:\\bSQLP\\b)|(?i:\\bADP\\b)|데이터\\s*분석\\s*전문가");
-    static final Pattern REVIEW_WORD = Pattern.compile("합격|후기|불합격|떨어|공부\\s*(?:법|방법|기록)|회고");
+    /**
+     * [11-16] 컴활 후기는 "3일컷", "독학 일주일", "취득", "따기" 처럼 제목에 합격·후기가 없는 경우가 많아 단어를 넓혔다.
+     * 넓혀서 들어온 글도 품질 검사(시간 정보·합격 여부·3년 이내)를 그대로 거치므로 VALID 기준은 바뀌지 않는다.
+     */
+    static final Pattern REVIEW_WORD = Pattern.compile("합격|후기|불합격|떨어|공부\\s*(?:법|방법|기록|기간)|회고"
+            + "|취득|따기|독학|\\d+\\s*(?:일|주)\\s*컷");
 
     /** 필터를 통과한 글 1개 */
     public record Candidate(String url, ReviewSite site, String label, java.time.LocalDate listedDate) {
