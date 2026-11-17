@@ -158,8 +158,18 @@ class PassApi {
 
   Future<Preview> preview(Json form) async =>
       Preview.from(await _send('POST', '$plannerPath/preview', body: form));
-  Future<void> save(Json form) =>
+  Future<Json> save(Json form) =>
       _send('POST', '$plannerPath/save', body: form);
+
+  /// 채팅 안 계획 계산. 서버가 요약 답변을 같은 대화방에 남긴다.
+  Future<ChatPlanReply> previewChat(Json form, int conversation) async =>
+      ChatPlanReply.from(
+        await _send(
+          'POST',
+          '$plannerPath/preview-chat',
+          body: {'plan': form, 'conId': conversation},
+        ),
+      );
   Future<Reply> chat(String message, int? conversation) async => Reply.from(
     await _send(
       'POST',

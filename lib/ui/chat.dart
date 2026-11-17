@@ -2,12 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../data/api.dart';
+import '../data/chat_plan.dart';
 import '../data/models.dart';
+import 'chat_plan.dart';
 import 'design.dart';
 
 class ChatScreen extends StatefulWidget {
   final PassApi api;
-  const ChatScreen(this.api, {super.key});
+
+  /// 채팅 안에서 만든 계획을 저장했을 때 (홈·학습계획 새로고침용).
+  final VoidCallback? onPlanSaved;
+  const ChatScreen(this.api, {super.key, this.onPlanSaved});
   @override
   State<ChatScreen> createState() => ChatScreenState();
 }
@@ -15,12 +20,17 @@ class ChatScreen extends StatefulWidget {
 class _Turn {
   final String question;
   Reply? reply;
+  ChatPlanSetup? plan;
+  String? planError;
+  bool planLoading = false;
+  final key = GlobalKey();
   _Turn(this.question);
 }
 
 class ChatScreenState extends State<ChatScreen> {
   final turns = <_Turn>[];
   final draft = TextEditingController(), scroll = ScrollController();
+  final planInputs = ChatPlanInputs();
   int? conversation;
   bool busy = false;
   String? error;
@@ -28,6 +38,7 @@ class ChatScreenState extends State<ChatScreen> {
   void dispose() {
     draft.dispose();
     scroll.dispose();
+    planInputs.dispose();
     super.dispose();
   }
 
@@ -52,6 +63,21 @@ class ChatScreenState extends State<ChatScreen> {
     });
   }
 
+  // 계획 카드는 길어서 맨 아래 대신 질문부터 보이게 올린다.
+  void _reveal(_Turn turn) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final target = turn.key.currentContext;
+      if (!mounted || target == null) return;
+      Scrollable.ensureVisible(
+        target,
+        duration: MediaQuery.disableAnimationsOf(context)
+            ? Duration.zero
+            : const Duration(milliseconds: 220),
+        curve: Curves.easeOut,
+      );
+    });
+  }
+
   Future<void> send([String? preset]) async {
     final text = (preset ?? draft.text).trim();
     if (busy || text.isEmpty) return;
@@ -71,6 +97,7 @@ class ChatScreenState extends State<ChatScreen> {
         turn.reply = reply;
         conversation = reply.conversation;
       });
+      if (reply.notice == autoPlanNotice) await _openPlan(turn);
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -82,8 +109,35 @@ class ChatScreenState extends State<ChatScreen> {
     } finally {
       if (mounted) {
         setState(() => busy = false);
-        bottom();
+        if (turn.plan == null) {
+          bottom();
+        } else {
+          _reveal(turn);
+        }
       }
+    }
+  }
+
+  /// 서버가 계획 입력을 요청한 답변: 과목 목록을 읽어 같은 대화 안에 계획 카드를 연다.
+  Future<void> _openPlan(_Turn turn) async {
+    if (turn.planLoading) return;
+    setState(() {
+      turn.planLoading = true;
+      turn.planError = null;
+    });
+    try {
+      final catalog = await widget.api.catalog();
+      turn.plan = ChatPlanSetup.from(
+        turn.question,
+        catalog,
+        planInputs,
+        dayInSeoul(),
+      );
+    } catch (e) {
+      turn.planError = e is ApiError ? e.message : '과목 목록을 불러오지 못했어요.';
+    } finally {
+      turn.planLoading = false;
+      if (mounted) setState(() {});
     }
   }
 
@@ -225,6 +279,7 @@ class ChatScreenState extends State<ChatScreen> {
                 ),
               for (final turn in turns) ...[
                 Align(
+                  key: turn.key,
                   alignment: Alignment.centerRight,
                   child: Container(
                     margin: const EdgeInsets.only(
@@ -295,7 +350,8 @@ class ChatScreenState extends State<ChatScreen> {
                           r.answer,
                           style: const TextStyle(fontSize: 14, height: 1.7),
                         ),
-                        if ((r.notice ?? '').trim().isNotEmpty) ...[
+                        if ((r.notice ?? '').trim().isNotEmpty &&
+                            r.notice != autoPlanNotice) ...[
                           const SizedBox(height: 14),
                           const Divider(),
                           const SizedBox(height: 12),
@@ -334,6 +390,27 @@ class ChatScreenState extends State<ChatScreen> {
                       ],
                     ),
                   ),
+                if (turn.plan case final plan?)
+                  ChatPlanCard(
+                    widget.api,
+                    plan,
+                    planInputs,
+                    conversation: () =>
+                        turns.contains(turn) ? conversation : null,
+                    onSaved: widget.onPlanSaved,
+                  ),
+                if (turn.planError case final message?) ...[
+                  AlertText(message),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton(
+                      onPressed: turn.planLoading
+                          ? null
+                          : () => _openPlan(turn),
+                      child: const Text('계획 입력 다시 열기'),
+                    ),
+                  ),
+                ],
               ],
               if (busy)
                 Padding(

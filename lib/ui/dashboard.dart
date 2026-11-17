@@ -198,7 +198,7 @@ class _DashboardState extends State<Dashboard>
               active: tab == 2,
               onOpenTimer: () => selectTab(2),
             ),
-            ChatScreen(api, key: chatKey),
+            ChatScreen(api, key: chatKey, onPlanSaved: refresh),
             ProfileScreen(widget.session, openLearningPlan),
           ],
         ),

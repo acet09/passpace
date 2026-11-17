@@ -103,6 +103,12 @@ class CatalogExam {
   final String? scheduleNote, evidence;
   final bool temporary;
   final List<Json> subjects;
+
+  /// 크롤링한 합격 후기의 실측 평균이 적용된 시험인가 (아니면 잠정 기준시간).
+  final bool reviewBased;
+  final int? reviewCount;
+  final String? majorLabel, majorNote;
+  final bool majorFallback;
   CatalogExam.from(Json j)
     : key = j['key'] as String,
       name = j['certificationName'] as String,
@@ -110,6 +116,12 @@ class CatalogExam {
       scheduleNote = j['scheduleNotice'] as String?,
       temporary = j['temporaryCatalog'] == true,
       evidence = (j['evidence'] as Json?)?['warning'] as String?,
+      reviewBased = (j['evidence'] as Json?)?['status'] == 'REVIEW_VERIFIED',
+      reviewCount = ((j['evidence'] as Json?)?['baselineAuthors'] as num?)
+          ?.toInt(),
+      majorLabel = (j['majorEvidence'] as Json?)?['userMajorLabel'] as String?,
+      majorNote = (j['majorEvidence'] as Json?)?['warning'] as String?,
+      majorFallback = (j['majorEvidence'] as Json?)?['fallback'] == true,
       subjects = rows(j['subjects']);
 }
 
@@ -117,10 +129,12 @@ class Catalog {
   final List<CatalogExam> exams;
   final List<String> notices;
   final int? minutes;
+  final String? majorLabel;
   Catalog.from(Json j)
     : exams = rows(j['goals']).map(CatalogExam.from).toList(),
       notices = strings(j['notices']),
-      minutes = j['profileDailyMinutes'] as int?;
+      minutes = j['profileDailyMinutes'] as int?,
+      majorLabel = j['loginMajorLabel'] as String?;
 }
 
 class Preview {
@@ -129,6 +143,7 @@ class Preview {
   final List<Json> days;
   final List<String> notices;
   final int? minimumDailyMinutes;
+  final int additionalDailyMinutes;
   final List<Json> goals;
   late final List<Json> _orderedDays = [...days]
     ..sort((a, b) => (a['date'] as String).compareTo(b['date'] as String));
@@ -160,7 +175,17 @@ class Preview {
       days = rows(j['days']),
       notices = strings(j['notices']),
       minimumDailyMinutes = j['minimumDailyMinutes'] as int?,
+      additionalDailyMinutes = j['additionalDailyMinutes'] as int? ?? 0,
       goals = rows(j['goals'] ?? []);
+}
+
+/// 채팅 안에서 계산한 계획과, 대화방에 남긴 요약 답변.
+class ChatPlanReply {
+  final Preview plan;
+  final String answer;
+  ChatPlanReply.from(Json j)
+    : plan = Preview.from(object(j['plan'])),
+      answer = j['answer'] as String? ?? '';
 }
 
 class Reply {
