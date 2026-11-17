@@ -1,11 +1,11 @@
 package com.passpace.collect;
 
-import com.passpace.collect.extract.ReviewQualityChecker;
-import com.passpace.collect.extract.RuleBasedReviewExtractor;
-import com.passpace.common.code.ExamType;
-import com.passpace.common.code.MajorType;
-import com.passpace.common.code.StudyMethod;
-import com.passpace.common.review.ExtractedReview;
+import com.passpace.service.ReviewQualityChecker;
+import com.passpace.service.RuleBasedReviewExtractor;
+import com.passpace.constant.ExamType;
+import com.passpace.constant.MajorType;
+import com.passpace.constant.StudyMethod;
+import com.passpace.domain.ExtractedReview;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;

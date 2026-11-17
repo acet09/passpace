@@ -1,7 +1,7 @@
 package com.passpace.chat;
 
-import com.passpace.chat.service.MultiGoalPlanCalculator;
-import com.passpace.chat.service.MultiGoalPlanCalculator.*;
+import com.passpace.service.MultiGoalPlanCalculator;
+import com.passpace.service.MultiGoalPlanCalculator.*;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
@@ -107,6 +107,68 @@ class MultiGoalPlanCalculatorTest {
         assertTrue(response.days().stream().allMatch(day -> day.allocations().stream()
                 .mapToInt(Allocation::minutes).sum() <= 120));
     }
+    /**
+     * 하루 120분에 A·B가 각각 50분대를 쓰면 C 몫은 45분 블록에 못 미치는 자투리만 남는다.
+     * 자투리를 버리면 C는 A·B가 끝날 때까지 밀려 마지막에 시간이 모자란다 (총량으로는 충분한 일정인데도).
+     */
+    @Test
+    void threeOverlappingCertificationsAllFinishWhenTotalTimeIsEnough() {
+        var response = calculator.calculate(new PlanRequest(120, List.of(
+                goal("A", 40, sub("a", 30, 2, 0, 0)),
+                goal("B", 40, sub("b", 30, 2, 0, 0)),
+                goal("C", 40, sub("c", 12, 2, 0, 0)))), TODAY);
+        assertEquals(4320, response.totalRemainingMinutes());   // 40일 × 120분 = 4800분 안에 들어간다
+        assertTrue(response.minimumDailyMinutes() <= 120);
+        assertEquals(0, response.totalShortfallMinutes());
+        assertTrue(response.feasible());
+        assertTrue(response.days().stream().allMatch(d -> d.allocatedMinutes() <= 120));
+        // C는 A·B가 끝나기를 기다리지 않고 처음 2주 안에 공부를 시작한다
+        assertTrue(response.days().stream().filter(d -> d.date().isBefore(TODAY.plusDays(14)))
+                .anyMatch(d -> d.allocations().stream().anyMatch(a -> a.goalKey().equals("C"))));
+        // 하루에 같은 자격증·과목이 두 줄로 나뉘지 않고, 마지막 잔여시간이 아니면 45분 이상 블록이다
+        java.util.Map<String, Integer> left = new java.util.HashMap<>(
+                java.util.Map.of("A", 1800, "B", 1800, "C", 720));
+        for (var day : response.days()) {
+            assertEquals(day.allocations().size(), day.allocations().stream()
+                    .map(a -> a.goalKey() + "|" + a.subjectName()).distinct().count());
+            for (var a : day.allocations()) {
+                int before = left.get(a.goalKey());
+                assertTrue(a.minutes() >= 45 || a.minutes() == before, day.date() + " " + a);
+                left.put(a.goalKey(), before - a.minutes());
+            }
+        }
+    }
+
+    @Test
+    void perCertificationDailyMinutesCapEachGoal() {
+        var request = new PlanRequest(180, List.of(
+                new GoalInput("ipe", "정처기", TODAY.plusDays(20),
+                        List.of(sub("개발", 30, 2, 0, 0)), TODAY, 120),
+                new GoalInput("sql", "SQLD", TODAY.plusDays(20),
+                        List.of(sub("SQL", 15, 2, 0, 0)), TODAY, 60)));
+        var response = calculator.calculate(request, TODAY);
+        assertTrue(response.feasible());
+        assertEquals(120, response.goals().get(0).dailyMinutes());
+        for (var day : response.days()) {
+            int ipe = day.allocations().stream().filter(a -> a.goalKey().equals("ipe"))
+                    .mapToInt(Allocation::minutes).sum();
+            int sql = day.allocations().stream().filter(a -> a.goalKey().equals("sql"))
+                    .mapToInt(Allocation::minutes).sum();
+            assertTrue(ipe <= 120, day.date() + " 정처기 " + ipe);
+            assertTrue(sql <= 60, day.date() + " SQLD " + sql);
+        }
+        // 상한이 필요량보다 작으면 남는 학습량과 필요한 최소 시간을 알린다.
+        var tight = calculator.calculate(new PlanRequest(180, List.of(
+                new GoalInput("sql", "SQLD", TODAY.plusDays(10),
+                        List.of(sub("SQL", 15, 2, 0, 0)), TODAY, 60))), TODAY);
+        assertFalse(tight.feasible());
+        assertEquals(900 - 600, tight.totalShortfallMinutes());
+        assertTrue(tight.notices().stream().anyMatch(n -> n.contains("최소 하루 90분")));
+        assertThrows(IllegalArgumentException.class, () -> calculator.calculate(new PlanRequest(180, List.of(
+                new GoalInput("sql", "SQLD", TODAY.plusDays(10),
+                        List.of(sub("SQL", 15, 2, 0, 0)), TODAY, 10))), TODAY));
+    }
+
     @Test
     void eachCertificationMayStartOnDifferentDates() {
         var response = calculator.calculate(new PlanRequest(180, List.of(

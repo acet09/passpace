@@ -1,6 +1,6 @@
 package com.passpace.collect;
 
-import com.passpace.collect.stats.ReferenceMath;
+import com.passpace.service.ReferenceMath;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -35,4 +35,27 @@ class ReferenceMathTest {
         assertThat(ReferenceMath.statKey(1, "WRITTEN", null, null)).isEqualTo("1:WRITTEN:ALL:ALL");
         assertThat(ReferenceMath.statKey(2, "WRITTEN", 6L, "MAJOR")).isEqualTo("2:WRITTEN:6:MAJOR");
     }
+
+    // ---------- [11-16] 중앙값 · 하루시간 추정 ----------
+
+    @Test
+    void 중앙값은_튀는_값에_끌려가지_않는다() {
+        // 평균이면 (6+20+22+25+300)/5 = 74.6 이지만 중앙값은 22
+        assertThat(ReferenceMath.median(List.of(300.0, 6.0, 22.0, 25.0, 20.0))).isEqualTo(22.0);
+        assertThat(ReferenceMath.median(List.of(10.0, 20.0, 30.0, 41.0))).isEqualTo(25.0);
+        assertThat(ReferenceMath.median(List.of())).isEqualTo(0.0);
+    }
+
+    @Test
+    void 하루시간이_없는_3일컷은_같은_시험_하루시간_중앙값으로_추정한다() {
+        // 3일 × 하루 240분(중앙값) = 12시간
+        assertThat(ReferenceMath.reviewHoursWithFallback(null, 3, null, 240.0)).isEqualTo(12.0);
+        // 총시간이나 하루시간이 있으면 기존 계산 그대로
+        assertThat(ReferenceMath.reviewHoursWithFallback(30.0, 3, null, 240.0)).isEqualTo(30.0);
+        assertThat(ReferenceMath.reviewHoursWithFallback(null, 10, 90, 240.0)).isEqualTo(15.0);
+        // 보충값이 없거나 준비일수도 없으면 null (표본에서 빠짐)
+        assertThat(ReferenceMath.reviewHoursWithFallback(null, 3, null, null)).isNull();
+        assertThat(ReferenceMath.reviewHoursWithFallback(null, null, null, 240.0)).isNull();
+    }
+
 }

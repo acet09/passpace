@@ -1,16 +1,16 @@
 package com.passpace.chat;
 
-import com.passpace.chat.dto.ChatDtos.ExtractedCondition;
-import com.passpace.chat.dto.ChatDtos.PlanNumbers;
-import com.passpace.chat.dto.ChatDtos.StatsSummary;
-import com.passpace.chat.service.NumberGuard;
-import com.passpace.chat.service.PlanCalculator;
-import com.passpace.chat.service.RegexConditionParser;
-import com.passpace.chat.service.StatsCalculator;
-import com.passpace.common.code.ExamType;
-import com.passpace.common.code.MajorType;
-import com.passpace.common.code.StudyMethod;
-import com.passpace.common.stats.ReviewSample;
+import com.passpace.dto.chat.ChatDtos.ExtractedCondition;
+import com.passpace.dto.chat.ChatDtos.PlanNumbers;
+import com.passpace.dto.chat.ChatDtos.StatsSummary;
+import com.passpace.service.NumberGuard;
+import com.passpace.service.PlanCalculator;
+import com.passpace.service.RegexConditionParser;
+import com.passpace.service.StatsCalculator;
+import com.passpace.constant.ExamType;
+import com.passpace.constant.MajorType;
+import com.passpace.constant.StudyMethod;
+import com.passpace.domain.ReviewSample;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;

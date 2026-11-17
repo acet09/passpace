@@ -289,3 +289,6 @@
     .pp-main .button, .pp-main input, .pp-main select { transition: none; }
     .pp-main .button:hover { transform: none; }
 }
+
+/* [JWT] auth.js 가 로그인 여부에 따라 hidden 을 붙였다 뗀다. display 를 지정한 요소에도 확실히 숨겨지도록 */
+[hidden] { display: none !important; }

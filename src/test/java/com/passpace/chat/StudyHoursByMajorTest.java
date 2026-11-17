@@ -1,16 +1,14 @@
 package com.passpace.chat;
 
-import com.passpace.chat.controller.MultiGoalPlannerController;
-import com.passpace.chat.controller.MultiGoalPlannerController.CatalogResponse;
-import com.passpace.chat.service.StudyHoursByMajor;
-import com.passpace.chat.service.StudyHoursByMajor.Qualification;
-import com.passpace.common.LoginUser;
-import com.passpace.common.SessionConst;
-import com.passpace.common.code.MajorType;
+import com.passpace.controller.MultiGoalPlannerController;
+import com.passpace.controller.MultiGoalPlannerController.CatalogResponse;
+import com.passpace.service.StudyHoursByMajor;
+import com.passpace.service.StudyHoursByMajor.Qualification;
+import com.passpace.dto.ResponseDto;
+import com.passpace.jwt.JwtPrincipal;
+import com.passpace.constant.MajorType;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.mock.web.MockHttpSession;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
@@ -79,8 +77,9 @@ class StudyHoursByMajorTest {
         };
         var controller = new MultiGoalPlannerController(jdbc);
 
-        CatalogResponse major = (CatalogResponse) controller.catalog(session(MajorType.MAJOR)).getBody();
-        CatalogResponse nonMajor = (CatalogResponse) controller.catalog(session(MajorType.NON_MAJOR)).getBody();
+        // [JWT] 응답은 {status, code, data} 로 감싸져 있으므로 data 를 꺼낸다
+        CatalogResponse major = (CatalogResponse) ((ResponseDto<?>) controller.catalog(loginUser(MajorType.MAJOR)).getBody()).getData();
+        CatalogResponse nonMajor = (CatalogResponse) ((ResponseDto<?>) controller.catalog(loginUser(MajorType.NON_MAJOR)).getBody()).getData();
         assertNotNull(major);
         assertNotNull(nonMajor);
         assertEquals("MAJOR", major.loginMajor());
@@ -93,11 +92,36 @@ class StudyHoursByMajorTest {
                 .findFirst().orElseThrow().majorEvidence().fallback());
     }
 
-    private MockHttpServletRequest session(MajorType major) {
-        var request = new MockHttpServletRequest();
-        var session = new MockHttpSession();
-        session.setAttribute(SessionConst.LOGIN_USER, new LoginUser(1L, "test", "테스트", major));
-        request.setSession(session);
-        return request;
+    @Test
+    void catalogOffersAdspAndComputerLiteracyNextToExistingCertificates() {
+        JdbcTemplate jdbc = new JdbcTemplate() {
+            @Override
+            public List<Map<String, Object>> queryForList(String sql) { return List.of(); }
+            @Override
+            public <T> List<T> query(String sql, RowMapper<T> rm, Object... args) { return List.of(); }
+        };
+        CatalogResponse catalog = (CatalogResponse) ((ResponseDto<?>) new MultiGoalPlannerController(jdbc)
+                .catalog(loginUser(MajorType.NON_MAJOR)).getBody()).getData();
+        // 기존 3개의 이름·키·순서는 그대로, 새 자격증은 그 뒤에 붙는다
+        assertEquals(List.of("demo-SQLD-WRITTEN", "demo-IPE-WRITTEN", "demo-IPE-PRACTICAL",
+                        "demo-ADSP-WRITTEN", "demo-CA1-WRITTEN", "demo-CA1-PRACTICAL"),
+                catalog.goals().stream().map(MultiGoalPlannerController.GoalCatalog::key).toList());
+        assertEquals(List.of("SQLD", "정보처리기사 필기 (2027~)", "정보처리기사 실기",
+                        "ADsP", "컴퓨터활용능력 1급 필기", "컴퓨터활용능력 1급 실기"),
+                catalog.goals().stream().map(MultiGoalPlannerController.GoalCatalog::certificationName).toList());
+        for (var goal : catalog.goals()) {
+            assertFalse(goal.subjects().isEmpty());
+            assertTrue(goal.subjects().stream().allMatch(s -> s.baseHours() > 0), goal.certificationName());
+        }
+        var computer = catalog.goals().get(5);
+        assertNull(computer.suggestedExamDate());                 // 상시시험: 날짜를 지어내지 않는다
+        assertTrue(computer.scheduleNotice().contains("상시시험"));
+        assertTrue(catalog.goals().get(3).majorEvidence().fallback());
+        assertEquals(0, StudyHoursByMajor.counts(Qualification.ADSP).unclassified());
+    }
+
+    /** [JWT] 예전에는 세션에 LoginUser 를 넣었다. 이제는 JwtFilter 가 토큰에서 만들어 주는 JwtPrincipal 을 직접 만든다 */
+    private JwtPrincipal loginUser(MajorType major) {
+        return new JwtPrincipal(1L, "test", "테스트", major, "USER");
     }
 }
