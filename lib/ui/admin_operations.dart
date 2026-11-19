@@ -1,4 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+
+import '../data/models.dart';
 
 import 'admin_api.dart';
 import 'admin_widgets.dart';
@@ -12,8 +16,259 @@ class AdminOperationsScreen extends StatefulWidget {
 }
 
 class _AdminOperationsScreenState extends State<AdminOperationsScreen> {
+  static const _subjectPath = '/reviews/subject-backfill';
+  static const _subjectStatusPath = '/reviews/subject-backfill/status';
+  static const _subjectAutoPath = '/reviews/subject-backfill/auto';
+  static const _subjectStopPath = '/reviews/subject-backfill/stop';
+  static const _referencePath = '/reference-stats';
+  final subjectLimit = TextEditingController(text: '30');
+  final subjectForm = GlobalKey<FormState>();
   String? busy;
   Object? error;
+  Json? subject;
+  bool subjectLoading = false;
+  Timer? timer;
+
+  /// 수동 실행 또는 [11-19] 끝까지 자동이 서버에서 도는 중인지
+  bool get subjectRunning =>
+      subject?['running'] == true ||
+      subject?['autoRunning'] == true ||
+      busy == _subjectPath;
+  bool get autoRunning => subject?['autoRunning'] == true;
+
+  @override
+  void initState() {
+    super.initState();
+    loadSubject();
+  }
+
+  @override
+  void dispose() {
+    timer?.cancel();
+    subjectLimit.dispose();
+    super.dispose();
+  }
+
+  /// 과목 언급 채우기가 도는 동안만 3초마다 진행 상황을 다시 읽는다.
+  void schedule() {
+    timer?.cancel();
+    if (!subjectRunning || !widget.api.accessible) return;
+    timer = Timer(const Duration(seconds: 3), () {
+      if (!mounted) return;
+      if (ModalRoute.of(context)?.isCurrent != true) {
+        schedule();
+        return;
+      }
+      loadSubject();
+    });
+  }
+
+  Future<void> loadSubject() async {
+    if (subjectLoading) return;
+    timer?.cancel();
+    setState(() => subjectLoading = true);
+    try {
+      final value = adminObject(await widget.api.get(_subjectStatusPath));
+      if (mounted) setState(() => subject = value);
+    } catch (e) {
+      if (mounted) setState(() => error = e);
+    } finally {
+      if (mounted) {
+        setState(() => subjectLoading = false);
+        schedule();
+      }
+    }
+  }
+
+  Future<void> runSubject() async {
+    if (busy != null || !subjectForm.currentState!.validate()) return;
+    if (!await adminConfirm(
+          context,
+          '과목 언급 채우기',
+          '저장된 velog·티스토리 후기 본문을 다시 읽어 과목별 언급만 채웁니다. 후기 자료는 바뀌지 않으며, 건수가 많으면 몇 분 걸릴 수 있습니다.',
+          action: '실행하기',
+        ) ||
+        !mounted) {
+      return;
+    }
+    setState(() {
+      busy = _subjectPath;
+      error = null;
+    });
+    schedule();
+    try {
+      final result = await widget.api.post(_subjectPath, {
+        'limit': subjectLimit.text.trim(),
+      });
+      if (mounted) {
+        await showAdminDocument(context, '처리 결과', result, api: widget.api);
+      }
+    } catch (e) {
+      if (mounted) setState(() => error = e);
+    } finally {
+      if (mounted) {
+        setState(() => busy = null);
+        loadSubject();
+      }
+    }
+  }
+
+  /// [11-19] 끝까지 자동 시작·멈추기: 서버가 바로 답하고 실제 처리는 뒤에서 한다.
+  Future<void> runSubjectAuto({required bool stop}) async {
+    if (busy != null) return;
+    final title = stop ? '자동 채우기 멈추기' : '끝까지 자동 채우기';
+    final explanation = stop
+        ? '지금 읽고 있는 글까지만 처리하고 멈춥니다. 이미 저장한 과목 언급은 그대로 남습니다.'
+        : '남은 후기를 200건씩 이어서 끝까지 읽습니다. 서버가 뒤에서 처리하므로 화면을 닫아도 계속되며, 30분~1시간 정도 걸릴 수 있습니다. 사이트가 접근을 막으면(403·429) 자동으로 멈춥니다.';
+    if (!await adminConfirm(
+          context,
+          title,
+          explanation,
+          action: stop ? '멈추기' : '시작하기',
+        ) ||
+        !mounted) {
+      return;
+    }
+    final path = stop ? _subjectStopPath : _subjectAutoPath;
+    setState(() {
+      busy = path;
+      error = null;
+    });
+    try {
+      final result = await widget.api.post(path);
+      if (mounted) {
+        await showAdminDocument(context, '처리 결과', result, api: widget.api);
+      }
+    } catch (e) {
+      if (mounted) setState(() => error = e);
+    } finally {
+      if (mounted) {
+        setState(() => busy = null);
+        loadSubject();
+      }
+    }
+  }
+
+  /// 한글 주소는 읽기 쉽게 풀어서 보여 주고, 풀 수 없으면 그대로 둔다.
+  static String readableUrl(Object? value) {
+    try {
+      return Uri.decodeFull('$value');
+    } catch (_) {
+      return '$value';
+    }
+  }
+
+  Widget subjectStatus() {
+    final data = subject;
+    if (data == null) {
+      return Text(
+        subjectLoading ? '상태를 불러오는 중…' : '상태를 불러와 주세요.',
+        style: const TextStyle(color: muted),
+      );
+    }
+    if (data['tableReady'] == false) {
+      return const Text(
+        '서버 DB에 과목 언급 테이블이 없어요. db/10_review_subject_mentions.sql 실행 후 다시 확인해 주세요.',
+        style: TextStyle(color: muted, height: 1.6),
+      );
+    }
+    final running = data['running'] == true;
+    final auto = data['autoRunning'] == true;
+    final done = adminNumber(data['done']), target = adminNumber(data['target']);
+    return Pane(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            auto
+                ? '끝까지 자동 채우는 중 · ${adminNumber(data['autoRounds']) + 1}회차'
+                : running
+                ? '채우는 중'
+                : '대기 중',
+            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
+          ),
+          if (running) ...[
+            const SizedBox(height: 12),
+            LinearProgressIndicator(
+              value: target > 0 ? (done / target).clamp(0.0, 1.0) : null,
+              semanticsLabel: '과목 언급 채우기 진행률',
+            ),
+            const SizedBox(height: 10),
+            Text(
+              '이번 회차 처리 ${adminText(data['done'])}건 · 목표 ${adminText(data['target'])}건',
+              style: const TextStyle(height: 1.6),
+            ),
+            Text(
+              '과목 언급 나온 후기 ${adminText(data['reviewsWithMentions'])} · 저장 ${adminText(data['savedRows'])}줄',
+              style: const TextStyle(color: muted, height: 1.7),
+            ),
+            if (data['current'] != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                '지금 읽는 글: ${readableUrl(data['current'])}',
+                style: const TextStyle(fontSize: 12, color: muted, height: 1.5),
+              ),
+            ],
+          ],
+          const SizedBox(height: 10),
+          Text(
+            '남은 후기 약 ${adminText(data['remaining'])}건',
+            style: const TextStyle(height: 1.6),
+          ),
+          const Text(
+            'velog·티스토리 후기 중 과목 언급이 없고, 이번 서버 실행에서 아직 확인하지 않은 글 (서버를 다시 켜면 다시 늘어날 수 있어요)',
+            style: TextStyle(fontSize: 12, color: muted, height: 1.5),
+          ),
+          if (data['autoMessage'] != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              '자동 실행 기록: ${data['autoMessage']}',
+              style: const TextStyle(fontSize: 12, color: muted, height: 1.5),
+            ),
+          ],
+          TextButton(
+            onPressed: subjectLoading ? null : loadSubject,
+            child: const Text('상태 새로고침'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// [11-19] 참고 학습시간 재집계: 결과를 표로 보여 준다 (웹 관리자 화면과 같은 내용).
+  Future<void> runReference() async {
+    if (busy != null) return;
+    if (!await adminConfirm(
+          context,
+          '참고 학습시간 재집계',
+          '현재 서버에 저장된 후기를 기준으로 참고 학습시간을 다시 집계합니다. 개인의 실제 공부시간 통계와는 별개입니다.',
+          action: '실행하기',
+        ) ||
+        !mounted) {
+      return;
+    }
+    setState(() {
+      busy = _referencePath;
+      error = null;
+    });
+    try {
+      final result = await widget.api.post(_referencePath);
+      if (!mounted) return;
+      final lines = result is List
+          ? result.whereType<Map>().map((e) => Json.from(e)).toList()
+          : <Json>[];
+      await Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => _ReferenceResultScreen(lines),
+        ),
+      );
+    } catch (e) {
+      if (mounted) setState(() => error = e);
+    } finally {
+      if (mounted) setState(() => busy = null);
+    }
+  }
+
   Future<void> run(String title, String path, String explanation) async {
     if (busy != null) return;
     if (!await adminConfirm(context, title, explanation, action: '실행하기') ||
@@ -79,21 +334,163 @@ class _AdminOperationsScreenState extends State<AdminOperationsScreen> {
             ),
           ]),
           AdminSection('후기 기반 참고시간', [
-            action(
-              '과목 언급 채우기',
-              '/reviews/subject-backfill',
-              '이미 저장한 velog·티스토리 후기 30건의 본문을 다시 읽어 과목별 시간·비율·난이도 언급만 저장합니다. 기존 후기 값은 바꾸지 않으며 1~2분 걸릴 수 있습니다. 남은 후기가 있으면 다시 눌러 주세요.',
+            const Text(
+              '현재 서버에 저장된 후기를 기준으로 참고 학습시간 집계를 실행합니다. 결과는 표로 보여 주며, 개인의 실제 공부시간 통계와는 별개입니다.',
+              style: TextStyle(color: muted, height: 1.6),
             ),
-            action(
-              '참고 학습시간 재집계',
-              '/reference-stats',
-              '현재 서버에 저장된 후기를 기준으로 기존 참고 학습시간 집계를 실행합니다. 개인의 실제 공부시간 통계와는 별개입니다.',
+            const SizedBox(height: 10),
+            OutlinedButton(
+              onPressed: busy != null ? null : runReference,
+              child: Text(
+                busy == _referencePath ? '서버에서 처리 중…' : '참고 학습시간 재집계',
+                textAlign: TextAlign.center,
+              ),
             ),
+          ]),
+          AdminSection('과목 언급 채우기', [
+            const Text(
+              '이미 저장한 후기 본문을 다시 읽어 과목별 시간·비율·난이도 언급만 채웁니다. 새 후기를 수집하지는 않습니다. 새로 수집하는 후기는 수집할 때 자동으로 채워집니다.',
+              style: TextStyle(color: muted, height: 1.6),
+            ),
+            const SizedBox(height: 12),
+            subjectStatus(),
+            const SizedBox(height: 12),
+            Form(
+              key: subjectForm,
+              child: TextFormField(
+                controller: subjectLimit,
+                enabled: busy == null && !subjectRunning,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: '한 번에 읽을 후기 수',
+                  helperText: '1~200건 · 서버는 한 번에 최대 200건까지 처리합니다.',
+                ),
+                validator: (v) {
+                  final n = int.tryParse(v?.trim() ?? '');
+                  return n == null || n < 1 || n > 200
+                      ? '1~200 사이의 정수를 입력해 주세요.'
+                      : null;
+                },
+              ),
+            ),
+            const SizedBox(height: 10),
+            OutlinedButton(
+              onPressed: busy != null || subjectRunning ? null : runSubject,
+              child: Text(
+                busy == _subjectPath ? '서버에서 처리 중…' : '과목 언급 채우기',
+                textAlign: TextAlign.center,
+              ),
+            ),
+            const SizedBox(height: 10),
+            FilledButton(
+              onPressed: busy != null || subjectRunning
+                  ? null
+                  : () => runSubjectAuto(stop: false),
+              child: Text(
+                busy == _subjectAutoPath ? '서버에 요청 중…' : '끝까지 자동 채우기',
+                textAlign: TextAlign.center,
+              ),
+            ),
+            if (autoRunning) ...[
+              const SizedBox(height: 10),
+              OutlinedButton(
+                onPressed: busy != null
+                    ? null
+                    : () => runSubjectAuto(stop: true),
+                child: Text(
+                  busy == _subjectStopPath ? '서버에 요청 중…' : '자동 채우기 멈추기',
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ],
           ]),
         ],
       ),
     ),
   );
+}
+
+/// [11-19] 참고 학습시간 재집계 결과 표. 기본은 "전공 전체" 줄만, 스위치로 전공별 줄까지 본다.
+class _ReferenceResultScreen extends StatefulWidget {
+  final List<Json> lines;
+  const _ReferenceResultScreen(this.lines);
+  @override
+  State<_ReferenceResultScreen> createState() => _ReferenceResultScreenState();
+}
+
+class _ReferenceResultScreenState extends State<_ReferenceResultScreen> {
+  bool allMajors = false;
+  static const _exams = {'WRITTEN': '필기', 'PRACTICAL': '실기'};
+  static const _majors = {'MAJOR': '전공', 'NON_MAJOR': '비전공'};
+  /// CERTIFICATIONS.certification_id → 이름 (db/03·09 기준)
+  static const _certs = {
+    1: '정보처리기사',
+    2: 'SQLD',
+    3: '컴활 1급',
+    4: 'ADsP',
+  };
+
+  static String _cert(Object? id) {
+    final name = id is num ? _certs[id.toInt()] : null;
+    return name == null ? '자격증 ${adminText(id)}' : '자격증 ${adminText(id)}($name)';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final rows = widget.lines
+        .where((l) => allMajors || l['majorType'] == null)
+        .toList();
+    final verified = rows.where((l) => l['meanHours'] != null).length;
+    return Scaffold(
+      appBar: AppBar(title: const Text('처리 결과')),
+      body: SafeArea(
+        child: ScrollBody(
+          children: [
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('전공별 줄도 보기'),
+              subtitle: const Text('끄면 전공 전체 줄만 보여요'),
+              value: allMajors,
+              onChanged: (v) => setState(() => allMajors = v),
+            ),
+            Text(
+              '실측값 저장 $verified줄 / 표시 ${rows.length}줄 (전체 ${widget.lines.length}줄)',
+              style: const TextStyle(color: muted, height: 1.6),
+            ),
+            const SizedBox(height: 12),
+            for (final l in rows)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Pane(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        '${_cert(l['certificationId'])} · '
+                        '${_exams[l['examType']] ?? adminText(l['examType'])} · '
+                        '${l['majorType'] == null ? '전공 전체' : _majors[l['majorType']] ?? l['majorType']}',
+                        style: const TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        l['meanHours'] == null
+                            ? '표본 ${adminText(l['sampleCount'])}건 · 잠정값 사용'
+                            : '표본 ${adminText(l['sampleCount'])}건 · 중앙값 ${adminText(l['meanHours'])}시간',
+                        style: const TextStyle(height: 1.6),
+                      ),
+                      Text(
+                        adminText(l['result']),
+                        style: const TextStyle(fontSize: 12, color: muted, height: 1.5),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class AdminResetScreen extends StatefulWidget {

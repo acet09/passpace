@@ -213,7 +213,7 @@ class _AdminScreenState extends State<AdminScreen> {
                   entry(
                     Icons.event_note_outlined,
                     '시험일정',
-                    '기존 일정 수집과 참고시간 집계',
+                    '일정 수집 · 참고시간 집계 · 과목 언급 채우기',
                     AdminOperationsScreen(widget.api),
                   ),
                 ],
