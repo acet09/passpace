@@ -80,6 +80,11 @@ class _AdminOperationsScreenState extends State<AdminOperationsScreen> {
           ]),
           AdminSection('후기 기반 참고시간', [
             action(
+              '과목 언급 채우기',
+              '/reviews/subject-backfill',
+              '이미 저장한 velog·티스토리 후기 30건의 본문을 다시 읽어 과목별 시간·비율·난이도 언급만 저장합니다. 기존 후기 값은 바꾸지 않으며 1~2분 걸릴 수 있습니다. 남은 후기가 있으면 다시 눌러 주세요.',
+            ),
+            action(
               '참고 학습시간 재집계',
               '/reference-stats',
               '현재 서버에 저장된 후기를 기준으로 기존 참고 학습시간 집계를 실행합니다. 개인의 실제 공부시간 통계와는 별개입니다.',

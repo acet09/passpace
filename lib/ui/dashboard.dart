@@ -9,7 +9,9 @@ import 'design.dart';
 import 'goal.dart';
 import 'planner.dart';
 import 'plan_goal_section.dart';
+import 'plan_list.dart';
 import 'plan_month_calendar.dart';
+import 'replan.dart';
 import 'study_records.dart';
 import 'view_switch.dart';
 
@@ -25,6 +27,10 @@ class _DashboardState extends State<Dashboard>
   int tab = 0;
   late Future<SavedPlan?> saved;
   late Future<GoalData> target;
+
+  /// 계획이 많이 밀렸을 때 서버가 주는 재편성 추천 (없거나 읽지 못하면 null).
+  late Future<ReplanAdvice?> advice;
+  bool adviceHidden = false;
   late final fade = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 200),
@@ -51,6 +57,35 @@ class _DashboardState extends State<Dashboard>
   void _load() {
     saved = api.saved();
     target = api.goal();
+    // 추천은 부가 기능이라 읽지 못해도 홈을 막지 않는다.
+    advice = api.replan().then<ReplanAdvice?>(
+      (value) => value,
+      onError: (Object _) => null,
+    );
+    adviceHidden = false;
+  }
+
+  Future<void> openReplan(ReplanAdvice value) async {
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    final ok = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => ReplanScreen(api, value)),
+    );
+    if (ok != true || !mounted) return;
+    await refresh();
+    if (mounted) toast(context, '일정을 다시 짰어요. 쓰던 계획은 계획 목록에 보관했어요.');
+  }
+
+  Future<void> laterReplan() async {
+    setState(() => adviceHidden = true);
+    try {
+      await api.dismissReplan();
+      if (mounted) toast(context, '알겠어요. 7일 동안 다시 묻지 않을게요.');
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => adviceHidden = false);
+      toast(context, friendly(e));
+    }
   }
 
   @override
@@ -164,6 +199,16 @@ class _DashboardState extends State<Dashboard>
             icon: const Icon(Icons.flag_outlined, size: 22),
           ),
         if (tab == 1) ...[
+          IconButton(
+            tooltip: '저장한 계획 목록',
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => PlanListScreen(api, onChanged: refresh),
+              ),
+            ),
+            icon: const Icon(Icons.list_alt_rounded, size: 22),
+          ),
           IconButton(
             tooltip: '목표와 기본 설정',
             onPressed: goal,
@@ -329,6 +374,17 @@ class _DashboardState extends State<Dashboard>
               )
             else
               DailySummary(date: homeDay, today: today, tasks: tasks),
+            if (plan != null && !adviceHidden)
+              FutureBuilder<ReplanAdvice?>(
+                future: advice,
+                builder: (context, found) => found.data == null
+                    ? const SizedBox.shrink()
+                    : ReplanCard(
+                        found.data!,
+                        onOpen: () => openReplan(found.data!),
+                        onLater: laterReplan,
+                      ),
+              ),
             if (plan != null)
               SectionRow(
                 homeDay == today ? '오늘 할 학습' : '${shortDay(homeDay)} 학습',

@@ -57,6 +57,11 @@ void main() {
     );
     expect(r.followRedirects, false);
     expect(await api.post('/reference-stats'), isA<List>());
+    expect(await api.post('/reviews/subject-backfill'), isA<Map>());
+    expect(
+      f.requests.last.url.path,
+      '/admin/collect/reviews/subject-backfill',
+    );
   });
   test('리다이렉트는 따르지 않고 토큰을 외부 주소로 전달하지 않는다', () async {
     final f = AdminFixture(

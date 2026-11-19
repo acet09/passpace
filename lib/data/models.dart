@@ -73,6 +73,22 @@ class SavedPlan {
       byDay.values.expand((v) => v).fold(0, (n, t) => n + t.minutes);
 }
 
+/// 저장한 계획 목록의 한 줄. 지금 쓰는 계획 하나만 [active] 이고 나머지는 보관 중이다.
+class PlanSummary {
+  final int id, days, totalMinutes;
+  final String name;
+  final DateTime start, end;
+  final bool active;
+  PlanSummary.from(Json j)
+    : id = j['planId'] as int,
+      name = j['planName'] as String? ?? '학습계획',
+      start = DateTime.parse(j['startDate']),
+      end = DateTime.parse(j['endDate']),
+      active = j['active'] == true,
+      days = j['days'] as int? ?? 0,
+      totalMinutes = j['totalMinutes'] as int? ?? 0;
+}
+
 class GoalData {
   final int? roundId, minutes;
   final DateTime? date;
@@ -177,6 +193,30 @@ class Preview {
       minimumDailyMinutes = j['minimumDailyMinutes'] as int?,
       additionalDailyMinutes = j['additionalDailyMinutes'] as int? ?? 0,
       goals = rows(j['goals'] ?? []);
+}
+
+/// 계획이 밀려 서버가 일정을 다시 짜 보라고 추천한 내용.
+/// 밀린 시간이 계획 전체의 [threshold]% 이상일 때만 온다.
+class ReplanAdvice {
+  final String planName;
+  final int totalMinutes, dueMinutes, doneMinutes, behindMinutes;
+  final int percent, threshold;
+
+  /// 남은 공부량을 오늘부터 다시 나눈 일정.
+  final Preview proposal;
+  ReplanAdvice.from(Json j)
+    : this._(
+        j['planName'] as String? ?? '학습계획',
+        object(j['status']),
+        Preview.from(object(j['proposal'])),
+      );
+  ReplanAdvice._(this.planName, Json status, this.proposal)
+    : totalMinutes = status['totalMinutes'] as int,
+      dueMinutes = status['dueMinutes'] as int,
+      doneMinutes = status['doneMinutes'] as int,
+      behindMinutes = status['behindMinutes'] as int,
+      percent = status['behindPercent'] as int,
+      threshold = status['thresholdPercent'] as int;
 }
 
 /// 채팅 안에서 계산한 계획과, 대화방에 남긴 요약 답변.

@@ -46,6 +46,7 @@ class AdminApi extends ChangeNotifier {
     '/status/by-cert',
     '/reviews/recovery-report',
     '/reviews/reset',
+    '/reviews/subject-backfill/status',
   };
   static const _writes = {
     '/exam',
@@ -65,6 +66,7 @@ class AdminApi extends ChangeNotifier {
     '/reviews/preview',
     '/reviews/discover',
     '/reviews/reset',
+    '/reviews/subject-backfill',
   };
   bool get accessible => !_disposed && !_forbidden && showsAdminPage(session);
   @override

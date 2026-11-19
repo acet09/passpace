@@ -21,8 +21,8 @@ class _Turn {
   final String question;
   Reply? reply;
   ChatPlanSetup? plan;
-  String? planError;
-  bool planLoading = false;
+  String? planError, planNote;
+  bool planLoading = false, planRetry = false;
   final key = GlobalKey();
   _Turn(this.question);
 }
@@ -97,7 +97,11 @@ class ChatScreenState extends State<ChatScreen> {
         turn.reply = reply;
         conversation = reply.conversation;
       });
-      if (reply.notice == autoPlanNotice) await _openPlan(turn);
+      if (reply.notice == autoPlanNotice) {
+        await _openPlan(turn);
+      } else {
+        _applyWeekdays(turn);
+      }
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -118,6 +122,44 @@ class ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  /// 계획 카드를 연 뒤 "화요일은 안 돼"처럼 요일만 다시 말하면 열려 있는 카드의 공부 요일을 바꾼다.
+  void _applyWeekdays(_Turn turn) {
+    if (!turns.any((t) => t.plan != null)) return;
+    // "평일 1시간, 주말 3시간"처럼 요일마다 다른 시간을 말했으면 요일별 시간으로 바꾼다.
+    final perDay = weekdayMinutesInMessage(turn.question);
+    if (perDay != null) {
+      planInputs.update(() {
+        planInputs.split = false;
+        planInputs.byWeekday = true;
+        planInputs.setDayMinutes(perDay);
+      });
+      final text = [
+        for (final day in perDay.keys.toList()..sort())
+          '${weekdays[day - 1]} ${durationLabel(perDay[day]!)}',
+      ].join(' · ');
+      setState(
+        () => turn.planNote =
+            '요일별 공부시간을 바꿨어요: $text. '
+            '위 계획 카드에서 다시 계산하면 반영됩니다.',
+      );
+      return;
+    }
+    final days = weekdaysInMessage(turn.question);
+    if (days == null) return;
+    planInputs.update(() {
+      planInputs.weekdays
+        ..clear()
+        ..addAll(days);
+      // 요일별 시간을 쓰는 중이면 안 되는 요일의 시간을 지운다.
+      planInputs.dayMinutes.removeWhere((day, _) => !days.contains(day));
+    });
+    setState(
+      () => turn.planNote =
+          '공부 요일을 바꿨어요: ${weekdayNames(days)}. '
+          '위 계획 카드에서 다시 계산하면 이 요일에만 배정됩니다.',
+    );
+  }
+
   /// 서버가 계획 입력을 요청한 답변: 과목 목록을 읽어 같은 대화 안에 계획 카드를 연다.
   Future<void> _openPlan(_Turn turn) async {
     if (turn.planLoading) return;
@@ -126,7 +168,10 @@ class ChatScreenState extends State<ChatScreen> {
       turn.planError = null;
     });
     try {
+      // 목록을 못 읽은 경우에만 다시 시도할 수 있다. 질문 자체의 문제는 다시 열어도 같다.
+      turn.planRetry = true;
       final catalog = await widget.api.catalog();
+      turn.planRetry = false;
       turn.plan = ChatPlanSetup.from(
         turn.question,
         catalog,
@@ -399,17 +444,33 @@ class ChatScreenState extends State<ChatScreen> {
                         turns.contains(turn) ? conversation : null,
                     onSaved: widget.onPlanSaved,
                   ),
-                if (turn.planError case final message?) ...[
-                  AlertText(message),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: TextButton(
-                      onPressed: turn.planLoading
-                          ? null
-                          : () => _openPlan(turn),
-                      child: const Text('계획 입력 다시 열기'),
+                if (turn.planNote case final note?)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 10),
+                    child: Semantics(
+                      liveRegion: true,
+                      child: Pane(
+                        color: pale,
+                        padding: 14,
+                        child: Text(
+                          note,
+                          style: const TextStyle(fontSize: 13, height: 1.5),
+                        ),
+                      ),
                     ),
                   ),
+                if (turn.planError case final message?) ...[
+                  AlertText(message),
+                  if (turn.planRetry)
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: TextButton(
+                        onPressed: turn.planLoading
+                            ? null
+                            : () => _openPlan(turn),
+                        child: const Text('계획 입력 다시 열기'),
+                      ),
+                    ),
                 ],
               ],
               if (busy)
