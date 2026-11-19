@@ -21,6 +21,7 @@ import com.passpace.service.MultiGoalPlanCalculator.GoalInput;
 import com.passpace.service.MultiGoalPlanCalculator.PlanRequest;
 import com.passpace.service.MultiGoalPlanCalculator.PlanResponse;
 import com.passpace.service.MultiGoalPlanCalculator.SubjectInput;
+import com.passpace.service.PlanReplanner;
 import com.passpace.service.StudyHoursByMajor;
 import com.passpace.service.StudyHoursEvidence;
 import com.passpace.util.ResponseUtil;
@@ -29,10 +30,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
@@ -116,9 +120,13 @@ public class ReviewBasedPlannerController {
         }
     }
 
-    /** 마이페이지에 넣기: 브라우저가 보낸 결과를 믿지 않고 같은 요청으로 다시 계산해서 저장한다. */
+    /**
+     * 마이페이지에 넣기: 브라우저가 보낸 결과를 믿지 않고 같은 요청으로 다시 계산해서 저장한다.
+     * activate=true(기본)면 바로 사용하고 쓰던 계획은 목록에 보관, false 면 목록에만 추가한다.
+     */
     @PostMapping("/save")
     public ResponseEntity<?> save(@RequestBody PlanRequest plan,
+                                  @RequestParam(defaultValue = "true") boolean activate,
                                   @AuthenticationPrincipal JwtPrincipal loginUser) {
         CatalogResponse catalog = reviewBasedCatalog(loginUser);
         PlanResponse result;
@@ -131,9 +139,126 @@ public class ReviewBasedPlannerController {
         for (GoalCatalog g : catalog.goals())
             for (SubjectCatalog s : g.subjects())
                 if (s.subjectId() != null) subjectIds.put(g.key() + "|" + s.name(), s.subjectId());
-        long planId = planStore.replace(loginUser.getUserId(), result, subjectIds);
+        // 요일별 가능시간을 계획과 함께 남긴다 (밀렸을 때 같은 요일·같은 시간으로 다시 짜기 위해).
+        Map<Integer, Integer> dayCaps = result.weekdayMinutes();
+        if (dayCaps == null) {
+            dayCaps = new java.util.TreeMap<>();
+            for (int day : plan.studyWeekdays() == null ? List.of(1, 2, 3, 4, 5, 6, 7) : plan.studyWeekdays())
+                dayCaps.put(day, result.dailyMinutes());
+        }
+        long planId = planStore.save(loginUser.getUserId(), result, subjectIds, activate, dayCaps);
         return ResponseUtil.SUCCESS(Map.of("planId", planId, "days", result.days().size(),
-                "totalMinutes", result.totalRemainingMinutes() - result.totalShortfallMinutes()));
+                "totalMinutes", result.totalRemainingMinutes() - result.totalShortfallMinutes(),
+                "active", activate));
+    }
+
+    // ---------------------------------------------------------------------
+    // 재편성 추천: 밀린 공부가 계획 전체의 20% 이상이면 남은 양으로 일정을 다시 짜 준다
+    // ---------------------------------------------------------------------
+
+    /** 거절한 뒤 다시 묻지 않는 기간(일) */
+    private static final int DISMISS_DAYS = 7;
+
+    /** 지금 계획이 밀렸는지, 밀렸다면 다시 짠 일정 미리보기까지 */
+    public record ReplanAdvice(boolean needed, Long planId, String planName, PlanReplanner.Status status,
+                               PlanResponse proposal) {
+    }
+
+    /** 홈 화면이 열릴 때 확인한다. 추천할 것이 없으면 needed = false. */
+    @GetMapping("/replan")
+    public ResponseEntity<?> replan(@AuthenticationPrincipal JwtPrincipal loginUser) {
+        return ResponseUtil.SUCCESS(advise(loginUser.getUserId(), LocalDate.now(), true));
+    }
+
+    /** 추천을 받아들인다: 다시 계산한 일정을 새 계획으로 저장해 바로 쓰고, 쓰던 계획은 목록에 보관한다. */
+    @PostMapping("/replan/accept")
+    public ResponseEntity<?> acceptReplan(@AuthenticationPrincipal JwtPrincipal loginUser) {
+        long userId = loginUser.getUserId();
+        ChatPlanStore.ReplanSource source = planStore.findActiveForReplan(userId);
+        ReplanAdvice advice = advise(userId, LocalDate.now(), false);
+        if (source == null || !advice.needed() || advice.proposal() == null || advice.proposal().days().isEmpty())
+            throw new ChatException(ErrorCode.INVALID_REQUEST, "지금은 다시 짤 일정이 없습니다.");
+        Map<String, Long> subjectIds = new HashMap<>();
+        for (PlanReplanner.PlannedTask t : source.tasks())
+            if (t.subjectId() != null)
+                subjectIds.put(PlanReplanner.goalKey(t.certificationName()) + "|" + t.subjectName(), t.subjectId());
+        PlanResponse proposal = advice.proposal();
+        long planId = planStore.save(userId, proposal, subjectIds, true, proposal.weekdayMinutes());
+        planStore.recordProposal(userId, source.planId(), planId, note(advice.status()),
+                "남은 " + proposal.totalRemainingMinutes() + "분을 " + proposal.days().size() + "일에 다시 배정"
+                        + (proposal.totalShortfallMinutes() > 0
+                        ? " (" + proposal.totalShortfallMinutes() + "분은 기간 안에 배정하지 못함)" : ""));
+        return ResponseUtil.SUCCESS(Map.of("planId", planId, "days", proposal.days().size()));
+    }
+
+    /** 추천을 거절한다: 기록만 남기고 한동안 다시 묻지 않는다. */
+    @PostMapping("/replan/dismiss")
+    public ResponseEntity<?> dismissReplan(@AuthenticationPrincipal JwtPrincipal loginUser) {
+        long userId = loginUser.getUserId();
+        ChatPlanStore.ReplanSource source = planStore.findActiveForReplan(userId);
+        if (source != null) {
+            PlanReplanner.Status status = PlanReplanner.status(source.tasks(),
+                    planStore.doneMinutes(userId, source.startDate(), LocalDate.now()), LocalDate.now());
+            planStore.recordProposal(userId, source.planId(), null, note(status), null);
+        }
+        return ResponseUtil.SUCCESS(Map.of("dismissed", true, "days", DISMISS_DAYS));
+    }
+
+    private ReplanAdvice advise(long userId, LocalDate today, boolean respectDismissal) {
+        ChatPlanStore.ReplanSource source = planStore.findActiveForReplan(userId);
+        if (source == null || source.tasks().isEmpty() || source.startDate() == null)
+            return new ReplanAdvice(false, null, null, null, null);
+        PlanReplanner.Status status = PlanReplanner.status(source.tasks(),
+                planStore.doneMinutes(userId, source.startDate(), today), today);
+        if (!status.needed() || (respectDismissal && planStore.dismissedRecently(userId, source.planId(), DISMISS_DAYS)))
+            return new ReplanAdvice(false, source.planId(), source.planName(), status, null);
+        PlanRequest request = PlanReplanner.request(source.tasks(), planStore.doneBySubject(userId, source.planId()),
+                PlanReplanner.dayCaps(source.weekdayMinutesJson(), source.planName(), source.tasks()), today);
+        if (request == null) return new ReplanAdvice(false, source.planId(), source.planName(), status, null);
+        try {
+            PlanResponse proposal = calculator.calculate(request, today);
+            return new ReplanAdvice(!proposal.days().isEmpty(), source.planId(), source.planName(), status, proposal);
+        } catch (IllegalArgumentException | ArithmeticException e) {
+            // 다시 나눌 수 없는 계획(기간이 너무 짧음 등)은 추천하지 않는다.
+            log.warn("재편성 계산 실패 (plan {}): {}", source.planId(), e.getMessage());
+            return new ReplanAdvice(false, source.planId(), source.planName(), status, null);
+        }
+    }
+
+    private static String note(PlanReplanner.Status s) {
+        return "어제까지 계획 " + s.dueMinutes() + "분 중 " + s.doneMinutes() + "분 진행, " + s.behindMinutes()
+                + "분 밀림 (전체 " + s.totalMinutes() + "분의 " + s.behindPercent() + "%, 기준 "
+                + s.thresholdPercent() + "%)";
+    }
+
+    /** 저장한 계획 목록 (지금 쓰는 계획이 맨 위) */
+    @GetMapping("/plans")
+    public ResponseEntity<?> plans(@AuthenticationPrincipal JwtPrincipal loginUser) {
+        return ResponseUtil.SUCCESS(Map.of("plans", planStore.list(loginUser.getUserId())));
+    }
+
+    /** 목록의 계획 한 건을 날짜별 할 일까지 */
+    @GetMapping("/plans/{planId}")
+    public ResponseEntity<?> plan(@PathVariable long planId, @AuthenticationPrincipal JwtPrincipal loginUser) {
+        ChatPlanStore.SavedPlan found = planStore.find(loginUser.getUserId(), planId);
+        if (found == null) throw new ChatException(ErrorCode.INVALID_REQUEST, "저장한 계획을 찾을 수 없습니다.");
+        return ResponseUtil.SUCCESS(Map.of("plan", found));
+    }
+
+    /** 목록의 계획을 지금 쓰는 계획으로 바꾼다 (쓰던 계획은 목록에 보관) */
+    @PostMapping("/plans/{planId}/activate")
+    public ResponseEntity<?> activatePlan(@PathVariable long planId,
+                                          @AuthenticationPrincipal JwtPrincipal loginUser) {
+        planStore.activate(loginUser.getUserId(), planId);
+        return ResponseUtil.SUCCESS(Map.of("planId", planId, "active", true));
+    }
+
+    /** 목록에서 계획 삭제 (학습기록이 연결된 계획은 지우지 않는다) */
+    @DeleteMapping("/plans/{planId}")
+    public ResponseEntity<?> deletePlan(@PathVariable long planId,
+                                        @AuthenticationPrincipal JwtPrincipal loginUser) {
+        planStore.delete(loginUser.getUserId(), planId);
+        return ResponseUtil.SUCCESS(Map.of("planId", planId, "deleted", true));
     }
 
     /** 마이페이지 표시용: 저장된 챗봇 계획 (없으면 plan = null) */
@@ -298,14 +423,17 @@ public class ReviewBasedPlannerController {
             acceptedGoals.add(new GoalInput(goal.key(), goal.certificationName(), goal.examDate(),
                     List.copyOf(accepted), goal.startDate(), goal.dailyMinutes()));
         }
-        return new PlanRequest(request.dailyMinutes(), List.copyOf(acceptedGoals), request.studyWeekdays());
+        return new PlanRequest(request.dailyMinutes(), List.copyOf(acceptedGoals), request.studyWeekdays(),
+                request.weekdayMinutes());
     }
 
     static String summarize(PlanResponse result, List<GoalCatalog> catalog) {
         Map<String, GoalCatalog> byKey = new HashMap<>();
         for (GoalCatalog g : catalog) byKey.put(g.key(), g);
         StringBuilder sb = new StringBuilder("다중 자격증 자동 학습계획 (Java 계산)\n");
-        sb.append("하루 총 ").append(result.dailyMinutes()).append("분 / 남은 학습량 ")
+        sb.append(result.weekdayMinutes() == null ? "하루 총 " + result.dailyMinutes() + "분"
+                        : "요일별 " + MultiGoalPlanCalculator.weekdayMinutesLabel(result.weekdayMinutes()))
+                .append(" / 남은 학습량 ")
                 .append(hoursText(result.totalRemainingMinutes() / 60.0)).append("시간\n");
         for (var goal : result.goals()) {
             GoalCatalog known = byKey.get(goal.key());

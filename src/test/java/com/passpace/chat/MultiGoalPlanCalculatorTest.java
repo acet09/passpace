@@ -108,7 +108,7 @@ class MultiGoalPlanCalculatorTest {
                 .mapToInt(Allocation::minutes).sum() <= 120));
     }
     /**
-     * 하루 120분에 A·B가 각각 50분대를 쓰면 C 몫은 45분 블록에 못 미치는 자투리만 남는다.
+     * 하루 120분에 A·B가 각각 50분대를 쓰면 C 몫은 50분 블록에 못 미치는 자투리만 남는다.
      * 자투리를 버리면 C는 A·B가 끝날 때까지 밀려 마지막에 시간이 모자란다 (총량으로는 충분한 일정인데도).
      */
     @Test
@@ -125,7 +125,7 @@ class MultiGoalPlanCalculatorTest {
         // C는 A·B가 끝나기를 기다리지 않고 처음 2주 안에 공부를 시작한다
         assertTrue(response.days().stream().filter(d -> d.date().isBefore(TODAY.plusDays(14)))
                 .anyMatch(d -> d.allocations().stream().anyMatch(a -> a.goalKey().equals("C"))));
-        // 하루에 같은 자격증·과목이 두 줄로 나뉘지 않고, 마지막 잔여시간이 아니면 45분 이상 블록이다
+        // 하루에 같은 자격증·과목이 두 줄로 나뉘지 않고, 마지막 잔여시간이 아니면 50분 이상 블록이다
         java.util.Map<String, Integer> left = new java.util.HashMap<>(
                 java.util.Map.of("A", 1800, "B", 1800, "C", 720));
         for (var day : response.days()) {
@@ -197,7 +197,7 @@ class MultiGoalPlanCalculatorTest {
         assertTrue(response.days().stream().allMatch(d -> {
             java.util.Map<String, Integer> perGoal = new java.util.HashMap<>();
             d.allocations().forEach(a -> perGoal.merge(a.goalKey(), a.minutes(), Integer::sum));
-            return perGoal.values().stream().allMatch(minutes -> minutes >= 45);
+            return perGoal.values().stream().allMatch(minutes -> minutes >= 50);
         }));
     }
 
@@ -268,6 +268,67 @@ class MultiGoalPlanCalculatorTest {
                 goal("A", 3, sub("개발", 4, 2, 0, 0)))), TODAY);
         assertTrue(response.days().stream().anyMatch(d -> d.date().equals(TODAY)));
         assertEquals(0, response.totalShortfallMinutes());
+        assertNull(response.weekdayMinutes());
+    }
+
+    @Test
+    void weekdayMinutesLimitEachDayToItsOwnTime() {
+        // 월 60분, 토 240분, 나머지 요일은 쉰다. 4주 동안 20시간.
+        var response = calculator.calculate(new PlanRequest(null, List.of(
+                goal("A", 28, sub("개발", 20, 2, 0, 0))), null, java.util.Map.of(1, 60, 6, 240, 3, 0)), TODAY);
+        assertEquals(java.util.Map.of(1, 60, 6, 240), response.weekdayMinutes());
+        assertEquals(240, response.dailyMinutes());
+        assertFalse(response.days().isEmpty());
+        for (var day : response.days()) {
+            int weekday = day.date().getDayOfWeek().getValue();
+            assertTrue(weekday == 1 || weekday == 6, "쉬는 요일에는 배정하지 않는다: " + day.date());
+            assertEquals(weekday == 1 ? 60 : 240, day.availableMinutes());
+            assertTrue(day.allocatedMinutes() <= day.availableMinutes());
+        }
+        assertEquals(0, response.totalShortfallMinutes());
+        assertTrue(response.notices().stream().anyMatch(n -> n.contains("월 60분·토 240분")));
+    }
+
+    @Test
+    void shortWeekdayIsStillUsedWhenTimeIsPlentiful() {
+        // 월 60분·토 240분으로 15주에 53시간: 시간이 남아도 짧은 월요일을 통째로 건너뛰지 않는다.
+        var response = calculator.calculate(new PlanRequest(null, List.of(
+                goal("A", 108, sub("개발", 53, 2, 0, 0))), null, java.util.Map.of(1, 60, 6, 240)), TODAY);
+        assertEquals(0, response.totalShortfallMinutes());
+        long mondays = response.days().stream().filter(d -> d.date().getDayOfWeek().getValue() == 1).count();
+        long saturdays = response.days().stream().filter(d -> d.date().getDayOfWeek().getValue() == 6).count();
+        assertTrue(mondays >= saturdays / 2, "월요일 " + mondays + "일, 토요일 " + saturdays + "일");
+        assertTrue(response.days().stream().allMatch(d -> d.allocatedMinutes() <= d.availableMinutes()));
+    }
+
+    @Test
+    void requestJsonWithAndWithoutWeekdayMinutesIsRead() throws Exception {
+        var mapper = new com.fasterxml.jackson.databind.ObjectMapper().findAndRegisterModules();
+        // 앱이 보내는 모양: 요일 번호가 글자 키로 온다.
+        var request = mapper.readValue("""
+                {"dailyMinutes":240,"studyWeekdays":[1,6],"weekdayMinutes":{"1":60,"6":240},"goals":[]}
+                """, PlanRequest.class);
+        assertEquals(java.util.Map.of(1, 60, 6, 240), request.weekdayMinutes());
+        // 웹과 예전 앱이 보내는 모양은 그대로 읽힌다.
+        var old = mapper.readValue("{\"dailyMinutes\":120,\"studyWeekdays\":[1,2],\"goals\":[]}", PlanRequest.class);
+        assertNull(old.weekdayMinutes());
+        assertEquals(List.of(1, 2), old.studyWeekdays());
+    }
+
+    @Test
+    void weekdayMinutesReportShortageAndRejectBadValues() {
+        // 일주일에 월요일 30분뿐이면 10시간을 2주 안에 끝낼 수 없다.
+        var tight = calculator.calculate(new PlanRequest(null, List.of(
+                goal("A", 14, sub("개발", 10, 2, 0, 0))), null, java.util.Map.of(1, 30)), TODAY);
+        assertFalse(tight.feasible());
+        assertTrue(tight.totalShortfallMinutes() > 0);
+        assertTrue(tight.additionalDailyMinutes() > 0);
+        assertThrows(IllegalArgumentException.class, () -> calculator.calculate(new PlanRequest(null, List.of(
+                goal("A", 14, sub("개발", 1, 2, 0, 0))), null, java.util.Map.of(8, 60)), TODAY));
+        assertThrows(IllegalArgumentException.class, () -> calculator.calculate(new PlanRequest(null, List.of(
+                goal("A", 14, sub("개발", 1, 2, 0, 0))), null, java.util.Map.of(1, 10)), TODAY));
+        assertThrows(IllegalArgumentException.class, () -> calculator.calculate(new PlanRequest(null, List.of(
+                goal("A", 14, sub("개발", 1, 2, 0, 0))), null, java.util.Map.of(1, 0)), TODAY));
     }
 
 }

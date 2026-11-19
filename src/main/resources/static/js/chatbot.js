@@ -928,7 +928,7 @@ function initializeMultiGoalPlanner(root) {
                     messageArea.appendChild(node('p','pp-chat-evidence-warning',
                         '현재 일정은 학습시간이 부족합니다. 최소 하루 '+plan.minimumDailyMinutes+'분이 필요합니다.'));
                 messageArea.appendChild(node('p','pp-chat-evidence-warning',
-                    '하루 공부 가능시간은 상한입니다. 선택한 요일에 45분 이상 블록으로 분산하며 마지막 잔여시간은 짧을 수 있습니다. ' +
+                    '하루 공부 가능시간은 상한입니다. 선택한 요일에 50분 이상 블록으로 분산하며 마지막 잔여시간은 짧을 수 있습니다. ' +
                     '기출·복습 시간은 아직 추가 산정하지 않았습니다. 기준시간 근거는 자격증별 안내(합격 후기 실측 평균 또는 잠정 추정치)를 확인하세요. 시험일은 가상 목표일일 수 있습니다.')); 
                 state.previous=Object.fromEntries(plan.goals.map(g=>[g.key,g.remainingMinutes]));
                 state.lastCalculatedOn=plan.calculatedOn;
