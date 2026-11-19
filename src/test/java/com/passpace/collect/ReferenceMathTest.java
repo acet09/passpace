@@ -58,4 +58,19 @@ class ReferenceMathTest {
         assertThat(ReferenceMath.reviewHoursWithFallback(null, null, null, 240.0)).isNull();
     }
 
+    @Test
+    void 전공_전체_직접값이_10건_이상이면_어느_그룹도_추정값을_섞지_않는다() {
+        // 11-19 이전: 전공 그룹(직접 8건)은 추정 34건을 섞어 42건 > 전공 전체 34건 이 되는 문제가 있었다
+        List<Double> direct = List.of(10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0);
+        List<Double> guessed = List.of(300.0, 400.0);
+        assertThat(ReferenceMath.pickHours(direct, guessed, 34, 10)).hasSize(8).doesNotContain(300.0, 400.0);
+    }
+
+    @Test
+    void 전공_전체_직접값도_10건_미만이면_추정값으로_채운다() {
+        // 컴활 필기처럼 직접 값이 3건뿐이면 지금처럼 추정값을 허용
+        List<Double> direct = List.of(10.0, 20.0, 30.0);
+        List<Double> guessed = List.of(40.0, 50.0);
+        assertThat(ReferenceMath.pickHours(direct, guessed, 3, 10)).containsExactly(10.0, 20.0, 30.0, 40.0, 50.0);
+    }
 }

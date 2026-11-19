@@ -34,6 +34,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *  - 본문은 메모리에서만 쓰고, 전재 금지 글은 건너뛴다
  *  - 과목 언급이 하나도 없던 후기는 서버가 켜져 있는 동안 다시 읽지 않는다 (재시작하면 다시 확인)
  *  - 한 번에 limit 건만 처리한다 (응답을 기다리는 동안 화면이 멈추지 않도록 작게)
+ *  - [11-19] 끝까지 자동(startAuto): 서버가 뒤에서 200건씩 이어서 돌린다. 403·429, 남은 후기 0건,
+ *    더 줄지 않을 때, 관리자가 멈추기(stopAuto)를 누를 때 멈춘다. 자동 실행 중에는 수동 실행을 받지 않는다
  */
 @Service
 public class SubjectMentionBackfillService {
@@ -53,10 +55,16 @@ public class SubjectMentionBackfillService {
 
     private final Set<Long> checkedEmpty = ConcurrentHashMap.newKeySet();
     private final AtomicBoolean running = new AtomicBoolean(false);
+    /** [11-19] 끝까지 자동 */
+    private final AtomicBoolean autoRunning = new AtomicBoolean(false);
+    private final AtomicBoolean stopRequested = new AtomicBoolean(false);
+    private volatile int autoRounds;
+    private volatile String autoMessage;
 
     /** 진행 상황 (관리자 화면이 2초마다 읽음) */
     public record Status(boolean tableReady, boolean running, int done, int target, int reviewsWithMentions,
-                         int savedRows, int remaining, int checkedThisServerRun, String current) { }
+                         int savedRows, int remaining, int checkedThisServerRun, String current,
+                         boolean autoRunning, int autoRounds, String autoMessage) { }
     private volatile int progDone, progTarget, progWith, progSaved;
     private volatile String progUrl;
 
@@ -71,7 +79,74 @@ public class SubjectMentionBackfillService {
 
     private record Row(long reviewId, String url, long certId, Integer dailyMinutes, BigDecimal totalHours) { }
 
+    /** 수동 실행 (관리자 버튼). 끝까지 자동이 도는 중이면 받지 않는다 */
     public Result run(int limit) {
+        if (autoRunning.get()) {
+            return new Result("끝까지 자동 채우기가 실행 중입니다. 멈추기를 누르거나 끝난 뒤 다시 누르세요.",
+                    0, 0, 0, 0, 0, 0, null, List.of());
+        }
+        return runBatch(limit);
+    }
+
+    /**
+     * [11-19] 끝까지 자동 시작. 바로 돌아오고, 실제 처리는 뒤에서 한다 (진행은 status 로 확인).
+     */
+    public String startAuto() {
+        if (!mentions.tableExists()) {
+            return "REVIEW_SUBJECT_MENTIONS 테이블이 없습니다. db/10_review_subject_mentions.sql 을 먼저 실행하세요.";
+        }
+        if (running.get() || !autoRunning.compareAndSet(false, true)) {
+            return "이미 실행 중입니다. 끝난 뒤 다시 누르세요.";
+        }
+        stopRequested.set(false);
+        autoRounds = 0;
+        autoMessage = "시작했습니다";
+        Thread t = new Thread(this::autoLoop, "subject-backfill-auto");
+        t.setDaemon(true);
+        t.start();
+        return "끝까지 자동 채우기를 시작했습니다. 200건씩 이어서 처리하며, 진행 상황은 상태 새로고침으로 확인하세요.";
+    }
+
+    /** [11-19] 끝까지 자동 멈추기: 지금 읽는 글까지만 처리하고 멈춘다 */
+    public String stopAuto() {
+        if (!autoRunning.get()) return "끝까지 자동 채우기가 실행 중이 아닙니다.";
+        stopRequested.set(true);
+        return "멈추기를 요청했습니다. 지금 읽는 글까지 처리하고 멈춥니다.";
+    }
+
+    private void autoLoop() {
+        try {
+            int before = remaining();
+            while (!stopRequested.get()) {
+                Result r = runBatch(MAX_LIMIT);
+                autoRounds++;
+                autoMessage = autoRounds + "회차 · " + r.message();
+                if (r.stoppedBy() != null) {
+                    autoMessage += " · " + r.stoppedBy();
+                    break;
+                }
+                int after = remaining();
+                if (r.target() == 0 || after == 0) {
+                    autoMessage = "완료 · " + autoMessage;
+                    break;
+                }
+                if (after >= before) {   // 권한 문제 등으로 같은 글만 다시 뽑히면 무한 반복하지 않게
+                    autoMessage = "남은 후기가 더 줄지 않아 멈췄습니다 · " + autoMessage;
+                    break;
+                }
+                before = after;
+            }
+            if (stopRequested.get()) autoMessage = "관리자가 멈춤 · " + autoMessage;
+            log.info("과목 언급 끝까지 자동 종료: {}", autoMessage);
+        } catch (RuntimeException e) {
+            autoMessage = "오류로 멈췄습니다: " + e.getMessage();
+            log.warn("과목 언급 끝까지 자동 오류", e);
+        } finally {
+            autoRunning.set(false);
+        }
+    }
+
+    private Result runBatch(int limit) {
         int n = Math.max(1, Math.min(limit, MAX_LIMIT));
         if (!mentions.tableExists()) {
             return new Result("REVIEW_SUBJECT_MENTIONS 테이블이 없습니다. db/10_review_subject_mentions.sql 을 먼저 실행하세요.",
@@ -89,6 +164,9 @@ public class SubjectMentionBackfillService {
             Map<ReviewSite, Permission> perms = new EnumMap<>(ReviewSite.class);
 
             for (Row r : rows) {
+                if (autoRunning.get() && stopRequested.get()) {   // [11-19] 멈추기를 누르면 다음 글부터 읽지 않음
+                    break;
+                }
                 progUrl = r.url();
                 progDone++;
                 Optional<ReviewSite> site = ReviewSite.of(r.url());
@@ -155,9 +233,9 @@ public class SubjectMentionBackfillService {
 
     /** 남은 양·진행 상황. 실행 중이 아니어도 남은 후기 수를 알려 준다 */
     public Status status() {
-        if (!mentions.tableExists()) return new Status(false, false, 0, 0, 0, 0, 0, 0, null);
+        if (!mentions.tableExists()) return new Status(false, false, 0, 0, 0, 0, 0, 0, null, false, 0, null);
         return new Status(true, running.get(), progDone, progTarget, progWith, progSaved,
-                remaining(), checkedEmpty.size(), progUrl);
+                remaining(), checkedEmpty.size(), progUrl, autoRunning.get(), autoRounds, autoMessage);
     }
 
     /**

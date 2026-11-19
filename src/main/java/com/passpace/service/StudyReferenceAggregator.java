@@ -48,24 +48,50 @@ public class StudyReferenceAggregator {
         List<String> majors = new ArrayList<>(Arrays.stream(MajorType.values()).map(Enum::name).toList());
         majors.add(null);   // 전공 전체
         for (long certId : certIds) {
-            for (ExamType exam : ExamType.values()) {
+            // [11-20] 그 자격증에 있는 시험만 집계한다 (SQLD·ADsP 는 필기만 → 실기 줄을 만들지 않음)
+            for (ExamType exam : examTypesOf(certId)) {
+                // [11-19] 추정값을 섞을지는 전공 전체의 직접 값 수로 한 번만 정한다 (ReferenceMath.pickHours)
+                Double fallbackDaily = fallbackDailyMinutes(certId, exam.name());
+                int allMajorDirect = loadSamples(certId, exam.name(), null, fallbackDaily).direct().size();
                 for (String major : majors) {
-                    lines.add(refreshOne(certId, exam.name(), major));
+                    lines.add(refreshOne(certId, exam.name(), major, allMajorDirect, fallbackDaily));
                 }
             }
         }
         return lines;
     }
 
-    AggregateLine refreshOne(long certId, String exam, String major) {
+    /**
+     * [11-20] 자격증의 시험 구분: CERTIFICATION_SUBJECTS 에 과목이 있는 시험만 (SQLD·ADsP = 필기만).
+     * 과목이 하나도 등록되지 않은 자격증은 예전처럼 모든 시험 구분을 본다.
+     */
+    List<ExamType> examTypesOf(long certId) {
+        List<String> names = jdbc.queryForList(
+                "SELECT DISTINCT exam_type FROM CERTIFICATION_SUBJECTS WHERE certification_id = ?", String.class, certId);
+        List<ExamType> out = Arrays.stream(ExamType.values()).filter(e -> names.contains(e.name())).toList();
+        return out.isEmpty() ? List.of(ExamType.values()) : out;
+    }
+
+    /** 한 그룹의 후기 시간: 직접 계산된 값(direct), 하루시간 중앙값으로 추정한 값(guessed), 환산 건수(converted) */
+    record Samples(List<Double> direct, List<Double> guessed, int converted) {
+    }
+
+    AggregateLine refreshOne(long certId, String exam, String major, int allMajorDirect, Double fallbackDaily) {
+        Samples s = loadSamples(certId, exam, major, fallbackDaily);
+        List<Double> hours = ReferenceMath.pickHours(s.direct(), s.guessed(), allMajorDirect, minSample);
+        int[] converted = {s.converted()};
+        int[] estimated = {hours.size() - s.direct().size()};
+        return save(certId, exam, major, hours, converted, estimated, fallbackDaily);
+    }
+
+    Samples loadSamples(long certId, String exam, String major, Double fallbackDaily) {
         // 합격 후기만, 실제 수집 출처만(더미·샘플 제외), 같은 작성자 1표본, 최근 3년
         // [11-14] source_id 가 NULL 인 새 출처 후기도 빠지지 않게 LEFT JOIN
         // 총 공부시간이 적힌 글은 그 값을, 없으면 준비기간 × 하루시간으로 환산한다 (환산 건수는 근거 문장에 따로 표시)
         // [11-16] 하루시간도 없으면("3일컷") 같은 자격증·시험 후기들의 하루시간 중앙값으로 추정한다.
         //         단, 직접 계산되는 후기가 최소 표본 이상이면 추정값은 쓰지 않는다 (추정은 쉬는 날까지 곱해 크게 나오기 쉬움)
+        // [11-19] 이 판단은 전공 전체 기준으로 refreshAll 에서 한 번만 한다 (ReferenceMath.pickHours)
         int[] converted = {0};
-        int[] estimated = {0};
-        Double fallbackDaily = fallbackDailyMinutes(certId, exam);
         List<Double> direct = new ArrayList<>();
         List<Double> guessed = new ArrayList<>();
         jdbc.query("""
@@ -98,12 +124,11 @@ public class StudyReferenceAggregator {
                     return null;
                 },
                 certId, exam, major, major);
-        List<Double> hours = new ArrayList<>(direct);
-        if (direct.size() < minSample) {          // 직접 값이 부족할 때만 추정값으로 채운다
-            hours.addAll(guessed);
-            estimated[0] = guessed.size();
-        }
+        return new Samples(direct, guessed, converted[0]);
+    }
 
+    private AggregateLine save(long certId, String exam, String major, List<Double> hours,
+                               int[] converted, int[] estimated, Double fallbackDaily) {
         String key = ReferenceMath.statKey(certId, exam, null, major);
         if (hours.size() < minSample) {
             jdbc.update("DELETE FROM STUDY_REFERENCE_STATS WHERE stat_key = ? AND stat_status = 'VERIFIED'", key + ":V");

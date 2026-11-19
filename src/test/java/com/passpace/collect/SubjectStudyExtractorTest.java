@@ -154,4 +154,43 @@ class SubjectStudyExtractorTest {
         assertNull(find(r, "정보처리 실무", MentionType.HOURS));
         assertNull(find(r, "데이터베이스 구축", MentionType.HOURS));
     }
+
+    // ---------------- [11-19] 학습일지 합산 ----------------
+
+    @Test
+    void 학습일지_표는_같은_과목_시간을_합산한다() {
+        // hwankr 정처기 필기 후기와 같은 표 형식 (날짜 | 공부 시간 | 내용)
+        String log = String.join("\n",
+                "| 날짜 | 공부 시간 | 내용 |",
+                "| 2026-07-28 | 3h 46m | 1과목 소프트웨어 설계 |",
+                "| 2026-07-29 | 4h 02m | 2과목 소프트웨어 개발 |",
+                "| 2026-07-30 | 2h 10m | 3과목 데이터베이스 구축 |",
+                "| 2026-08-02 | 1시간 50분 | 데이터베이스 구축 복습 |",
+                "| 2026-08-06 | 2h 38m | 2024년 3회 기출 |",
+                "| **합계** | **23h 56m** | **7일** |");
+        List<Mention> r = extractor.extract(log, null, new BigDecimal("23.93"));
+        assertEquals(0, new BigDecimal("4.00").compareTo(find(r, "데이터베이스 구축", MentionType.HOURS).hours()));   // 2h10m + 1시간 50분
+        assertEquals(0, new BigDecimal("3.77").compareTo(find(r, "소프트웨어 설계", MentionType.HOURS).hours()));
+        assertEquals(0, new BigDecimal("4.03").compareTo(find(r, "소프트웨어 개발", MentionType.HOURS).hours()));
+        assertTrue(find(r, "데이터베이스 구축", MentionType.HOURS).evidence().contains("학습일지 2줄 합산"));
+    }
+
+    @Test
+    void 날짜줄이_3줄_미만이면_일지로_보지_않는다() {
+        List<Mention> r = extractor.extract("2026-07-28 DB 3h\n2026-07-29 DB 2h", null, null);
+        assertNull(find(r, "데이터베이스 구축", MentionType.HOURS));
+    }
+
+    @Test
+    void 일지_한_줄에_과목이_여럿이면_나누지_않는다() {
+        List<Mention> r = extractor.extract("7/28 DB 2시간\n7/29 DB와 프로그래밍 언어 3시간\n7/30 프로그래밍 언어 1시간 30분", null, null);
+        assertEquals(0, new BigDecimal("2.00").compareTo(find(r, "데이터베이스 구축", MentionType.HOURS).hours()));
+        assertEquals(0, new BigDecimal("1.50").compareTo(find(r, "프로그래밍 언어 활용", MentionType.HOURS).hours()));
+    }
+
+    @Test
+    void 일지의_시각_범위는_공부시간으로_읽지_않는다() {
+        List<Mention> r = extractor.extract("1일차 DB 19:00~21:00\n2일차 DB 1:30\n3일차 DB 90분", null, null);
+        assertEquals(0, new BigDecimal("3.00").compareTo(find(r, "데이터베이스 구축", MentionType.HOURS).hours()));   // 1:30 + 90분
+    }
 }
