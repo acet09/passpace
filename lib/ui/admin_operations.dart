@@ -316,7 +316,7 @@ class _AdminOperationsScreenState extends State<AdminOperationsScreen> {
         children: [
           if (error != null) AdminFailure(error!),
           if (busy != null) const AdminLoading(),
-          AdminSection('시험일정 가져오기', [
+          AdminSection('시험일정 가져오기', info: 'schedule', [
             action(
               '정보처리기사 일정 가져오기',
               '/exam',
@@ -333,9 +333,9 @@ class _AdminOperationsScreenState extends State<AdminOperationsScreen> {
               '보조 출처인 dataq 페이지의 SQLD·ADsP 시험일정을 수동으로 수집합니다.',
             ),
           ]),
-          AdminSection('후기 기반 참고시간', [
+          AdminSection('후기 기반 참고시간', info: 'reference', [
             const Text(
-              '현재 서버에 저장된 후기를 기준으로 참고 학습시간 집계를 실행합니다. 결과는 표로 보여 주며, 개인의 실제 공부시간 통계와는 별개입니다.',
+              '합격 후기로 자격증별 총 공부시간(중앙값)을 계산해요. 학습계획의 기준값이에요. 결과는 표로 보여 줘요.',
               style: TextStyle(color: muted, height: 1.6),
             ),
             const SizedBox(height: 10),
@@ -347,9 +347,9 @@ class _AdminOperationsScreenState extends State<AdminOperationsScreen> {
               ),
             ),
           ]),
-          AdminSection('과목 언급 채우기', [
+          AdminSection('과목 언급 채우기', info: 'subject', [
             const Text(
-              '이미 저장한 후기 본문을 다시 읽어 과목별 시간·비율·난이도 언급만 채웁니다. 새 후기를 수집하지는 않습니다. 새로 수집하는 후기는 수집할 때 자동으로 채워집니다.',
+              '저장된 후기를 다시 읽어 과목별 시간·비율·난이도 언급을 모아요. 과목별 학습량의 재료이며, 아직 계산에는 쓰지 않아요. 새로 수집하는 후기는 자동으로 채워져요.',
               style: TextStyle(color: muted, height: 1.6),
             ),
             const SizedBox(height: 12),
@@ -478,6 +478,13 @@ class _ReferenceResultScreenState extends State<_ReferenceResultScreen> {
                             : '표본 ${adminText(l['sampleCount'])}건 · 중앙값 ${adminText(l['meanHours'])}시간',
                         style: const TextStyle(height: 1.6),
                       ),
+                      // [11-21] 네이버 요약 후기: 보충 건수와 비교용 단독 중앙값
+                      if (adminNumber(l['naverCount']) > 0)
+                        Text(
+                          '네이버 비교 ${adminText(l['naverCount'])}건 · 중앙값 ${adminText(l['naverMedian'])}시간'
+                          '${adminNumber(l['naverUsed']) > 0 ? ' · 이 중 ${adminText(l['naverUsed'])}건 보충' : ''}',
+                          style: const TextStyle(fontSize: 12, color: blue, height: 1.5),
+                        ),
                       Text(
                         adminText(l['result']),
                         style: const TextStyle(fontSize: 12, color: muted, height: 1.5),

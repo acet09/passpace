@@ -237,7 +237,7 @@ class _AdminCollectScreenState extends State<AdminCollectScreen>
               AdminFailure(error!, retry: blocked ? null : refresh),
             if (loading && crawl == null) const AdminLoading(),
             if (busy) const Text('서버에 요청 중…', style: TextStyle(color: blue)),
-            AdminSection('velog·티스토리', [
+            AdminSection('velog·티스토리', info: 'crawl', [
               job(crawl),
               certCounts('crawl'),
               Form(
@@ -314,7 +314,7 @@ class _AdminCollectScreenState extends State<AdminCollectScreen>
                 child: const Text('크롤링 중단'),
               ),
             ]),
-            AdminSection('네이버 검색 API', [
+            AdminSection('네이버 검색 API', info: 'naver', [
               job(adminOptional(naver?['job'])),
               const SizedBox(height: 12),
               Text(
