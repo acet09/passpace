@@ -1,0 +1,16 @@
+.gradle/
+build/
+out/
+.idea/
+*.iml
+# 개인 설정(DB 비밀번호, API 키) - 공유하지 않음
+src/main/resources/application-local.yml
+logs/
+
+.runtime/
+.env
+.env.*
+!.env.example
+*.log
+# 각자 PC에서 관리하는 수집 데이터
+collect-data/

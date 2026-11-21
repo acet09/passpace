@@ -1,0 +1,11 @@
+{
+  "phase": "green",
+  "exitCode": 0,
+  "tests": 107,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "failedTests": [],
+  "database": "verified disposable MariaDB",
+  "originalProjectWrites": false
+}

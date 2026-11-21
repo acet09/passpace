@@ -1,0 +1,3132 @@
+{
+  "team": [
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\.gitignore",
+      "hash": "4dff63905a2158c94e07ee3fd987203ffc6aced6aea8c08a8cec0247efc7c4a2"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\MERGE_NOTES.md",
+      "hash": "ec500d66364ea1a88866eae750f93ebe97c52fb1cdcf40bf95572a3ae75889a3"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\README.md",
+      "hash": "d84f5c49cc607e6543f2597069c7fdb3e93c8cb3d8d5dfe1954570eebfcb9907"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\build.gradle",
+      "hash": "956b14b6a178dcb3569eb3c7088098dc235552c7ddd70dac7f2d3c0a23d8da09"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\db\\01_schema.sql",
+      "hash": "6bd70b10afdfbc95897b54640bd10d91cc65844f2ef71edb101f3c1989b44789"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\db\\02_schema_ext.sql",
+      "hash": "7e63d37c8a007c638f08388d5d21894f33b4b5e116531b0b8249ae1b7f88135b"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\db\\03_seed.sql",
+      "hash": "532b3b878042f57c9f06dea46b6ed45feba11998e365de8fb2047fb9871780aa"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\db\\04_delete_dummy.sql",
+      "hash": "24065f88adf53a9abced4cadcbd276aedbe8282276ad25afe75b05bb81e65655"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\db\\06_projected_2027_schedule.sql",
+      "hash": "5f27096518a32fc254a1993b3ebb8040578185df7a078d58ed41cd81761ecc07"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\db\\08_add_user_role.sql",
+      "hash": "099a9f3a2c60f72a08ce664ef2c4479bd4a25570fbd0794b28c6eba78d250a67"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\db\\09_review_sources.sql",
+      "hash": "4c9ad043206710bedbf5b8547706a0d32166577d417a563f5f4206cf0b79e2cf"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\gradle\\wrapper\\gradle-wrapper.jar",
+      "hash": "7d3a4ac4de1c32b59bc6a4eb8ecb8e612ccd0cf1ae1e99f66902da64df296172"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\gradle\\wrapper\\gradle-wrapper.properties",
+      "hash": "1cd0520711f5dd7978f549f69fbeb387c2ca331d133ac95b2403acc214ef43e4"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\gradlew",
+      "hash": "28d2c82e7f9cca986ee8da10ba939cf9260d682f73936b2b6d2545e35360ce7b"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\gradlew.bat",
+      "hash": "1d297e00bd21de3ace22b4d7f2de1f9dfa858883d66bbf7c1ccbecccec8f4f3b"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\settings.gradle",
+      "hash": "7b118a9a481b5e7546e96758c3076fee297d500e04518ed848975c0e8fe531be"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\PasspaceApplication.java",
+      "hash": "d3a03cc67bc5f178ad5a59d77834352d79b979ac9c435e64ed62cc9700230f2b"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\client\\DataGoKrExamClient.java",
+      "hash": "47f5ca2481940dc9bbf39993e53337b6195d6143948bde657a47f533f8a1f224"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\client\\DataqScheduleClient.java",
+      "hash": "4d299959ae00eaa4b4bb5c05e959cb028aeaddca3b7ccbd42a412374827f215e"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\client\\ExamScheduleJsonParser.java",
+      "hash": "1ad84a2df11fbf0df15c732697c6c6d2078634b70c79e7217bd86fdbba9b8a2b"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\client\\NaverSearchClient.java",
+      "hash": "f253102a7aadb50b5415d948e538275f9ef52053361b551d28dd968ecdbe896a"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\client\\OllamaClient.java",
+      "hash": "cba43e8e27c80f41813c7e9c9d0aaf0059dfe39b32555866ae369f8065e3004c"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\client\\ReviewPageFetcher.java",
+      "hash": "9c3f1353f857b95899e06e4fcf00188c13ce1b7b5cae4401be0e3f1f35ae6d80"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\client\\RobotsRules.java",
+      "hash": "380bb9f924d8d42d99c82ea0b1428c1081bc70d91f85e10d5a6b2f35b9cdebc4"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\client\\TistorySearchBrowser.java",
+      "hash": "7f8c93b25d7778c3ee684ea3ab7aad165266464f8d140b7b7da58e0361a29667"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\config\\JacksonConfig.java",
+      "hash": "712fda447c2128a6e2ff0ca4f0b0b6460fd62c826988d2e64e193374a974e51d"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\config\\SecurityConfig.java",
+      "hash": "70418551667a841e0c41a8218cf834124b09ddd9ddd021068d6f687971e633f9"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\config\\SwaggerConfig.java",
+      "hash": "9d9f38f9594a3a5de099751d4fbe0b2d61e1b175c7b2be239aed9ad06177a345"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\constant\\CollectSources.java",
+      "hash": "f19cd48351cef163df34ca7f1573c1d86fff284ad996657f93aef11c8efc1e46"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\constant\\ExamType.java",
+      "hash": "7a899cdaa2871245ae0d4df67e0606dfab82660ec081dd4a855012b229349502"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\constant\\MajorType.java",
+      "hash": "a1d4c892199fbd0351bf3c637974ae06cda1bdaf45febbdd602c32ae266f3a4f"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\constant\\ResponseStatus.java",
+      "hash": "34d6f4e3658898556e81dd8e24c41f8b7ea61010cadbd3999f137c16c8d0038f"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\constant\\ReviewStatus.java",
+      "hash": "764970f3f18646cbb2fb1930317e4d829b3ed3f07bdff6c8a7ba55192592f129"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\constant\\Role.java",
+      "hash": "aaa9cdc1ffb1a7053c27aede670086815b9819ff235cbcc37d037afe9587df9a"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\constant\\StudyMethod.java",
+      "hash": "090fdce9a4aa31010fff6b33db09d47499b429fc93c9af5ad388be26471694ce"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\controller\\AuthController.java",
+      "hash": "dd4f5dc9d8f33f82651bd8e8a51890ce8c1a44b7309f2e8c4d565b45d84f4f7b"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\controller\\ChatApiController.java",
+      "hash": "ad90500be103c9e09c2ac56e22696779c5ed414d15690b35b27998d69cc38e73"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\controller\\CollectAdminController.java",
+      "hash": "d4600f34322659d76b592758c9974f3f8370859a379c93a5cc64b91612a90596"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\controller\\HomeController.java",
+      "hash": "72b1a482f3d277868a7c80a9ec6579e1763bbe5b0146fc53e96ec6f851b6ea78"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\controller\\MultiGoalPlannerController.java",
+      "hash": "82e814012929ab45c7e61e780953ac728eadeb4c14d99ac89dbaafd45aed76c4"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\controller\\PageController.java",
+      "hash": "2cb3de00c1a3d540dba0f212f16ce1efda40d6a35ec45d1054c377f7d2d07ed3"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\controller\\ReviewBasedPlannerController.java",
+      "hash": "0040ea66145a4ad109bc2aeed3de568b2944dda083b17a69c3a08364093374c3"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\controller\\UserController.java",
+      "hash": "62801a80f7137c9978c742a77244c3fa13b8681c7679046837b4f452b37761ee"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\crawler\\AuthorHasher.java",
+      "hash": "b117925e105ce4f5368f5b18053306440e6cf9775e353739809ade0a0b9b16be"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\crawler\\ListingParser.java",
+      "hash": "cf97b37a605d62f777ffb289d5c0457d3017fb163845e988f624eca915efad6e"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\crawler\\PostPageParser.java",
+      "hash": "20d1fb31e1f502d61b7be5393ee1be81916c2c3e0e35195deb6dd8579e2d4ba8"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\crawler\\RecoveryReporter.java",
+      "hash": "ba20c29707f73e94abd869ecaec2740ad6d56f90b96d4b251be40ae79049aa1f"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\crawler\\ReviewLinkFilter.java",
+      "hash": "98aa7bcb944e5741a3d5b929729aa617a64753312148b1647cdda4a458492e2f"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\crawler\\ReviewSite.java",
+      "hash": "94560b31e66a0afc8e6d530184d0c4c2e4740dc32cf721d87d60e481ed8cce1c"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\crawler\\ReviewUrlLedger.java",
+      "hash": "bbc88e9d564bec45e12142460cb2ffd3264191989e8821c37506b129a30047c0"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\crawler\\SourcePermissions.java",
+      "hash": "c0ae40a70b16b6e505571d157948eff0b29e20e275b3871ab17aef31419a0d1d"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\crawler\\SourceRegistry.java",
+      "hash": "a0a0865223bbf5834bfbd68b38ce723e7961970b744c14ea288dbd800145c18b"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\crawler\\UrlText.java",
+      "hash": "0798b5efe314059ad8c8d36610e63abd7b501975b6d8411f566e79f48609f2e1"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\domain\\ExtractedReview.java",
+      "hash": "29c94ae3e4505495d0f3a58e53a53df37bf9692cd0f732007047e13e54adc014"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\domain\\ReviewSample.java",
+      "hash": "8545fed94f8ca6d37b07e71b5dd570fa03ee4d6b9604733bc6dbc81977dcc704"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\domain\\StatsCondition.java",
+      "hash": "d9838c82e736990d28d8ce8196fa753d8022258b1857d42255edc889d6586ddb"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\domain\\StudyReference.java",
+      "hash": "1a8b4aa19865665756c1e09067218cb30fffcf07f403bc2660076641dac07836"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\domain\\UserStudyProfile.java",
+      "hash": "aa17538b48025d7fb318abf41ffa63c2a33850392f6610898773ccd9e535feea"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\dto\\ResponseDto.java",
+      "hash": "e1875ac09c5556a9609bbb619b95e88228a621dbcfd5abe047e8e1d1da3f7ddc"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\dto\\auth\\FindOneUsersResponseDto.java",
+      "hash": "d2b71fab783acfd9eb38a3ed55b9b3ba8df9df098f46c8f6ecc13809d5f9481a"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\dto\\auth\\LoginUserRequestDto.java",
+      "hash": "c3f57d3503ee1f5b1b8bcb7fa7500b12bfd9ec6d4d1fa0fafc6f1ef3abd4fa69"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\dto\\auth\\LoginUserResponseDto.java",
+      "hash": "b7ccbc7c92d950a40567687043736be0b7cea243b21ebddad7fac6c25ccd077a"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\dto\\auth\\SignupRequestDto.java",
+      "hash": "839f78ab4b2f4e543263b912c451ba13d33228d6043a845f90e4fe2ff5e7a160"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\dto\\auth\\SignupResponseDto.java",
+      "hash": "993cd09ea98d94f52a21a769c6395b064dd2b38adcfe4e608033602a43668bcc"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\dto\\chat\\ChatDtos.java",
+      "hash": "00e0fd9a2528873e026d2534bf683e6ca022518830a7770793149ac852c45760"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\dto\\collect\\CertCountStatus.java",
+      "hash": "2e137024f209b0222be084a63342a3638923ffeca21d03767e9505b47eb268fd"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\dto\\collect\\CollectDataView.java",
+      "hash": "d7f257c0671564e9537de7992c0936fbcc33f83a07c20bb66f56c10b46d6ecba"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\dto\\collect\\CollectDtos.java",
+      "hash": "d0aa31593add8a820ece546098621bfd514703aea47851214a7c11eabe13fcd6"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\dto\\collect\\ManualScheduleResult.java",
+      "hash": "6cbc594a22ed647f916bccd30aef6d032dbff8ac9956e77ef3e0603be90688b9"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\dto\\collect\\NaverCollectStatus.java",
+      "hash": "d67f260399a50a1160d68808694721435c585be3051dbeead8cf5519a22033cd"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\dto\\user\\FindOneGoalResponseDto.java",
+      "hash": "69876cf95f1c90571e3f0d7ff9250d5fbae6eceaee73420659c0b8b627a01fd0"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\dto\\user\\UpdateGoalRequestDto.java",
+      "hash": "26176dcffb0fb524207eb27b8744d27c70fc7f726f73e9ee50d1bc867fc7207b"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\dto\\user\\UpdateUserRequestDto.java",
+      "hash": "62979d8d863155e0e2bed6bf950c992c9b9e59f456975db869c1ceb8db9e18b8"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\dto\\user\\UserViews.java",
+      "hash": "833e9b001ef20ddd61d1450d85cb794c6e08754878429013b5962e89cff04fc9"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\error\\ErrorCode.java",
+      "hash": "6a125b30c28914b73e028e47948affc22fc2ecc6baa1970ed6040a74075e6e51"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\error\\ErrorResponseDto.java",
+      "hash": "bea117e1ef1e8d2c40120285ed7070c85a7449e821db8ae1b48a35f4039082a5"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\error\\GlobalExceptionHandler.java",
+      "hash": "ce9bd124309f1643b68b50b87e5e995d83ae0b0ce3ca51554b7707458f3248f5"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\error\\exception\\AuthException.java",
+      "hash": "96c6003d4a7afa42f4c563fe76875e445f128b0377374214da0eac2bf6684c4b"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\error\\exception\\BaseAppException.java",
+      "hash": "baf410e76d7dc9cbad55b6ff17e5a7aafc3ed82033067432e9fd1f7d01db8ca1"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\error\\exception\\ChatException.java",
+      "hash": "13a67c43c1b6893ac87ec19a63bb1d706edd864e55eb77037142134749f438d3"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\error\\exception\\CollectException.java",
+      "hash": "c46ce89f91c4382fd5f7212ae9653ad450a15b10e5d4b993b4c7a56a18c3910c"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\error\\exception\\JwtException.java",
+      "hash": "8ea28edbf02ccfe6c38ce869aad9ee3886e12b594446b7173a096a32d493405f"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\error\\exception\\OllamaUnavailableException.java",
+      "hash": "85dfbb16eadf41aa509ad41b7b90669f309a0f4ba40e6fe4f0c7de431ec3f3c1"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\error\\exception\\UserException.java",
+      "hash": "cebef881fc7cb77dfa045d93d4e593ce548f0aea392978f750cbbfa29f17449a"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\jwt\\JwtAccessDeniedHandler.java",
+      "hash": "05fbba2f9c0ee7768d63ed1bab55ecf3a5ddd7a5406629d56259843cc79b8aed"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\jwt\\JwtAuthenticationEntryPoint.java",
+      "hash": "b9cb32865f90b91af3f1cdecbe389db4fcea9595f42d93e6650a7decd0de0f04"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\jwt\\JwtExceptionHandlerFilter.java",
+      "hash": "506b91cd3b8309e2782d9654b2d900d91d070e827cb17f81a259cb9b0697fb2d"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\jwt\\JwtFilter.java",
+      "hash": "3ffe50e93be03b6bbfff1cf8ea899c478bbd2b9ecfa3b4567064373292daa3e6"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\jwt\\JwtPrincipal.java",
+      "hash": "26570e92a610bcaf811659e5135ce1469f7404342faecfc75c158a93508fe261"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\jwt\\JwtSecurityConfig.java",
+      "hash": "251198dc83e4c496fc89f66e2719f6ccf94dce44f8174ef8212313070f5c6016"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\jwt\\JwtUtil.java",
+      "hash": "95f3407e144c2518c214ff2dc1c4ba97d682ad7df752c5d3e7eb2d370227d4bd"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\jwt\\SecurityPaths.java",
+      "hash": "5013535db6e0605c19a59532478166c160a9833c9bf909412710ab9c5228e6d4"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\jwt\\UserAuthentication.java",
+      "hash": "a8ded86b65302884471a4819e3574215d3211f09ad8946f239eb60d6afd298eb"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\repository\\ChatPlanStore.java",
+      "hash": "f075e45d2e40c9b8dbb2fc3bf3411bbba49d362cd7b4c4c8f2b545ee08c93fdf"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\repository\\ChatRepository.java",
+      "hash": "ed6f13f7c91586ef9c71875419e61bde2e219a84d2e76c711502ef7190620351"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\repository\\DbStatusChecker.java",
+      "hash": "3cfc848c0fa33b62de2e24108267109e6bdf47ddc579550223f27a2fcd1742b4"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\repository\\ExamRoundRepository.java",
+      "hash": "4151777608729d0e2a5053241cedb34859765aac2e7d745390904f7dca03bdf0"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\repository\\FakeReviewStatsQuery.java",
+      "hash": "aa102c444e021b1a78d4bbda64bf3b677be652da1c1fa30e6fa3333fe54ed31b"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\repository\\GoalRepository.java",
+      "hash": "7141615732a79f358699a1c2e6b9258cceaeed884b97672dfa7d102e64edc609"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\repository\\HomeRepository.java",
+      "hash": "89cad14be6494f3ac9c0fe2e105fa1c6db9435e0579ce6e301aeb5275bfa8070"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\repository\\JdbcChatRepository.java",
+      "hash": "a9a9c8ba5efef283f64721c52dd646d36a047a6b09644696f0eb1e293065a711"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\repository\\JdbcCollectDataQuery.java",
+      "hash": "3f108eb87fdfb3f441c203a5b5de14556f887f9ffc76fa4cc2bab7d9a280a587"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\repository\\JdbcExamRoundRepository.java",
+      "hash": "c8db95be82d04c41121e4d991c011691740bef9d431b134d27a123872c3e2d77"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\repository\\JdbcGoalRepository.java",
+      "hash": "344d8dc915d2d84b26d7701188d931c14a5ad75723fc217818987dd5f8e9b4e6"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\repository\\JdbcHomeRepository.java",
+      "hash": "c960480f9560a57b90dbb9723b0e54a2064be5a70e93ada619390bc8d37a5e8b"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\repository\\JdbcPassReviewRepository.java",
+      "hash": "0ef2632751913eb15a38cb15fb976c77deffe8f8ca8fecae4fd4ae9193ceda9e"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\repository\\JdbcReviewStatsQuery.java",
+      "hash": "e17de82a5cb02293b1fece74757216b246075f3ebd28643aea50ff4fef87e5ec"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\repository\\JdbcStudyReferenceQuery.java",
+      "hash": "ea6d3e69a3900e72eb9af9d61b8dd29213c0926d61f9a5eb80f205a9ec78d599"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\repository\\JdbcSyncJobRepository.java",
+      "hash": "5425ffe378cec64f3190667d32d9000c5791a6d19068b8f9b753595c39559525"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\repository\\JdbcUserRepository.java",
+      "hash": "5314a9aa435514641a62f870cdaa270ce49633f9e61421cd6f13ff0aa0765d5a"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\repository\\JdbcUserStudyProfileQuery.java",
+      "hash": "4fdd31b322987bead3ebf19f5831548f41eae12512a4c4c4e63c5a4fc64cf83e"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\repository\\PassReviewRepository.java",
+      "hash": "56848cc03c3e287173ea004cb65c59dac3dce0a3392a3a45c79c2dc8f44da8d4"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\repository\\ReviewStatsQuery.java",
+      "hash": "68194b3b3c238cda4b1cfaf400032b5f908d64dc3fd0313141e11f548dd528cb"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\repository\\StudyReferenceQuery.java",
+      "hash": "a2634d0b3b5bdc407c412e2050267fe2afad3c08ca477a613a182bfd1821dd6a"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\repository\\SyncJobRepository.java",
+      "hash": "0b18a5c3ba9388603422434e0ad558945141df72eb9a6924d4976b9927eaca59"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\repository\\UserRepository.java",
+      "hash": "904f199c8763d1c56a90b7b6fd4635e69f88109c990fbdc561e71e92a9f6435c"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\repository\\UserStudyProfileQuery.java",
+      "hash": "a329f7ef62c34c3452be8ece496dec0a21a1f2b71218e8b89a449947d9349fd0"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\service\\AnswerComposer.java",
+      "hash": "cd462512796eabd2443549b12dd554002cd196f2fcf96e00016fa8e458fb5246"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\service\\AuthService.java",
+      "hash": "22191d3303edb98e38f02f019e545fdce1a8dc34ac9cbdfdf932663c106924b5"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\service\\CertificateDetector.java",
+      "hash": "a855ab9c50ca91fec2c70b798317cffa427e9e7dad4d2c12db03880ca6f21679"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\service\\ChatService.java",
+      "hash": "e13953d8d48c4695d6627556aae6bea0daf3576b4aa61778fcd1d267cdcdb065"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\service\\ChatServiceImpl.java",
+      "hash": "9f66d362b3c18eb24e57303aea9b119387a75a064549f8998a53faa02e17b8e9"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\service\\CollectRunGuard.java",
+      "hash": "e79ecdf4551621fcfc31b99e9cbe2ec9c6558f4508d3e854caabab750ee0f6cf"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\service\\ConditionExtractor.java",
+      "hash": "fb1894f03c3b865e107541ca1464c27a72d3aa6c0302124d02fee3291f59bd7b"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\service\\DataqScheduleCollectService.java",
+      "hash": "b22764b83797e87370187705ce7df6e4cecb3665f9ffa2d2f7495bc0bf20450b"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\service\\ExamCollectService.java",
+      "hash": "4f529ad839a201406fb9a883331d5390f8e9fbb38f84b7a8e7c06042ce66d56e"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\service\\ExamCollectServiceImpl.java",
+      "hash": "abd15c615eb7e2adb1e7ef1ee7aed49e2e6aa156c7e0c1e4dfdc6022699bf3d2"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\service\\GoalService.java",
+      "hash": "e0199aeef23cbf9b824d682fae6497976c927b8c39895ea08df3188edfca265d"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\service\\GoalServiceImpl.java",
+      "hash": "6151cd374a81322c87ada13cefbbf7dc36ed2df4f551671f40cd5329c5d47629"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\service\\HomeService.java",
+      "hash": "ef6981da6cf000f1af870cdedac98d0c0b76964cfeaf53ec494d04ebdd67feaf"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\service\\HomeServiceImpl.java",
+      "hash": "1d9f46caefe815504e5b9c4f0f90523ef154ea0458e5b731f0c1cff374315ac8"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\service\\MultiGoalPlanCalculator.java",
+      "hash": "46a45fa365f3abbcb98c536b4af49a5b7a16c48d2d17779f025af49e8e17f7fe"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\service\\NaverSearchReviewCollectService.java",
+      "hash": "baa722b06d9199a55416f14006ec27bd274e442c09bf04af128796f27ecf7885"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\service\\NumberGuard.java",
+      "hash": "0f1412458f3f341e1a8c193c8546fe98ea60c6a62ec0dca587ea3a99d0dd3123"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\service\\PlanCalculator.java",
+      "hash": "c505a2eed93bc9616bc3e069774155ccab7d890e865773f62bce5e2a432db0b2"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\service\\ProvisionalExamSchedule.java",
+      "hash": "89439cd17559ea047a8c1ccf828cc738696f2e884c9754331bebb8d0cb954e4b"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\service\\ReferenceMath.java",
+      "hash": "5336308abfb8eda05c5b472d8704475d52b1592b607bac292f6d00b614d2f006"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\service\\RegexConditionParser.java",
+      "hash": "630d8b0f54d3cd6113029bb97984cca62b7a6f81f8ad6b42bdc95715bb303bda"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\service\\ReviewCollectService.java",
+      "hash": "80afa286c133e47eb4dfd96aeaa63f8ea106a39fa159075096c85b36a68a490e"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\service\\ReviewCollectServiceImpl.java",
+      "hash": "d791735d0409925dca7f001acc88ece94318103209b8da3ab01e1f00abd9cc00"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\service\\ReviewExtractor.java",
+      "hash": "c14c6df8e50f607a805b24fd377ff2f074094f80e3f664fd583c1b1bed4313b6"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\service\\ReviewIngestService.java",
+      "hash": "b585813da6729aa402a76295381775d5616f2d780d86f21765e44ecc33bf2282"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\service\\ReviewQualityChecker.java",
+      "hash": "3b76044314ce4dddd07eefe22ab59705848d68c6b1f08583467e3868432589c2"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\service\\ReviewSummary.java",
+      "hash": "2786d3eed0ca973b0be3e04c055561034e34dd587ee18166b040daecc54f0f9b"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\service\\RuleBasedReviewExtractor.java",
+      "hash": "21b8792e06bfc010508a79be202320acfb62d5ee15a045417ac42f86d174eb4d"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\service\\SqldScheduleCollectService.java",
+      "hash": "cb9a6dbe990827d3a9fcf53a5e63e86652ae7f797540bb57f3abee45746f8fe3"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\service\\StatsAnalyzer.java",
+      "hash": "401aa0ca942de9bb49e20a210527627f2eaf339b9bda298a40d79f723651febd"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\service\\StatsCalculator.java",
+      "hash": "6347467e85d3c84f94c975dd30a4595eb1f1ce0e02f977a9df1917246be7ec7a"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\service\\StudyHoursByMajor.java",
+      "hash": "ff37df105950954fc597687afdf1edd77f865bbeb09574f71f5e2b630dfaa278"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\service\\StudyHoursEvidence.java",
+      "hash": "fee58dcb5bfd9cb7fce8b12a75a77ded55bd8fa641d226415c8f8192f461e4e4"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\service\\StudyReferenceAggregator.java",
+      "hash": "a31548375543bf7d25aec074bde84040b9c3975bc5d3ed44f2720b7f8485cbe6"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\service\\UserService.java",
+      "hash": "6dfc910dc1f5576495b54d1e9910fac793fe3cf08a76468586034c1d45b2c94c"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\service\\UserServiceImpl.java",
+      "hash": "b26805ab653ae64ef3c992837e55d37f87841ec75b0a49cf7a9d92ffcc582153"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\study\\JdbcStudyRepository.java",
+      "hash": "3817f9feef48908be760e204ee7e65bf9c04549243412d8a691995986215f812"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\study\\StudyController.java",
+      "hash": "659e93f940556c71ebbdf6afe08afcb3b358c9239fd1a2deeb2810bbae8a26a5"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\study\\StudyDtos.java",
+      "hash": "ec6c44c2dc0b83e64e133ae95bdde0ba84441291e16ea7032f06e5634185bafe"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\study\\StudyRepository.java",
+      "hash": "c15fb86b25f2868ae1fa7b67b76dc235c08ab974f913be1176452e23bfd464da"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\study\\StudyService.java",
+      "hash": "412d18f3e85a7f3a3daedba27c3bb3ed565467f968f6325b5845c5d9ec17b9b6"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\study\\StudyServiceImpl.java",
+      "hash": "cbfd8a572d9b6585ed693c94613a6d31bf9ceae0ff72278c67f17fb2f521a9fb"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\java\\com\\passpace\\util\\ResponseUtil.java",
+      "hash": "f69201fac5dd056dde838e30d1284e43acde09abe73691ee1a47689e5a782c80"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\resources\\application-local.yml",
+      "hash": "4b90377ac2827a906c461f0e867c44693b08044519411f1c9b52ac77099c10b5"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\resources\\application-local.yml.example",
+      "hash": "35a90f5fc3d6c317cc0573563a5f512305f7c18d707fb613894475c6e3564ad9"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\resources\\application.yml",
+      "hash": "edde8bc8ab1375fe8828b79ae7dfd3f1c99fa38509ab45c23a56970e198b2f54"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\resources\\collect\\naver_keywords.txt",
+      "hash": "ceecf76f01e2580fee6c23caa18e01cad635e6c21f66316a37892cb26740f9e8"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\resources\\collect\\review_discovery_sources.txt",
+      "hash": "3535dc236b5577c76089aceb2379ff6a6ece8d26fcaf2af675301cc679597a6a"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\resources\\collect\\review_seed_urls.txt",
+      "hash": "b1fb13e8088db35cda3b6326cc4b68e1b1b228665682926cfa93b3b537c271b0"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\resources\\collect\\sample_exam_schedule.json",
+      "hash": "282a38ecfbdde62d23584fccea9d6ed114eb23161900ba9d396b1fef9c5773eb"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\resources\\prompts\\chat_answer_system.txt",
+      "hash": "3e61ee5b0d070117e68c9828e5d6c39cdcf3715f2ce93c6d6c000b50fd013e42"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\resources\\prompts\\chat_condition_system.txt",
+      "hash": "993371c44ef039e535eddfe4edab6d098a8706e4a6c461752ee0e7cfc18d3ac7"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\resources\\static\\css\\app.css",
+      "hash": "3cae86dedf80619811c6cf0ccfce3b837398a7d988137442276bb96f107ace3b"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\resources\\static\\css\\chatbot.css",
+      "hash": "0b06ba1023824f36ce91d03a272b09a6e8e048856f16c98a5eea454c6591cd74"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\resources\\static\\js\\auth.js",
+      "hash": "448465cf0e999591634cbf14c53d183208a06607e77669dd440de752e7df27ca"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\resources\\static\\js\\chatbot.js",
+      "hash": "fa9c2c10769d42862b3f2386af2d7ee4f617c11666e4f79090a9142e8ff0e82a"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\resources\\static\\js\\mypage-plan.js",
+      "hash": "57ca1009989ff43bf8efda0f3ec2af778238a6f01df46b1d8fd44a6239fdef7b"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\resources\\templates\\collect\\admin.html",
+      "hash": "326e8850c71de637286544971b5ee6eb1368949c8d09a3c5cbded40c78ef987e"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\resources\\templates\\fragments\\chatbot.html",
+      "hash": "27e2eb883036f7b6fa4b4ce89176e13903cecf2dbb0349805d87d5bdce6888ad"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\resources\\templates\\fragments\\layout.html",
+      "hash": "d29a4637221c0ee3e1fdea0fa343c5289eb6a77a6ed9faad00290101c5886004"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\resources\\templates\\home.html",
+      "hash": "f95cdc6644c4f81b9a1655fea6b878e5aa7b0012e89cd12cd43dc125f0059a14"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\resources\\templates\\user\\login.html",
+      "hash": "81aba890a84fc70d2a11665871c57a917af114138146c8394641d2719e6878de"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\resources\\templates\\user\\mypage.html",
+      "hash": "fa56111f1634af2925f0f3328d47267b69a92a28add308d80627ce375decde07"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\main\\resources\\templates\\user\\signup.html",
+      "hash": "4eba18b4f34960396051e166395540896f640b071670e346fa26fa5f67480cb9"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\test\\java\\com\\passpace\\chat\\ChatLogicTest.java",
+      "hash": "3aad6b4a014ccecc326f2a4c5cc55ea8ec3bb2ec2ba799c9d46259e91da26957"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\test\\java\\com\\passpace\\chat\\MultiGoalPlanCalculatorTest.java",
+      "hash": "355243e78e992b461d8f671d924d48a6b59aa062624c3ed6e124d6195789f55a"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\test\\java\\com\\passpace\\chat\\ProvisionalExamScheduleTest.java",
+      "hash": "4ccb3932a29d02a6674cf8cd9ae479a016cf71bc12bc4d04561d079114cec43b"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\test\\java\\com\\passpace\\chat\\StudyHoursByMajorTest.java",
+      "hash": "aaa7b50121d5fb8b25a34115f797e23b0f2793f2f02a1354d4ba7572990271c8"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\test\\java\\com\\passpace\\chat\\StudyHoursEvidenceTest.java",
+      "hash": "6b87bd9b67d3977e4132915ca8ca544e030343c13e980e07d8e8586f50ed001f"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\test\\java\\com\\passpace\\collect\\CrawlRebuildTest.java",
+      "hash": "eb26cb418e2976b6e5ac40dbebd3ef2979f64cdd0944dbfb6e4da2173a6d2ea4"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\test\\java\\com\\passpace\\collect\\DailyTimeRuleTest.java",
+      "hash": "a2a4f8edfbfb81c1ef0d3e13db7567fb4b4ba5f41e9374c15cfc394bcce8c64c"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\test\\java\\com\\passpace\\collect\\KoreanPeriodAndAdminTest.java",
+      "hash": "55a73727f5151fdce03adc60cbc5ab33882cfced1b212c5007c67039aac24acc"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\test\\java\\com\\passpace\\collect\\ReferenceMathTest.java",
+      "hash": "2cd14343b2e0d003ba9bded2f2084e907131873b8fd88c9248387ecd8cb2617d"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\test\\java\\com\\passpace\\collect\\ReviewCrawlPolicyTest.java",
+      "hash": "bbeb089e17278c7e2ae4cf7d68ea93b4f5f99e9b38f31cb50dd48087353000de"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\test\\java\\com\\passpace\\collect\\RuleBasedReviewExtractorTest.java",
+      "hash": "6378c28e3058e7695c548a97ad2346d234bb6fcf22a4f2c2da6ca220ecd1daa9"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\test\\java\\com\\passpace\\controller\\ReviewBasedPlannerControllerTest.java",
+      "hash": "aba318bb49855702426d3e31bc03cb9ac99331f6278d9079b91ddd07adaa6c09"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\test\\java\\com\\passpace\\jwt\\JwtUtilTest.java",
+      "hash": "4651ed8969bdc64082f12228bb82b0631fb99f9e3840d75ea9260a66fd0b670a"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\test\\resources\\collect-fixtures\\noreprint_post.html",
+      "hash": "5517130ea09e575380cf28b6f6eb02868b570659252e9a682a45417d02d47f42"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\test\\resources\\collect-fixtures\\old_post.html",
+      "hash": "2f173c49bce13378fed76c1b70a32d8a6a797219c11e134386da965dda7a3c05"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\test\\resources\\collect-fixtures\\tistory_post.html",
+      "hash": "b1481a74b738aae778cbf84b3efbfeb9915bcb1bc676db7821b7d95e2827242d"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\test\\resources\\collect-fixtures\\tistory_rss.xml",
+      "hash": "6d319a251099e5b83083f44202142167cdde059f461335a06532b0d008e7280c"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\test\\resources\\collect-fixtures\\velog_post.html",
+      "hash": "6b35a5254011d3be64047a42554aed9b489b2658e5658c49351f551bf0fbc40d"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\test\\resources\\collect-fixtures\\velog_search_data.html",
+      "hash": "a9c7f4f317a5262f9f272b097248145a85fda4024fccb2fe29fd50e3fa5ce9d2"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\test\\resources\\collect-fixtures\\velog_tag.html",
+      "hash": "571fa70823561a05c24a5f9b46d95ee8065f205cee808c6a9f8fe921677b9f91"
+    },
+    {
+      "path": "C:\\Users\\std66\\passpace11144\\src\\test\\resources\\collect-fixtures\\velog_tag_data.html",
+      "hash": "8a678db2ad77c944490894ed6f8f4fb1b7ce2de35196900a25b6a08f59bdbf5b"
+    }
+  ],
+  "legacyBackend": [
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\build.gradle",
+      "hash": "71930bcf9046c88272d2b43dacfe811a24c3a9a1a557314284e2c8b7c48e6d6f"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\main\\java\\kr\\passpace\\PassPaceApplication.java",
+      "hash": "e7ed94e12340840bbe2b53337de0cafae9ba0ab64ee1978b726fb4976f0893d0"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\main\\java\\kr\\passpace\\ai\\AiController.java",
+      "hash": "9993df95a8347ae0bd7f6965aa8febc3ae248c3e0b3f53ca9b2566cf9a0e0742"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\main\\java\\kr\\passpace\\ai\\AiService.java",
+      "hash": "1d02848522547ad07e55fa21cb035004e66c58b39aef7a2c9c8d4634454c774a"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\main\\java\\kr\\passpace\\ai\\RuleBasedStrategyProvider.java",
+      "hash": "0066ad3052ec6633dca8e7f1a7b5e0038420aace05436cd1a1a4ddfd7dd47921"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\main\\java\\kr\\passpace\\ai\\StrategyProvider.java",
+      "hash": "df812da14b2ee77af9ce46f837995e1a527c4fcc912df586f62144cfaff29b73"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\main\\java\\kr\\passpace\\auth\\AuthController.java",
+      "hash": "5b855a2a3f57f464342adf0b14df471e9282ed15dd3d11393782a3ffdc1a24f4"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\main\\java\\kr\\passpace\\auth\\AuthDtos.java",
+      "hash": "a22175d405d6c739bbe6b3a74b1a048060ad023c831278e3a91d16ee47b7b040"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\main\\java\\kr\\passpace\\auth\\AuthService.java",
+      "hash": "bed89cf71adfb6a68bd66f9acf1c2d9fc48fe63a621104af1c41d5d41e2f4284"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\main\\java\\kr\\passpace\\auth\\CurrentUser.java",
+      "hash": "4db75aa813a729cdcd52e9ed0bf86fb546ccd0fbff620508033ebf1dc320df74"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\main\\java\\kr\\passpace\\auth\\LoginThrottle.java",
+      "hash": "77ae63d032e969fcb0261a9290aef00f2ca093cf7e8de06b1076b7fc7ee890e8"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\main\\java\\kr\\passpace\\auth\\UserAccount.java",
+      "hash": "e70b8f929d698f73ad36f7f569ad146abf2416df45c69d0f4427487cdaff6714"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\main\\java\\kr\\passpace\\auth\\UserRepository.java",
+      "hash": "853e2394cc14764a2da7188eba93c8c87a251c96aa6a7835cfa1424ec7e20243"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\main\\java\\kr\\passpace\\catalog\\CatalogController.java",
+      "hash": "45296461bab5026f8712ed4def7f2f2cf98cb5cf3ef3e624d83613fee5783d36"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\main\\java\\kr\\passpace\\catalog\\CatalogService.java",
+      "hash": "7d4703e62ccae09fb2d0622df398b4e049fbf06cb312a317cefbaaab7a7dbabc"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\main\\java\\kr\\passpace\\catalog\\SampleCatalog.java",
+      "hash": "e090f99560ba73a3ae01b81373a641634f5df44ee007c94a0dc71f8e7c97e2b7"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\main\\java\\kr\\passpace\\common\\ApiError.java",
+      "hash": "824cb26d51e6097eef583fa65a27d9b87c1134ee305537de6073ecd7389f8e41"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\main\\java\\kr\\passpace\\common\\ApiException.java",
+      "hash": "54d77133b5a0673c76ab715c1110f484265c69fc99d8e9331c3403c81a25cdbc"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\main\\java\\kr\\passpace\\common\\ApiExceptionHandler.java",
+      "hash": "0b0b686a6c0cc30b4d0a7b6358ee172c873ebc16bf74517338567a0ba58e4c3b"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\main\\java\\kr\\passpace\\config\\ProfileConfirmationInterceptor.java",
+      "hash": "bc5ff4681f7dc9100e42e5efb92895dedef50f5d8890308eaa63005f7d30b536"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\main\\java\\kr\\passpace\\config\\SecurityConfig.java",
+      "hash": "d471bb888567a1e66b00a0fa1d9354ca5ff08e181a61c14990022242126ac5d0"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\main\\java\\kr\\passpace\\config\\WebConfig.java",
+      "hash": "ac73885b40a03c5b0af692ba617b5bed196ae23aac61ed4e7c1972f26e68abfb"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\main\\java\\kr\\passpace\\data\\DataController.java",
+      "hash": "72ba9757013a54eb546143e18a950a2c67ebdb4fb7d1f939063bd0b609a8f0cb"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\main\\java\\kr\\passpace\\data\\DataDtos.java",
+      "hash": "b662ddd08e21c409a275d1b6a88fe1390ce5dec965228cd4bab3652eedebe3fa"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\main\\java\\kr\\passpace\\data\\DataIngestionService.java",
+      "hash": "000f9b8482f7857fe2a50d95396d4364c0c970a164b3cc5edef6a3e45952d395"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\main\\java\\kr\\passpace\\data\\DataService.java",
+      "hash": "af1fd425563fa12645b366c0f853910d5c5aa00ce9bd9ee6bbac65f823973397"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\main\\java\\kr\\passpace\\data\\EngagementController.java",
+      "hash": "20bb864a8d7b04b34566f6ffb712c36209eea28a2d8b3f516f6a48e9d2f8e4c5"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\main\\java\\kr\\passpace\\data\\EngagementService.java",
+      "hash": "304a72120094d96ff9f782842daf4a8ac98778be1e7580deecc4511f682ded07"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\main\\java\\kr\\passpace\\data\\ReferencePolicy.java",
+      "hash": "517024a764f07089665fa7dbc37813d554beea2e14ad10c8864cc5cdde3c887e"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\main\\java\\kr\\passpace\\data\\ReviewEvidenceService.java",
+      "hash": "99f0ef2bc3f6118befa88038dba3a9c9aa9b1297a8fcbe6ad93b05441a4bc9f5"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\main\\java\\kr\\passpace\\goal\\GoalController.java",
+      "hash": "3fedb4d3d8755ad03fa717d4422b79fdfd5b3319e3c7a4f8f5f6edab22a5e8f0"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\main\\java\\kr\\passpace\\goal\\GoalDtos.java",
+      "hash": "3a91e06f641df429d3c63fa3c6ed7ee4a5c610cd2e74cce95c372c32cbd62107"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\main\\java\\kr\\passpace\\goal\\GoalService.java",
+      "hash": "85980646cb1286e150b18920cde8be5774518d39fbc150a47bfb1eed1fe51324"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\main\\java\\kr\\passpace\\planning\\AvailabilityController.java",
+      "hash": "146e0a9db541c2c1beeaf1d32cb63870e500fd94baac92aeb8c673a94bf2a46b"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\main\\java\\kr\\passpace\\planning\\AvailabilityDtos.java",
+      "hash": "2d22f81076be892e89103e9fb5233fce840157950d20d6d1efa599fb51491234"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\main\\java\\kr\\passpace\\planning\\AvailabilityService.java",
+      "hash": "5b7cb31983e0ca4985b6e87e27caf6f6352e2f09d8d2a46b88d4caca9b55a409"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\main\\java\\kr\\passpace\\planning\\PlanComparison.java",
+      "hash": "41705e056876540d3ca78ce908bb728e7d310e2228460c9b73264167b789ebb0"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\main\\java\\kr\\passpace\\planning\\PlanController.java",
+      "hash": "122cfcabd1552df90e54faaf3907a4a85257c9cf9fc6863b270b024214ac69ca"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\main\\java\\kr\\passpace\\planning\\PlanDtos.java",
+      "hash": "ee283ac1dd2b9e2800124838e350fc99bc720d3fc0107af987dac6e545fb8e38"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\main\\java\\kr\\passpace\\planning\\PlanService.java",
+      "hash": "d63cd0da73b4826c3461206a1f98b6c99255dfdc269cac07866cfcdeeae3867b"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\main\\java\\kr\\passpace\\planning\\PlanningEngine.java",
+      "hash": "8d2120c15accc5adac59c48dd7bd8bdd2379ff8d485549a11adce6ee7607ca16"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\main\\java\\kr\\passpace\\planning\\PlanningStore.java",
+      "hash": "c8d0b2d5873955b04a74fd81804899c7df3e3a1ae79c11d172e972d5ed329fe6"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\main\\java\\kr\\passpace\\study\\StudyController.java",
+      "hash": "99f1be53feb8a862e7ceb88f4086751c192b6d995bb91ee9f125f1cf0db50214"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\main\\java\\kr\\passpace\\study\\StudyDtos.java",
+      "hash": "a84e23d4595aed07349b41b930978c8521624e2397a66f726a0616dfff08d752"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\main\\java\\kr\\passpace\\study\\StudyService.java",
+      "hash": "83250f099e62a2a2c114540991f7165d9be324c08f94a789d6060f66fa818805"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\main\\java\\kr\\passpace\\study\\StudyStore.java",
+      "hash": "803bb9124ddfe3b775f0c5b7e080debb6a8cab85c6813869a355b4a117bf4030"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\main\\java\\kr\\passpace\\study\\TimerMath.java",
+      "hash": "a5afbc0bf230ab74fb1e6a1625ccc188d341640fbed796e21b389f3218afd761"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\main\\resources\\application-prod.yml",
+      "hash": "f8d1fd6bfbc44e97748d62dc5f0e4b4334ef8a4c76226ef138c332348bcdaa8a"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\main\\resources\\application.yml",
+      "hash": "ca91127ce201fb4a97b43b31b3a4c71887df1cb3806cc1b660f5bfb83a9c55bf"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\main\\resources\\db\\migration\\V1__users.sql",
+      "hash": "e2d7f7f4d060b8bcce339be07bf6d2ea2e327df586125126343ebdba2606f467"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\main\\resources\\db\\migration\\V2__planning.sql",
+      "hash": "768b4707388e97b3d8b2633d61b87c2737ca40535b95a603275752ec018baa3f"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\main\\resources\\db\\migration\\V3__study_ai_data.sql",
+      "hash": "3147b90b182a8d60b71e7d3e6c274497b840803e43f506a4eca70204613acc42"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\main\\resources\\db\\migration\\V4__goal_lifecycle.sql",
+      "hash": "21123cdf9a16ba1ee0a61fc8c4c6c59c6d65f3f4a26668ab27a0e129feebc8ab"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\main\\resources\\db\\migration\\V5__review_metadata.sql",
+      "hash": "94dc39a2895185f5623ccf766bf84a3e3d53daadbbaed3190243f7351e6f0204"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\test\\java\\kr\\passpace\\ai\\RuleBasedStrategyProviderTest.java",
+      "hash": "ebc3aff91061b990ea780fd94696e25daa6a0d8cf0682f9dcb447634cb8f8bf0"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\test\\java\\kr\\passpace\\auth\\SecurityIntegrationTest.java",
+      "hash": "178932a161801c0c5764c697a46ca80a265ea1fc1b136c4a10daa1cd5322495d"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\test\\java\\kr\\passpace\\data\\DataIngestionTest.java",
+      "hash": "b98f66ec3a589be82ca7649c84ebe71357ef3a4c0fb28ba0fefb8a39968962b4"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\test\\java\\kr\\passpace\\data\\ReferencePolicyTest.java",
+      "hash": "53d44b927b0b1d5ea61c19df10f08aa65ac424537cec2dc95ba9963cd7be2413"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\test\\java\\kr\\passpace\\data\\ReviewEvidenceTest.java",
+      "hash": "6cd9f87d5e002797404d4f98376dba4a0b15a3ac290592b03105bd665238bf34"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\test\\java\\kr\\passpace\\planning\\EngineSmoke.java",
+      "hash": "157eaefb4a8ccf80877448883c7258acfb2574cff95527f26b6726efca1161ad"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\test\\java\\kr\\passpace\\planning\\PlanComparisonTest.java",
+      "hash": "5622c07461fdad97ab5d694cb0b0e65532370620f17afac5541576f0faff650d"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\test\\java\\kr\\passpace\\planning\\PlanningConcurrencyTest.java",
+      "hash": "efb62a3cf11d5cd5b3f8c1f32cc7fef584b3c06dd14c673cb076ba40d667525f"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\test\\java\\kr\\passpace\\planning\\PlanningEngineTest.java",
+      "hash": "a777aa7b8ba2e8d4e2673c1dc72c04737dc47379a221569963d977e88f535468"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\test\\java\\kr\\passpace\\planning\\PlanningIntegrationTest.java",
+      "hash": "ae857df6c7a10a174ec28103f09b05c3cce0c2afff878aa6ff66df2af4a53507"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\test\\java\\kr\\passpace\\study\\StudyServiceTest.java",
+      "hash": "35508ff6f52293ac877308575b162c580fe7aa2eb31b21c530dd9050a99427e8"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\backend\\src\\test\\java\\kr\\passpace\\study\\TimerMathTest.java",
+      "hash": "94dcfbd350ce3e4799063f460bef6b7a787e40c56257e36e751a89fa3d4da837"
+    }
+  ],
+  "app": [
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\.flutter-plugins-dependencies",
+      "hash": "99b24a7f6552ef49cf71cb768f85b08e20280ba3a7e5010febe92739aa54453e"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\.gitignore",
+      "hash": "0581d23086f7283dc97d2d5bde4f60724f8115f67baa76949596790ab9800dd7"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\.metadata",
+      "hash": "efc9d830c3d630092d3c8bc4c749c4586e14b9de6d3003e763d1bebe5e7bd923"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\README.md",
+      "hash": "2812344a934c3ba09abaa2693d6b9047d056ee0406cf58a3b18fc3a5f1f6f0e9"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\analysis_options.yaml",
+      "hash": "81326dc8eb2ce39eb2e00ed1a5e44b692aae9ae9bcec15e6e131f0cac213e4cb"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\android\\.gitignore",
+      "hash": "c9af75dbc2c8aa867476a09426c80b178c4aeed8b9393ae48503eedfa3273d71"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\android\\app\\build.gradle.kts",
+      "hash": "a9c5cadb4fd52228e3ed5972c02b214aff786acc5f9250259680317e5eb92f42"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\android\\app\\src\\debug\\AndroidManifest.xml",
+      "hash": "deac96526f6932d2b66805b086a1320fd9de66b3d6ee43da60ada2b81a7437a9"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\android\\app\\src\\debug\\res\\xml\\debug_network.xml",
+      "hash": "de79d163fec3adec27cd74713e1a663d45a4640e3d8401cf65685126b93c8793"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\android\\app\\src\\main\\AndroidManifest.xml",
+      "hash": "60e2dfcdfd9dc3e9bdb2da0181047ccc529ab916ff7866e90f31903393301aae"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\android\\app\\src\\main\\java\\io\\flutter\\plugins\\GeneratedPluginRegistrant.java",
+      "hash": "9ce33bef2e1d640e5e31a1b28c464d9005520e0074acf867a748fb6fe5f59ee9"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\android\\app\\src\\main\\kotlin\\kr\\passpace\\mobile\\passpace_mobile\\MainActivity.kt",
+      "hash": "72c66d3e1db8b09fb69eff31e98a41f3f24b90dde191296966ae1e6efa798f1b"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\android\\app\\src\\main\\kotlin\\kr\\passpace\\mobile\\passpace_mobile\\StudyTimerBridge.kt",
+      "hash": "6d3a466363e696f417d7c6f22ad5bd3cfa875c56bca620f5a91b733f59cd33db"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\android\\app\\src\\main\\kotlin\\kr\\passpace\\mobile\\passpace_mobile\\StudyTimerService.kt",
+      "hash": "84b15c6dfc309a6bef9324a8a327c8222dbdb112e89aada668374e6b54a4ea2d"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\android\\app\\src\\main\\res\\drawable-v21\\launch_background.xml",
+      "hash": "dca312ec77de83e43ef70a825c299b51451247286c29167d62f19165750b8793"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\android\\app\\src\\main\\res\\drawable\\ic_study_timer.xml",
+      "hash": "8a9b58aa727f750b1993a678a8476254a29305efdd87e4673a89b85955202bd6"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\android\\app\\src\\main\\res\\drawable\\launch_background.xml",
+      "hash": "2df60e2cfbee873ce2858088cf003e6b93498f2f568476da437610467ea1a9d7"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\android\\app\\src\\main\\res\\drawable\\passpace_icon.xml",
+      "hash": "b00096ae934f1e9c172ea55701f7158c13d9ec1384b49e3d73498c1bf168a733"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\android\\app\\src\\main\\res\\mipmap-hdpi\\ic_launcher.png",
+      "hash": "6a7c8f0d703e3682108f9662f813302236240d3f8f638bb391e32bfb96055fef"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\android\\app\\src\\main\\res\\mipmap-mdpi\\ic_launcher.png",
+      "hash": "c7c0c0189145e4e32a401c61c9bdc615754b0264e7afae24e834bb81049eaf81"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\android\\app\\src\\main\\res\\mipmap-xhdpi\\ic_launcher.png",
+      "hash": "e14aa40904929bf313fded22cf7e7ffcbf1d1aac4263b5ef1be8bfce650397aa"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\android\\app\\src\\main\\res\\mipmap-xxhdpi\\ic_launcher.png",
+      "hash": "4d470bf22d5c17d84edc5f82516d1ba8a1c09559cd761cefb792f86d9f52b540"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\android\\app\\src\\main\\res\\mipmap-xxxhdpi\\ic_launcher.png",
+      "hash": "3c34e1f298d0c9ea3455d46db6b7759c8211a49e9ec6e44b635fc5c87dfb4180"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\android\\app\\src\\main\\res\\values-night\\styles.xml",
+      "hash": "ea763597dc1a84c8034251caee98d7753e0fbf57340ffc94677427de4b537516"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\android\\app\\src\\main\\res\\values\\styles.xml",
+      "hash": "cca15a99b59380a548bf6a890f7ca5380ee509b1f9bbb2f5f9ec3589fa25c2f7"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\android\\app\\src\\profile\\AndroidManifest.xml",
+      "hash": "b01a4541a8144c15bc617bab7eb267c99fa1476368fbbda5a12cdbf4e316a34c"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\android\\build.gradle.kts",
+      "hash": "218f400e3fff31c9c986a2535dfb974560e1b4d33cc27b7c1fee96a2b7e44454"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\android\\gradle.properties",
+      "hash": "7714698de712a7872e371f0dbae626c255fc83ac1c15e52e7cd9fcaa241b5092"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\android\\gradle\\wrapper\\gradle-wrapper.jar",
+      "hash": "16caeaf66d57a0d1d2087fef6a97efa62de8da69afa5b908f40db35afc4342da"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\android\\gradle\\wrapper\\gradle-wrapper.properties",
+      "hash": "594a00250ef7a36609a01f3263bf5ed63963afaf9ca9f82f2cd1de0f6f056383"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\android\\gradlew",
+      "hash": "ec56c02543666d92d9ac5ae7fcc48f88ce4de0deb8b7f9b39928ca46f68c1b2b"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\android\\gradlew.bat",
+      "hash": "c13c6e91b9a517783976de213d46398c661ea9e17651376d7301e839eaedcc62"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\android\\local.properties",
+      "hash": "01e61f101bf8b1b5e468389db74c47f81221959425f8fc7ca93ef41c706b5a19"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\android\\passpace_mobile_android.iml",
+      "hash": "c8e0091edeca4e766e9dcf948e59c86a0427381fb5e31768ae396eedde5f1dfc"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\android\\settings.gradle.kts",
+      "hash": "092ba880c8d4a07591aafc082f45deedc9afcf60c113a4bb3d13cbe1a1fce9de"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\admin-entry\\admin-profile.png",
+      "hash": "a5bdc4a0662d39580d0d170c5c2ca2399c2b9dd3fb72adcba5f8fea11dea0923"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\admin-entry\\before-calendar.png",
+      "hash": "2f9e179b3ad41bfe7d1adefc920f585880bd8efd9134ec10e2c495bde240d172"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\admin-entry\\calendar-empty-day.png",
+      "hash": "c49759112a3338e001a821e2c586b6202200438f95f611d9d71cdf340c47c4d0"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\admin-entry\\calendar.png",
+      "hash": "3dbfd32a710857aed1d30978ac0e19b4c312ae396ba235800f9165bebf2628e8"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\admin-entry\\index.html",
+      "hash": "ade0b32592df4034423244e21e792ef61d9925872cc08e1dba1d71441a969306"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\admin-entry\\plan.md",
+      "hash": "bdb06cef734762d4b47f687207568c9a8f2284327d7bc6ea0868b69b97adb7dd"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\admin-entry\\report.md",
+      "hash": "d2e940171ae0d1929f0aee2c12833566d3ac38a3cd60c681b27d7e3b017baf35"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\admin-entry\\scope-verification.json",
+      "hash": "6ba23c58ec16a2406dcb0ffcdac37f6ad8ab27b179e2da6f7551f2fe2e6c72fe"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\admin-entry\\test-run.txt",
+      "hash": "02b0a1f8657311da626f1611c37e2a533e6744e824d65474b34e6d597a526154"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\api-contract.md",
+      "hash": "0097a27c081b7fae619913126a3f17eaa06a50c894dbf2f8e5615178628e7f2f"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\backend-integrity.json",
+      "hash": "b6a0fac07f629426fa52f88ac70e41899ed3360af92211f3ba57f4769f09e394"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\chat-reply.png",
+      "hash": "dd0cbcbf047dcc1fd27742b4123b9c4d4eca56e2ca687c9a818e0f51da401717"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\chat.png",
+      "hash": "6954d4856c67b218b640e530a2a60ccead6fb339f4e982bd8cea7672b29ac2d0"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\choice-intro-fix\\analyze-run.txt",
+      "hash": "61ea3301ff050318c66ced4ddff8c0573fc970f4d0e32467e911c9f601ced647"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\choice-intro-fix\\android-run.txt",
+      "hash": "0b4591a2646a428f92522a8271d947af3c77d4eea27531af104a562521361c68"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\choice-intro-fix\\apk-verification.json",
+      "hash": "fa715bdd4a9e74986ee154026caf31eadb4e1ee39a4a9ac2e421888d295b1fd0"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\choice-intro-fix\\build-run.txt",
+      "hash": "536e59b15e2c31bed4b356c7b0ae0a419bd7c135039536f3b6b53de0503fa1ea"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\choice-intro-fix\\dropdown-before.txt",
+      "hash": "d8eb24ed34fccba20913a9df9e04cd87aec76e32f2a1d6320475e82d2b00dbe3"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\choice-intro-fix\\index.html",
+      "hash": "b7e6106cf8220f965e42a6b162a03f43ad2cb238d5bd77030b708d35fde6cbaa"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\choice-intro-fix\\intro-before.txt",
+      "hash": "5f701a111b98cef9fbe5b01551865805d7e8719484d2e98aeee7e84d40b5cde0"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\choice-intro-fix\\report.md",
+      "hash": "f2fe84e6e2d6e5faf1151dc09b5dfdf58039a7096f9bb64738573d1639f5c5e8"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\choice-intro-fix\\runtime-verification.json",
+      "hash": "6b68c07be9b8c0700dbb2ae04b279ce3e3a4153ee99b630d1ffc23957022fde5"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\choice-intro-fix\\scope-before.json",
+      "hash": "afe0f5a023cc728049393cb5ec9e450d7ec706cc779646f334caca4883c77cf4"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\choice-intro-fix\\scope-verification.json",
+      "hash": "7c6d7c04ff5b917121ba29df89f6133397677e52892cc7fa6ca4a366d1ecc15c"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\choice-intro-fix\\screenshots\\after-login-intro.png",
+      "hash": "a5f3aa22f9e002a0e9ea88742b27f12bff883a94781c356a819650b6996180c6"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\choice-intro-fix\\screenshots\\after-selected-values.png",
+      "hash": "f02fb79a944e4ba3d24b806f08628025c4451a92bd23e841899fb135486396e0"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\choice-intro-fix\\screenshots\\after-site-menu.png",
+      "hash": "ed984df5c065574a751689972a87fd75fad0d06c078819f46da294e1881c2b72"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\choice-intro-fix\\screenshots\\choice-before.png",
+      "hash": "612cdcecd5fb1870c5bef17e39c4977ab88f4514b4c5f48a7874ddff17eb23b7"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\choice-intro-fix\\screenshots\\intro-before.png",
+      "hash": "80637271099679920ce31cc09a746466fd831653004872e3b273ebab51608286"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\choice-intro-fix\\target-test-run.txt",
+      "hash": "07a8d8903a7db09f6348416274b51a3f00ec6c9d171a2cc8c21a3682fd046149"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\choice-intro-fix\\test-run.txt",
+      "hash": "f636d3938468bf6bb16dce7d3eff88e0adacef337b9fa645642724500b0319dc"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\choice-intro-fix\\verify_scope.py",
+      "hash": "8bdee32b7b398a06318c3532e11ee99f6dcd01f67a766555e5a9f8fc752b83f9"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\comparison-summary.png",
+      "hash": "139af00f3bb298caa85535043fa6707e047685d5c8fb7ac45715237aa1a0f5b9"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\comparison.png",
+      "hash": "f77b52832ed5b866ef7c8b9eb23772b1b1639038b75abc4f796744858a650d1c"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\entry-polish\\before\\goal-saved.png",
+      "hash": "96ce893cf1461c6f630efd716a3770dfdf7b2fd7912787ab407ee3b7cb13418e"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\entry-polish\\before\\login.png",
+      "hash": "c599d4e6e5289f144df2fa0a08f1ad678627fdc5e5da9c37890a0d2b9d2cf843"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\entry-polish\\before\\plan.png",
+      "hash": "7b308b21a4d8f1be33cbf23a052a27d922557dbb5e88415f6c76b17ff327d5ae"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\entry-polish\\goal-saved.png",
+      "hash": "9adf721ce34c313aa8ef289b7889117837720c343e86145570afd89f7bd29c8a"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\entry-polish\\index.html",
+      "hash": "3eb744305e7c678298031dc55615b3e470546b7825833dc370208083d7bc78df"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\entry-polish\\login.png",
+      "hash": "80637271099679920ce31cc09a746466fd831653004872e3b273ebab51608286"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\entry-polish\\plan-collapsed.png",
+      "hash": "6834b78e64354096ede89ef7b38269852854e33145f64589e2ce9104276eb363"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\entry-polish\\plan-expanded.png",
+      "hash": "e68c1deafc00fa9d43e561e8be22242c9438a404a76b009b0d639f89625a9e11"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\entry-polish\\plan.md",
+      "hash": "4c927d0c9727ef594c011f69b0ecc29854accc059be047b87c270a87a175b356"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\entry-polish\\report.md",
+      "hash": "e5b921310f846c4631f0c09ca0c0f855095cd712c06831e7c044429007bae874"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\entry-polish\\scope-verification.json",
+      "hash": "8f5904194a681b0ec0f4574930591ea1992b590dc17c70f5f96e45e7ef8f761a"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\entry-polish\\signup.png",
+      "hash": "b97d16c386f290ee1ad618d85f441329dadaab7c6610bcb8ddc2aa2d421afcd7"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\goal-saved.png",
+      "hash": "96ce893cf1461c6f630efd716a3770dfdf7b2fd7912787ab407ee3b7cb13418e"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\goal.png",
+      "hash": "5fa4dcde6bdfdaa2289fc4efb5def2415d5ef73759bc3bbaab3dc034ecf58dae"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\home.png",
+      "hash": "1514fe2cbc84029a30f1229e17e4fa3ab6b228c3c5a266f1f949ba9f3ef2e4bf"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\learning-plan-hub\\before\\goal.png",
+      "hash": "065897ed38532e2b9af896677a14bd5ab972a668e136066179cb83a4eebb0233"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\learning-plan-hub\\before\\plan.png",
+      "hash": "bee4831aa31d8b9d14dff450020b77ba839de8f3b10f36673e485e1f0c823e7a"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\learning-plan-hub\\before\\profile.png",
+      "hash": "232d0544806a0066c42ad6aeabbd140f55bffcf99163282f8d660c565f976c34"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\learning-plan-hub\\chat-reply.png",
+      "hash": "dd0cbcbf047dcc1fd27742b4123b9c4d4eca56e2ca687c9a818e0f51da401717"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\learning-plan-hub\\chat.png",
+      "hash": "6954d4856c67b218b640e530a2a60ccead6fb339f4e982bd8cea7672b29ac2d0"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\learning-plan-hub\\comparison-summary.png",
+      "hash": "139af00f3bb298caa85535043fa6707e047685d5c8fb7ac45715237aa1a0f5b9"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\learning-plan-hub\\comparison.png",
+      "hash": "f77b52832ed5b866ef7c8b9eb23772b1b1639038b75abc4f796744858a650d1c"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\learning-plan-hub\\goal-saved.png",
+      "hash": "96ce893cf1461c6f630efd716a3770dfdf7b2fd7912787ab407ee3b7cb13418e"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\learning-plan-hub\\goal.png",
+      "hash": "5fa4dcde6bdfdaa2289fc4efb5def2415d5ef73759bc3bbaab3dc034ecf58dae"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\learning-plan-hub\\home.png",
+      "hash": "1514fe2cbc84029a30f1229e17e4fa3ab6b228c3c5a266f1f949ba9f3ef2e4bf"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\learning-plan-hub\\index.html",
+      "hash": "8a1115c8d80d6fe89ba06939622576e56eab663454ac2ac1fd407e81579c3c40"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\learning-plan-hub\\learning-plan.png",
+      "hash": "942bd7101597a037cdc5e8622b8f7dae73c6d2258d4af59d13226779aecf823b"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\learning-plan-hub\\login.png",
+      "hash": "c599d4e6e5289f144df2fa0a08f1ad678627fdc5e5da9c37890a0d2b9d2cf843"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\learning-plan-hub\\plan-exams.png",
+      "hash": "849bbbaac8d310cd45a65c3f4f80fd272a8b120391459cddae17807cfac1a58d"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\learning-plan-hub\\plan-input.png",
+      "hash": "a600b5fb5227935b9ef37991993f89555a5bfc68351442a3177395528bc47a6f"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\learning-plan-hub\\plan-time.png",
+      "hash": "355c28f80bcee013f24bd2f274e95fe6de8003c5844f10a30ae220758cf6ea82"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\learning-plan-hub\\plan.md",
+      "hash": "d56dc567c946ca2407b14c486310357ed57eeb44c5bf45f72c994ef0fc523363"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\learning-plan-hub\\plan.png",
+      "hash": "7b308b21a4d8f1be33cbf23a052a27d922557dbb5e88415f6c76b17ff327d5ae"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\learning-plan-hub\\preview.png",
+      "hash": "fb90ee079bbd1351cd8c1bd0cc1ba85539e748cac99e3270f4fe212d295f0c1e"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\learning-plan-hub\\profile.png",
+      "hash": "f644f36a8a49c1811f33a118cbf3cb06cb6bf9b0e2980de86a0d3bfbf823edfd"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\learning-plan-hub\\report.md",
+      "hash": "2a1e38c08577c090f78fc5112e70dcee600f5604ed482d7dfbfd2ba03c195724"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\learning-plan-hub\\scope-verification.json",
+      "hash": "06a5cffbbbcf4b180386bbb188467e33a650d6ce1845f43cff766e9871b7328e"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\learning-plan-hub\\signup.png",
+      "hash": "b97d16c386f290ee1ad618d85f441329dadaab7c6610bcb8ddc2aa2d421afcd7"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\learning-plan.png",
+      "hash": "942bd7101597a037cdc5e8622b8f7dae73c6d2258d4af59d13226779aecf823b"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\login.png",
+      "hash": "c599d4e6e5289f144df2fa0a08f1ad678627fdc5e5da9c37890a0d2b9d2cf843"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\native-admin\\access-test-run.txt",
+      "hash": "61d92bacc73cb1c62a61d684711a1846ea3a11352fae8de45593371959119e24"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\native-admin\\analyze-run.txt",
+      "hash": "61ea3301ff050318c66ced4ddff8c0573fc970f4d0e32467e911c9f601ced647"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\native-admin\\android-run.txt",
+      "hash": "1e1096588e37f78244dd643012af008bb3e4eb018f377f7b02cc1067d67a429c"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\native-admin\\apk-verification.json",
+      "hash": "24f92d1b2c7658a9574a63ffbcf9c17a3e3788243eb5600adfb5543dded8a3c4"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\native-admin\\build-run.txt",
+      "hash": "3472dd7512e55216e99eccab124b7ac7fadad6c8e29112943e8e76a7b549075c"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\native-admin\\denied-before.txt",
+      "hash": "d4164bc97d62d75f89765842075fbdbbf2d221b4b348795753f26c9e139be63e"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\native-admin\\index.html",
+      "hash": "3b7323d5e9e37099061ce20999cd00f8705338739bbb8e97f356ed0aaf6e2b47"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\native-admin\\live-android-run.txt",
+      "hash": "eea546bb716f37593a218d592fde0beaca16301fa10fa2b46fc21cfa43764ec0"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\native-admin\\live-captures.json",
+      "hash": "3eba6efbd1d47e6b93355e4524dca5a2a61a2cf38cdc704c8884fef50831e431"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\native-admin\\live-result.json",
+      "hash": "2dda46b80b26f9ed11229b5fd65e0729b73f977cf60b9f6d3931c50ed48fb36e"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\native-admin\\plan.md",
+      "hash": "79e06d057dc5e8bd0e5577f41387abb24b52d509ac792405c683f6a130068b13"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\native-admin\\report.md",
+      "hash": "31b30e8c24bb361f3121dff229f01aa4b3bbc953d2711251468750a96f137db4"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\native-admin\\runtime-verification.json",
+      "hash": "11c2ee5d0bac9e164c03cc873d1bf6269bffe43d405ccc26e3e5f9429817de88"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\native-admin\\sample-captures.json",
+      "hash": "064da652614601740f629fcc1ded5c3623327e8d4a0ec46015be3e482d6e757d"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\native-admin\\scope-before.json",
+      "hash": "48f1a5ec89229e8776742eb29d3db252f8e82ca02ed9a342b7bc7ea161569f50"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\native-admin\\scope-verification.json",
+      "hash": "1efb8f9eaf8db5eb3f2682e69a07ee335b6c6c1616adc2004016517f1093c440"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\native-admin\\screenshots\\admin-collect.png",
+      "hash": "16242e856966796141e2c8d396eeef336438169d823ee0e6f610ed0c481278ad"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\native-admin\\screenshots\\admin-error.png",
+      "hash": "7fe5ff71e2b72aeadb7dacf545bf45a97d9ae4599be1fe1bf89f4582ba41e9a9"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\native-admin\\screenshots\\admin-home.png",
+      "hash": "d2bd343ebe1597dcefc8ed54030f725ffd0f540eb262cdc0a46b0b8933e864f7"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\native-admin\\screenshots\\admin-profile.png",
+      "hash": "b76f3fe3726794ecfbc535306f8935e08e66bc2bd2f25930fc4bb173d074be79"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\native-admin\\screenshots\\admin-reset-confirm.png",
+      "hash": "ece278dc8dce727098734b7f38e0cb70de65a19dc17ab9d4093c6561dd68a4c4"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\native-admin\\screenshots\\admin-review-detail.png",
+      "hash": "ada6524c5b7e5cfb7ac66d53d2b18d7970b619a4b31fe675ccbd0e8088c4f031"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\native-admin\\screenshots\\admin-reviews.png",
+      "hash": "41a41f34800f321b99379ab275bfa7072d1d6e10806fe5e43185e79bb66cd457"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\native-admin\\screenshots\\admin-running.png",
+      "hash": "6dffd0728818594466f6ebdff24b0894171f78ff8d00abd6e3a8578c0eb4ad1c"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\native-admin\\screenshots\\admin-schedules.png",
+      "hash": "43c3d011179a1d4c9724a176a455244f7a1aa62d6eb341a9e679a020941839bc"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\native-admin\\screenshots\\admin-sources.png",
+      "hash": "03e5acea5f4c323cc2bd24300e2700771776325cc24048e1ee3f0581e918cf2b"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\native-admin\\screenshots\\live-admin-home.png",
+      "hash": "a1a658f73a243bcd75651cebe9fb85e290a6081b4ebe6e492abab175cde5cd68"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\native-admin\\screenshots\\live-admin-reviews.png",
+      "hash": "36e5026183eb06f6efaa47f5ffa664459f8e9586571bbb001971a2d4ad37e2e4"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\native-admin\\test-run.txt",
+      "hash": "0bb02ed894bd22d897129277c7e1db354d1e3f18b4c609ffd0ded90c9d435ed8"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\native-admin\\verify_live.py",
+      "hash": "e1cf0c830ded8d527dd0797d2947a194ab526b37fe2b465866920a232fd37980"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\native-admin\\verify_scope.py",
+      "hash": "182de0857e7f3f9d4270dcae2664d74d362e899e3c5310aeb94b4acb397779af"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\native-admin\\visibility-before.txt",
+      "hash": "663819b171848452bb7030e61f9b8c5291914809db8443092679ebbb4fe1bb1f"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\native-admin\\widget-run.txt",
+      "hash": "0746bd626f4f420acab16316f12b0d0a6e194f0af27781e05f30ace591fdb98d"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\plan-calendar\\empty-day.png",
+      "hash": "eead19a951094e684614d14cf3d9b5ca5251fbbdc91ccd69788d6f4996764e13"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\plan-calendar\\index.html",
+      "hash": "bf8c34ef6a29875f52390934fcb45a41e21bfa87883da9497d089694512e46f3"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\plan-calendar\\list.png",
+      "hash": "2ac0c5e4b32674ecf325849845949316f0f2c3de2ddc677b71da8e638a9bc73c"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\plan-calendar\\month.png",
+      "hash": "2f9e179b3ad41bfe7d1adefc920f585880bd8efd9134ec10e2c495bde240d172"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\plan-calendar\\next-month.png",
+      "hash": "82edc017dbe63c825294f7e62859929c9bcccb72fb785a7144ce3b068836720b"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\plan-calendar\\plan.md",
+      "hash": "5ed431a03d39bcc36988933c1bfe616663841194c40ea7be2a1b24003bb6cd2e"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\plan-calendar\\report.md",
+      "hash": "d7675ab0e07f3dc0826b950d4d14f0c48de960efcf8a87392025c21529f66d52"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\plan-calendar\\scope-verification.json",
+      "hash": "190b081d8aae19c0bc345a12d231a7cdf6329ab101c6c2bcebff2baa3bd32d36"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\plan-calendar\\test-run.txt",
+      "hash": "551ba754ee748aeaf54fb9b416e584ef632e05254cba211eb6dbbe2de119bc82"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\plan-exams.png",
+      "hash": "849bbbaac8d310cd45a65c3f4f80fd272a8b120391459cddae17807cfac1a58d"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\plan-input.png",
+      "hash": "a600b5fb5227935b9ef37991993f89555a5bfc68351442a3177395528bc47a6f"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\plan-time.png",
+      "hash": "355c28f80bcee013f24bd2f274e95fe6de8003c5844f10a30ae220758cf6ea82"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\plan.png",
+      "hash": "7b308b21a4d8f1be33cbf23a052a27d922557dbb5e88415f6c76b17ff327d5ae"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\preview.png",
+      "hash": "fb90ee079bbd1351cd8c1bd0cc1ba85539e748cac99e3270f4fe212d295f0c1e"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\profile.png",
+      "hash": "f644f36a8a49c1811f33a118cbf3cb06cb6bf9b0e2980de86a0d3bfbf823edfd"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\signup.png",
+      "hash": "b97d16c386f290ee1ad618d85f441329dadaab7c6610bcb8ddc2aa2d421afcd7"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-actions\\analyze.log",
+      "hash": "240fa51269c686555ceffbabd1e45e913c2d696054ded41bad87ae7d53a25e1b"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-actions\\android-first-attempt.log",
+      "hash": "c2cfd3febd356fcb4d29b720730268bdd3550cdcd469fb51a732f0963be911eb"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-actions\\android-result.json",
+      "hash": "02c0e9fd23adf459d89ac43284165c86656c0082047d7c5ca820754246dbc514"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-actions\\android.log",
+      "hash": "4c85b68497dbc200badb18b35cdf577fa2956c387e8719a14df5f94978107f3d"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-actions\\apk-build.log",
+      "hash": "8ab7a58e38926b5dafd904f08e85d152deca36457ab761b219434d9b53f3cfac"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-actions\\apk-result.json",
+      "hash": "f7cd6288848fd701a819b0785841de30ef00a911282e9ff2ee635a13225fa621"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-actions\\fixture.log",
+      "hash": "82817fbad1cef8fe29a01ad0471da2034493d0ded73a1e0159274593b349904f"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-actions\\flutter-all.log",
+      "hash": "20f52bac084b279e670d8aaa5201463343f2a9c8ba15774a52b30dd82a809152"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-actions\\flutter-feature.log",
+      "hash": "cf0af421f58a5fff5d4235a927f1954b3d9bfaff26c2e842bdc6b16c4499c940"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-actions\\flutter-red.log",
+      "hash": "285c5fece934b73ba23f1586d0ba4f692d124c153d0399db493f9645749d703e"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-actions\\http-result.json",
+      "hash": "bd68f8e941571f0289cb4e32df1a49f4310ff68b734252e4fc4b8e625bbfdd77"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-actions\\java-green-result.json",
+      "hash": "a6ae4b96ab8c0dd43517afdf71bfadee167911e7da1bf21b8d2178af56458a7d"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-actions\\java-green.log",
+      "hash": "7744b719efb7cb1c531802618f76b3be3460b7b5b499f22ffbe84f49ed60fb21"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-actions\\java-red-result.json",
+      "hash": "2cf853128ae5445c8e8516ef8ff50ccd72f4dfbc977cf1ddc5822413fc541a05"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-actions\\java-red.log",
+      "hash": "b8b1dc6f205b5e20cf0a7ef8730c0e7ca18d9862d188db103de03973bd200ba4"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-actions\\live-control.json",
+      "hash": "bd14af3e298a58e23a917c3da8fa9a89cad073c2250727e1fee2c64368e8999b"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-actions\\plan.md",
+      "hash": "c48f4ca120fc530a24aac98f973f81b87aedb4b85fd8ca67427e21a34cc88723"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-actions\\postman.log",
+      "hash": "da907fc3510480039b1f03c15a0256d7c3fd8c71946413cb15d24e9db13c3c7b"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-actions\\runtime-result.json",
+      "hash": "7b2a02d2a8d2ffb3ec5395f0a7cb0832aaab5a0a976b80e4f55acf7c220ebf57"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-actions\\scope-before.json",
+      "hash": "5144fadd5a4a43f25ad00e92e6c53902ef3860ff533729145818f75bf96e2122"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-actions\\scope-result.json",
+      "hash": "5c0f8b0a2bf346b282ab84918052b879a0250cb61fee7a8c317986648f2bba7e"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-actions\\screenshots\\live-actions-after.png",
+      "hash": "789f0fcf609e9466f86a24673818d527ca621cefbaaab8605be831b48659b968"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-actions\\screenshots\\live-actions-before.png",
+      "hash": "6379b3e3fd28837a8d08604870b0c73425d927962b72836785afcb57306fe91c"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-actions\\screenshots\\live-actions-choices.png",
+      "hash": "3951232fe38dda74d3d581196d1b4e950f5a777633eae8eb786cb695e6976486"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-actions\\screenshots\\live-actions-delete-confirm.png",
+      "hash": "ef84acd3be15e3179e8f0cdd195c7256d6ff32db7c0b7a5d78cbb06e480a0713"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-actions\\screenshots\\live-actions-linked.png",
+      "hash": "9111773d06d1b995e5e6210465a3f816532be6069077d187805a961b70fc3f8b"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-actions\\screenshots\\live-actions-statistics.png",
+      "hash": "05f32c8db75d82184c8e6d1d1fd9e1c3e3c229d33d1101d92a11eda2dfa8002b"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-actions\\server-result.json",
+      "hash": "db4cfaba25a72d751f34088a2e1ddd262c788727378cb274d5141cb5bf67a3be"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-actions\\server-start.log",
+      "hash": "35c5393305d8af7430ffb303e403cc5df9356cc5cd515ae7d7d653d35e95d7f8"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-actions\\verification.md",
+      "hash": "190fdc1992954e3d7b16b6508487f238fb26424dec0695294bd3f64380bb02f4"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-actions\\workspace.json",
+      "hash": "95507bf410a49d19a15957e37c7ea4b8681a398a7db2d39cf025d2dc25d6e412"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-api.openapi.json",
+      "hash": "2b043d6c320f8e0f871fac00970b37f112fe915d1844e888063a3b8c1acb4d1a"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-edit\\analyze.log",
+      "hash": "f93271ac0e850a23134f9321158283ad30da0c955800303b9249f7a65e1b34e7"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-edit\\android-drive.log",
+      "hash": "d38b96b6338b215e25e254539e006a61a4a9ebf803b0fb230bbbf5df28f43bf6"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-edit\\android-result.json",
+      "hash": "48f3f0888ad0bac12e57169d608bd4a012cf899657556262040dfb896e078011"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-edit\\apk-build.log",
+      "hash": "a2e5440c8f9482bc8d32e3479d39350e4741dda4f6b1a16a8c6e873d6fcb412b"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-edit\\apk-result.json",
+      "hash": "f2b2d27b12f0eb39eb343be32b70a3c95659bc2e5c74806e3282a7783c92329d"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-edit\\flutter-all.log",
+      "hash": "6932219da1b9b8a291c4a1a0dcf96447b45c5de44982f2e1aa57c4fb2096741b"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-edit\\flutter-feature.log",
+      "hash": "974184edf029a14417367fdac46085bec5e28ed8c1e1db031a78c62d24cd2513"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-edit\\flutter-red.log",
+      "hash": "9117bdfc35a29fd5d29f47b137736df64cd7cec7c13b2e0325e15ce7f4193228"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-edit\\http-result.json",
+      "hash": "0b15c2c17a6d9ffcd7a75b061283264053dc2eb5dbc5173ef65e7d93a3e7fd83"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-edit\\java-green-result.json",
+      "hash": "bd6866d881b71cf2a8ce75649a985c372e28b0923ca16b8952dfd2fa75c43b8f"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-edit\\java-green.log",
+      "hash": "1a62c613d02490baa529e5ffb3e14ac374540137e52868707c9d08df1daa674c"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-edit\\java-red-result.json",
+      "hash": "658de6cfdf59ff50077f78f4b07d42382981127d887baaa26e45d5f614542e00"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-edit\\java-red.log",
+      "hash": "b7a3125263e43ce7ee0a02e34e2bc8dc1d00959e3f61ef510c0450897f0c3fe1"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-edit\\live-control.json",
+      "hash": "c6f281a9058522248dfdb7c9c90353937ff0125e91ff033edaafb9b526d593a3"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-edit\\pagination-red.log",
+      "hash": "2b4742d4468506d8d0d989a7e7a99958b1aa6703f90b1f3ec6f584583ddda144"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-edit\\plan.md",
+      "hash": "fe04b1c6818e5d3739f306f2dcd69623900c5bcc97201784a208d5a61d4fec9b"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-edit\\postman-status.log",
+      "hash": "678de12ec566a4cfe2f9ca936b970a0ecd7d8939fe4c57526bfeaf2128b97aa5"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-edit\\postman.log",
+      "hash": "2e2bc8bbeef70fdccc5d60fc33e1d96837ee5f71870969e36281e0851401061e"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-edit\\runtime-result.json",
+      "hash": "0569240b2a90239192dd38a6e9cfed1007761413ff712d3fa2f28ebe2ddb4ad5"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-edit\\scope-before.json",
+      "hash": "f267ad000e34c0961c7ad12bdc2f1e509c220e6374417154600769d32ff013d6"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-edit\\scope-result.json",
+      "hash": "d8c2276643561825589a33438fe9debd789235e682f96c2c21a3589ac40583c5"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-edit\\screenshots\\live-edit-after.png",
+      "hash": "bea70706aa40d9024dd4209c91d05e6f1a0aa1c53a1556727123f16e47f09035"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-edit\\screenshots\\live-edit-before.png",
+      "hash": "d3b573e9fe8dfc51b9035469d71392ee6b3273efc29658d28c605021bf8bc7e3"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-edit\\screenshots\\live-edit-input.png",
+      "hash": "072d21582d6f885075356de8dd87d8c54577f8f04dbcbae0d4ea68162a1d4311"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-edit\\screenshots\\live-edit-statistics.png",
+      "hash": "dfc96043c91e14f40d62ab3d55b3fdf8a076c731fa577d1bcd5e4b270d429521"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-edit\\server-result.json",
+      "hash": "dd8445135259b7b1318bfe4542389ca00ea5c0869175ceba899c8193ee7e82bc"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-edit\\server-start.log",
+      "hash": "3037cf0301dba273ccc153b9affe796388005321080629b916fd7807a588574c"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-edit\\verification.md",
+      "hash": "95db0db09fafbc332cf4be9ff3dc4503b948c07d6539ff27af37d9d5112293e6"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-edit\\workspace.json",
+      "hash": "ef6d20e2d8aadc20be1414399efefa65c0ea4a0530439378bf847abc0f855bd7"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-records\\all-tests.log",
+      "hash": "017ed48ccfb67b44722ec876d287b612209b71ffc2ae82ed7165d2001a4c7144"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-records\\analyze.log",
+      "hash": "f93271ac0e850a23134f9321158283ad30da0c955800303b9249f7a65e1b34e7"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-records\\apk-build.log",
+      "hash": "954c45ab6d793b6dca54dc787409650640eeeb1b15b99777d7fa2020af954f69"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-records\\apk-result.json",
+      "hash": "5d6b26d1a552b8afa3defc7681192eae1ac8a49f073732d56fa8fac4ef1b5668"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-records\\baseline-test.log",
+      "hash": "71474c21b2e2c64c90fb938206f33f6696969ba98f9f3751444adf4881adbb43"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-records\\chart-touch-red.log",
+      "hash": "7861619337f80a0622b94b4f17698374a1b33a080ff1980d1784f6c0bd968606"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-records\\date-resume-red.log",
+      "hash": "5d1bf40fb783eef6bccad01a63b0dce15f19f7299e2ee7d1d475decfe0983a0d"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-records\\feature-tests.log",
+      "hash": "a27e98c437d75764125c218e75f6485fd8e2ef634a0b817f824d39254fee9479"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-records\\form-account-green.log",
+      "hash": "68d69ca931d82675eac88e301aa0e6f51ee96a0a6a3d3f493e5365566842374a"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-records\\form-safety-red.log",
+      "hash": "37fc0cfce33b709e9e4e6996c985000552a001f7fa1e7980e36a26cfdba27855"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-records\\green-navigation.log",
+      "hash": "e053a724349f6778f20643994f7063be58602942931269bafae24414895e487b"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-records\\live-control.json",
+      "hash": "f3a272a69d6b344c3b84683a7756f6d8edbb44ff127e537bbb02872b7c460d4b"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-records\\live-drive.log",
+      "hash": "617aff1566d3ad1f716acbca7cdfeac2e921de606445176b8851b5da69c03a03"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-records\\live-result.json",
+      "hash": "bc6e2c62298e09f551ee0ac70c1dd8c9afe631f89dff7b906efcbdbf828dd814"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-records\\plan.md",
+      "hash": "88ec236a6313cd62c898c396e277ec9b28177f7872e4628f3f79a15312660f63"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-records\\red-navigation.log",
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-records\\runtime-result.json",
+      "hash": "9cd290eaee6b4d0193d3f4f704b6695567efd0b7317ad5fdc387c09808873c66"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-records\\scope-before.json",
+      "hash": "ce34fc5f178bfabbb0eff4a6d23bc421516fe43b9c08f59c0dbdab965307aa8a"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-records\\scope-result.json",
+      "hash": "c1eb99bae0ad46a7788edf174d64f1d2735b04e3b1f9b904e861bb5626f9690c"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-records\\screenshots\\live-study-bars.png",
+      "hash": "1fa80a2210533b0b8025f3450424f4ddb768f7774158b94a55bd008b71452305"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-records\\screenshots\\live-study-history-before.png",
+      "hash": "3ed21e04a2afc09c121f2464683b16d674bcb119c3bd21fcc22ba98f94e9f8b4"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-records\\screenshots\\live-study-history.png",
+      "hash": "eb06285ecefe63444165a956f76db2a96451e638a28e15e580ec4051e796fd72"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-records\\screenshots\\live-study-input.png",
+      "hash": "8a600b8dbddee6b19e2f2553ec71c89f80450b5b798fe9a798b97bc6e11d0d90"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-records\\screenshots\\live-study-line.png",
+      "hash": "730b1a1c6677b1631412bd87aa993d240e79c805e2d89d9c8ba49b4c6107c1de"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-records\\screenshots\\live-study-month.png",
+      "hash": "145cdbe91b688b2c2b106724dee37a92980a1f43115fcab5a63de1c1a4e8ef56"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-records\\verification.md",
+      "hash": "5e3127bb3e3d546794511aaea5c74bf5912cb4dbd5db0f7e0c9b97af3df47128"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-timer\\analyze.log",
+      "hash": "162fd72b720e4cbdf4feb6071f977697bda27ff599618208090d8cd6818ec24e"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-timer\\android-first-attempt.log",
+      "hash": "aca91cc0db8b076cb8af0698bfbfedee97ec21b100b760e23d4c0770e33fa16b"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-timer\\android-result.json",
+      "hash": "6e6b19b030549f33a08336d561e8c3a5f61d1a7aed7f33216c181cf98dc5b280"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-timer\\android.log",
+      "hash": "82b39b2316cedfc135ec1edd6a57d015cf6196e7a0b8a4b4fa65d0a43736aa68"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-timer\\apk-build.log",
+      "hash": "f8ae0bfdeaf7c8fe2f368e581879fec8c821c3a13964b3d05e8cc22e26c2c79d"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-timer\\apk-result.json",
+      "hash": "80d85a10808b91d094e82f2a6155c73c660cd3ce924a5e6c9103f5e9a8fab8c9"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-timer\\corrupt-red.log",
+      "hash": "ec75fb09eb6122f356dc2565412b3a8bda409fecf2206b1161095e274a8d3825"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-timer\\daily-bar-green.log",
+      "hash": "2316a20244014d1cc5eb79b005c40f86361580beba6968e9f095eaad5b9c12ae"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-timer\\daily-bar-red.log",
+      "hash": "6713afc63c06be0e0d570078c78092d36414d7f1fe89ed010db051be52696687"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-timer\\fixture.log",
+      "hash": "82817fbad1cef8fe29a01ad0471da2034493d0ded73a1e0159274593b349904f"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-timer\\flutter-all.log",
+      "hash": "0d9950b7cc405e0895f21b3ca28505db03fed192bd3d1b652d3559ff1603dac5"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-timer\\http-result.json",
+      "hash": "0b15c2c17a6d9ffcd7a75b061283264053dc2eb5dbc5173ef65e7d93a3e7fd83"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-timer\\live-control.json",
+      "hash": "f79680da4855a6d1de2f9e988e9ee014a1f2e88aea93cd61d8efdf8751f5133b"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-timer\\plan.md",
+      "hash": "a6a2ff77640c41e9825c0340d37fd3177b35819668bf111f1839c233145682ad"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-timer\\postman.log",
+      "hash": "aaa4e7cd58f578081066362583a5b61cd63f75b563ff9bd54b4e3f4c5ba1834c"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-timer\\records-regression.log",
+      "hash": "ce7c00a5a4bf2e1b68bfe96d63c716d02ba8ed2dd676258436fc570a7c781043"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-timer\\restore-retry-red.log",
+      "hash": "1d2004744d923ca0b7f6f1924d419c4b84bea6a0a7b07c5600970f45407dbbdc"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-timer\\review-green.log",
+      "hash": "3160e23f7b363e507fa23a4395ebe19bd2df344fd79fd23897ac685e41606827"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-timer\\review-red.log",
+      "hash": "74badec3ec11329358796a1c3b3a3b13edee2f2bf8bfccc97dc1834261b6b3df"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-timer\\runtime-result.json",
+      "hash": "a4c17d675ca162eb408cc75a35bf2e89abebcba926c67adcad160bda97c27ac2"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-timer\\scope-before.json",
+      "hash": "de0140ce30f29fc345f24bc6261e8fb7c0df38739cdad32b5f6ea3343d592498"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-timer\\scope-result.json",
+      "hash": "e2d44468cd84450d14d683c477b13d9b0f7310a1c54dc207a784d94318e82ee6"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-timer\\screenshots\\before-statistics.png",
+      "hash": "05f32c8db75d82184c8e6d1d1fd9e1c3e3c229d33d1101d92a11eda2dfa8002b"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-timer\\screenshots\\before-subjects.png",
+      "hash": "3951232fe38dda74d3d581196d1b4e950f5a777633eae8eb786cb695e6976486"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-timer\\screenshots\\live-timer-daily.png",
+      "hash": "0256b226816164225b77bffc897730c1231d219f55a69147ddc96f9fd8f6c862"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-timer\\screenshots\\live-timer-paused.png",
+      "hash": "707fd46ba327ac1043f6ff32a8a168853f303299c43ad86965741f2a72454ad0"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-timer\\screenshots\\live-timer-records.png",
+      "hash": "cc7e07070b88bdb031f3b413f78a85d9849ca5f1ee7f8760d559d1ef41f71a73"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-timer\\screenshots\\live-timer-running.png",
+      "hash": "31335f866cf8b72377ddfaa2c2ace35c9012b3c471f1cb18b9e2859992c028c5"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-timer\\screenshots\\live-timer-saved.png",
+      "hash": "1375b3564aad12e72004327844518ebe78c2a7d7ddf26e25de1f631ff8bf9f56"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-timer\\screenshots\\live-timer-subjects.png",
+      "hash": "142bd77c2a0c4238108cda999456df6d878679d883a983ea7b219c5366570c6f"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-timer\\server-result.json",
+      "hash": "bdf6655f6b7c5604abb022eca2611a0f8359f2ff548d2b4a4c4a49bafb7bf666"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-timer\\subjects-chart-green.log",
+      "hash": "99fc4ceb8ccc070de4aebf573a38808049980355c686532e779f100ff77249cb"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-timer\\subjects-chart-red.log",
+      "hash": "c6a78b22501dca13bd3967632f021e5bab3f6bd0aa91122bae06881e824db4fb"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-timer\\timer-green.log",
+      "hash": "a178a861bd0927d2fd5f7a127a100525fc8049f8fe086e192539b9b5509d6b6b"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-timer\\timer-red.log",
+      "hash": "ab52b093883bac1645ca91e7e629536ec1ff4c20e07d76a02c43f7d85fd4bef9"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-timer\\timer-screen-green.log",
+      "hash": "254f2c12592765093ba2fe292bed0f37cd7110b697d109966baea667bd5ee843"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-timer\\timer-screen-red.log",
+      "hash": "cafed6c058568ff8a1de6a74d15479164e7a1ab6d24f3ee04f9ccc89af64cad0"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\study-timer\\verification.md",
+      "hash": "94d73937d13f0a17ff77bb9566f3ff523db0428bbd2622cdbb9b1f714125194b"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-cumulative\\analyze.log",
+      "hash": "162fd72b720e4cbdf4feb6071f977697bda27ff599618208090d8cd6818ec24e"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-cumulative\\apk-build.log",
+      "hash": "2d4933e12983a8b44671ef69c82115337cb8d00c73e44a1d41426281acd3b35c"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-cumulative\\apk-result.json",
+      "hash": "05b33309431e5460e828379f913ebe3ce9b79884b927d1bd5aaa57f24b44fd18"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-cumulative\\flutter-all.log",
+      "hash": "0c41a9791488cbdfb06644f500d81cabe102d29f755b70c156f340cde9d638f1"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-cumulative\\git-before.txt",
+      "hash": "bea812f21d010ed468752d15923e50d1f4d05478640b866c09617e57457168ee"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-cumulative\\green.log",
+      "hash": "555948843491bec5579ad4a0edfa13d4b25413989a5fa5bac291e6c9a81c8519"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-cumulative\\lint-fix.log",
+      "hash": "3358b4ed8fdc5a5400caaba7734d426d95e615214a836827606028d23b1c4a9d"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-cumulative\\plan.md",
+      "hash": "a4432a908beb6670d4f40b55f50578ea733516cf8dde4e248ad39b105126434c"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-cumulative\\red.log",
+      "hash": "13d3e8fa2b753d67e6e913a961ce06201c05c07c6f8ed539a9651f7e1409b9f3"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-cumulative\\review-red.log",
+      "hash": "c658820d882175d9c5bb9366359fbfb33c20b084d0b81153a0559fe86e9f976c"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-cumulative\\runtime-result.json",
+      "hash": "1ed92ebcf874c9af01676dc3c72dff2ff174f29c048eef4e5348536e6e4116d6"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-cumulative\\sample-android-result.json",
+      "hash": "4f70859dd62c7ec6af2688c404ef91e9fdf237cada73a186397c9cc4c3543a7f"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-cumulative\\sample-android.log",
+      "hash": "ddc5fcc8ac240724ccc408c1fe79c059299a762d4ae6cfca8cac42ed0eb82cbb"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-cumulative\\scope-before.json",
+      "hash": "207595700ce5b309416c08be26df73233807ac26d8b9e45a9dc2f6d3caa7627b"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-cumulative\\scope-result.json",
+      "hash": "1930b242ab4df166d26a5b3bbcc34179caa0cf3c508bdccfb22e2f48377d8332"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-cumulative\\screenshots\\sample-after-first-save.png",
+      "hash": "f3774d000c506d674eed7e34eae9b5f0e77f187b839d1e69b3fc289b596841b2"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-cumulative\\screenshots\\sample-after-second-save.png",
+      "hash": "c215c0dd5dcacfe9da7abfe349c05988e2ad8565b188a715be2fee6823c76a33"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-cumulative\\screenshots\\sample-cumulative-round.png",
+      "hash": "852c5576a1d3918fe5d72fcd073d6845463424a940aa2607513f59e311184174"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-cumulative\\verification.md",
+      "hash": "761a763b2a28138a964830652bd1d6edb8e297c1d637b78d30aea8e37794c5a6"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-navigation\\admin-preservation.json",
+      "hash": "7df5434be87664ad8f048aa028ec34083872533e9d50b13386c54b8980d885cc"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-navigation\\analyze.log",
+      "hash": "758188aa77629e49430519b66cb210b3adcf8892cc37112900c9e78875ac4925"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-navigation\\android-build.log",
+      "hash": "f19dcf08460ed18d9d561a4284e41920133500af0b962e64bf76e5334f0de3df"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-navigation\\android-first-attempt.log",
+      "hash": "3aa1a8949b1d3fbd861be14aacea97f11a1e1bb625124fb1b11b02e442d8f3fd"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-navigation\\android-result.json",
+      "hash": "e69cb5c38cce83c8e5de5e98f1f2dd25543bda3e721d4dcee738fc0dd6b8b87a"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-navigation\\android-second-attempt.log",
+      "hash": "0bbeb5889772f983c9bdadcfbdcf9e28cd52697c382d1d59d1af6f7e516a591f"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-navigation\\android-second-result.json",
+      "hash": "6cd315c8534c95bbd206f5febeff82f2141656b2ec537bbe3ac68809a167cbb0"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-navigation\\android-third-attempt.log",
+      "hash": "a97c16ec2147d729944e58ab49aab20f8468c79ae5b993c42a549bfd106f2ad1"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-navigation\\android.log",
+      "hash": "66c4b64f1cc9708af8502bf919d5523a4dac3ad1a4dd450899d5340247ea0591"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-navigation\\apk-build.log",
+      "hash": "8ab7a58e38926b5dafd904f08e85d152deca36457ab761b219434d9b53f3cfac"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-navigation\\apk-result.json",
+      "hash": "0cf94ce60423511570f24e60725539f6d18be4cdf31929000923c2e3839764f3"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-navigation\\calendar-model-green.log",
+      "hash": "5a4abeda77608598334ccfd86d25ccf97b824d780887b0cd814f3f8b7a05b05c"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-navigation\\fixture.log",
+      "hash": "82817fbad1cef8fe29a01ad0471da2034493d0ded73a1e0159274593b349904f"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-navigation\\flutter-all.log",
+      "hash": "02a56135c8481bd1310a3a0cb9430f1a789d1d720b4b209d822f376888661bd2"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-navigation\\http-result.json",
+      "hash": "0b15c2c17a6d9ffcd7a75b061283264053dc2eb5dbc5173ef65e7d93a3e7fd83"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-navigation\\lint-fix.log",
+      "hash": "695daceac674830792b2e85ee39d435d89fba921d736a6141ab38b1c248fb9a8"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-navigation\\live-control.json",
+      "hash": "53610c683c738450e3f7ceb2e50517adc965343119d57f997c78f5082e33ff41"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-navigation\\month-jump-red.log",
+      "hash": "1747f4abbb89f55388ff173a670d66bc478f0f263275ea7f598be8d624d854a5"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-navigation\\navigation-green.log",
+      "hash": "9598d9653e896fc03f99d518f301a0b50eefbde37d3f37b7d73e7c33e35f6d81"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-navigation\\navigation-red.log",
+      "hash": "eacdbab695465a13cc18bd51dcae2fd54b450f7260df26d63d5a3d19f9f7f747"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-navigation\\notification-green.log",
+      "hash": "3728919d64a1929b557a9af55014a90037fae95b599d738bdcede2dce681676e"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-navigation\\notification-red.log",
+      "hash": "a5e21e5ed41061c19983b20e67313e3ea8aa39bea922fe71dcab3560655dc955"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-navigation\\plan.md",
+      "hash": "0403d4352743d7fddbf711fc8fbd88dcab5ee394e9a7aefb96ac972ba5323834"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-navigation\\postman.log",
+      "hash": "16561f442e5f1d6d47261330f376340a87aff3bd75a7ac905e4c38d459d3caf5"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-navigation\\review-navigation-green.log",
+      "hash": "3562c90756d9eeed37713eb3e232625bdbf5805bcdd38645f777e52556448f24"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-navigation\\review-navigation-red.log",
+      "hash": "00d43e7a0cb19a0c4d5f0f452ccf1f93cb079a32fe652a1912656aa0c4d97132"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-navigation\\runtime-result.json",
+      "hash": "f43ff0ecb2c084a9d5f0e41951e8b6388895e21ab0321257d6a78a9b83e9f673"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-navigation\\scope-before.json",
+      "hash": "3b13b291843eb8769f90d7b6dab6cf1cb5f269eec72c64a093eb2266c86df0f5"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-navigation\\scope-result.json",
+      "hash": "aa0e8642ef1550b68cbcd5bd567e2217035e816ee9e5270fd65075482aa06102"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-navigation\\screenshots\\live-navigation-daily.png",
+      "hash": "d257ccd80776e12d9a0331d8b465fa8222035743633bfa962dcbd0181a9aacbf"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-navigation\\screenshots\\live-navigation-home-month.png",
+      "hash": "f4cc201f81bcf7111dd6133c08f70449da023fea8085991618b640bf61779f74"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-navigation\\screenshots\\live-navigation-home-next-month.png",
+      "hash": "8429507dee14dbd02ffdc82cba7b884bd469a062d7efded93f9352abc287a583"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-navigation\\screenshots\\live-navigation-notification.png",
+      "hash": "4d69d75a3681ddd2153faca3402299b5beb167d82a3b65450aea0703a9408e74"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-navigation\\screenshots\\live-navigation-paused.png",
+      "hash": "5029d902aa22264f56aa452c2a9c4108e86561de94ec195a3b7f772fdfb6845f"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-navigation\\screenshots\\live-navigation-plan-month.png",
+      "hash": "0916a09d6d8c5e3a756e262ceaf853f3f3cdf5d8a1d4e553aa23ab22484d32f1"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-navigation\\screenshots\\live-navigation-records.png",
+      "hash": "eaff928a20c28e9071fecbea5e8d639dca48064a17642db9e70585a9a0d0b31b"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-navigation\\screenshots\\live-navigation-running.png",
+      "hash": "418e039d41afa16bd311725e2005a1679e74c80964089ee03d1855ce1c1d809b"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-navigation\\screenshots\\live-navigation-saved.png",
+      "hash": "685c501a89e7b15245927cc066fb72515c565f9a3b79df05b1fc2dd5e423919e"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-navigation\\screenshots\\live-navigation-subjects.png",
+      "hash": "142bd77c2a0c4238108cda999456df6d878679d883a983ea7b219c5366570c6f"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-navigation\\screenshots\\native-diagnostic.png",
+      "hash": "ff4f64ed49ce3937f7f3d4d462e6a0f8fcaea4581a80331114299005a45b9e9b"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-navigation\\server-result.json",
+      "hash": "c9cb094eb401768c94e6faadda0bbf2f6cf27bafba8584ecd533202b9164bef5"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-navigation\\verification.md",
+      "hash": "cf4c68fd6113f645245f8c3aaa56972ef0baf27fb0e443ea3a7f3ceb9753683d"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-ring\\analyze.log",
+      "hash": "758188aa77629e49430519b66cb210b3adcf8892cc37112900c9e78875ac4925"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-ring\\apk-build.log",
+      "hash": "78d1e1394d262d6433175834d4025c0cc4126a7d2c6b49d347e75efd285b8d7c"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-ring\\apk-result.json",
+      "hash": "4b16c68f77fdfda71e25c9398129bc816d7da9477937a220eda31ee90ea9e3ad"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-ring\\flutter-all.log",
+      "hash": "c3dc1321805f755437cd3c35337cfe9d7044550403ce62f3a60d14aa03d92a3c"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-ring\\git-before.txt",
+      "hash": "bea812f21d010ed468752d15923e50d1f4d05478640b866c09617e57457168ee"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-ring\\green.log",
+      "hash": "8112aaed72586124170e047ce3f1a34b4314b8c87490dfb63a314160176cbaf0"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-ring\\plan.md",
+      "hash": "58922c4b163edbe5341a2e922cf847afe91919c71cc074e4e411d4908d3033d4"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-ring\\primary-action-red.log",
+      "hash": "e1555b3ce3ae4a70e496499cb0774c0011df8b3be8b4176fe8c47b08558be692"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-ring\\red.log",
+      "hash": "36f94f599a0e3487c5f0f2a3173c6879cf17a468531ced6ba9e268326b299601"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-ring\\runtime-result.json",
+      "hash": "84bf38e7b21d07d426bc7303504067deee127efccca33a86c2254238728fe0a6"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-ring\\sample-android-diagnostic.log",
+      "hash": "33f5377d2a4708f7ee04a4cea8f95068b4e28d92187be64e546e206692bc8b61"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-ring\\sample-android-first.log",
+      "hash": "28c5f8c20e78acbc3cd3428d9dc05b51f1cbd009dbfe453c40f5bb83e5deb652"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-ring\\sample-android-result.json",
+      "hash": "449979a753977beab746fa3a0ffd11a63a1cd2c224eaa9ef6840e77b5edfc0d7"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-ring\\sample-android-second.log",
+      "hash": "0b366c4de72edef32d3ced543c35e050335e24a7c8f19b3f6756d15dabcc23aa"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-ring\\sample-android.log",
+      "hash": "2d95c85165240e4cd0a524191d8b8cc54b9d2003a419d3548b187fb1a9700fc5"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-ring\\scope-before.json",
+      "hash": "45146fafd1332602adf12997a4c2dcafd54ef8872ce7083f654e3d5bc7750cd2"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-ring\\scope-result.json",
+      "hash": "1be8c2e4ef1fc2a4212415835d4eb563f5551b4fa49f4a0ab2da73a117a45caf"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-ring\\screenshots\\normal-launch.png",
+      "hash": "d061993cc0c28b39769669a853c7d24a7e0c4af45ad8a84f7b497b126ef081dc"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-ring\\screenshots\\sample-current-subjects.png",
+      "hash": "6f7631750d83c864362711f3130171bfa787a96239bffc9af42bc509143ad395"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-ring\\screenshots\\sample-timer-half.png",
+      "hash": "8e408a76abea08bdcc76c52fb2065d997a00e0384533c9352be6c59249487938"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\timer-ring\\verification.md",
+      "hash": "18344149ecf198530a0970a0a6e912f15aa5e0b36f831cbf3d0372ce8fccc180"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\ui-refresh\\after\\chat-reply.png",
+      "hash": "b6f7ff66a40dc06c3f8b214c0faefdecde12510d9dc824d62e6621d5f5bc7fc4"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\ui-refresh\\after\\chat.png",
+      "hash": "5447b78dfc25c715728f34f000446f8495a53587fc384764a19199a8c019de83"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\ui-refresh\\after\\comparison-summary.png",
+      "hash": "139af00f3bb298caa85535043fa6707e047685d5c8fb7ac45715237aa1a0f5b9"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\ui-refresh\\after\\comparison.png",
+      "hash": "f77b52832ed5b866ef7c8b9eb23772b1b1639038b75abc4f796744858a650d1c"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\ui-refresh\\after\\goal.png",
+      "hash": "065897ed38532e2b9af896677a14bd5ab972a668e136066179cb83a4eebb0233"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\ui-refresh\\after\\home.png",
+      "hash": "75769c3917b3e58645ac86664d140f7f34b5bf4f9e0a9bcc1697cab5f33eee18"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\ui-refresh\\after\\login.png",
+      "hash": "c599d4e6e5289f144df2fa0a08f1ad678627fdc5e5da9c37890a0d2b9d2cf843"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\ui-refresh\\after\\plan-exams.png",
+      "hash": "849bbbaac8d310cd45a65c3f4f80fd272a8b120391459cddae17807cfac1a58d"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\ui-refresh\\after\\plan-input.png",
+      "hash": "a600b5fb5227935b9ef37991993f89555a5bfc68351442a3177395528bc47a6f"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\ui-refresh\\after\\plan-time.png",
+      "hash": "355c28f80bcee013f24bd2f274e95fe6de8003c5844f10a30ae220758cf6ea82"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\ui-refresh\\after\\plan.png",
+      "hash": "bee4831aa31d8b9d14dff450020b77ba839de8f3b10f36673e485e1f0c823e7a"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\ui-refresh\\after\\preview.png",
+      "hash": "fb90ee079bbd1351cd8c1bd0cc1ba85539e748cac99e3270f4fe212d295f0c1e"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\ui-refresh\\after\\profile.png",
+      "hash": "232d0544806a0066c42ad6aeabbd140f55bffcf99163282f8d660c565f976c34"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\ui-refresh\\after\\signup.png",
+      "hash": "b97d16c386f290ee1ad618d85f441329dadaab7c6610bcb8ddc2aa2d421afcd7"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\ui-refresh\\before\\chat-reply.png",
+      "hash": "1a1ec12d5cc3c029130265f2f6bcc84342c12dfe83c1a81f0e0407277a830e0b"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\ui-refresh\\before\\chat.png",
+      "hash": "79c86a637320b1555ca6b88bc80f3b36d3831b0379103644d41e7e9cdcf382a0"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\ui-refresh\\before\\comparison-summary.png",
+      "hash": "12a787cb10d3f78637cfbf6c4585a9c63db238877269ff93d172b52043565aa3"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\ui-refresh\\before\\comparison.png",
+      "hash": "4edacdedb3f46c2b0f980f512f11802fa9f1ed9f94e0cee121b6306811a1938a"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\ui-refresh\\before\\goal.png",
+      "hash": "84df3632597620d2d3cca9c329b972c976f50aaa5bec9c8cc017cd459bdfc4cf"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\ui-refresh\\before\\home.png",
+      "hash": "a8f977d85c9ec258e69840ed474865bf00ac6c5201858942f2cd122bbbc442a4"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\ui-refresh\\before\\login.png",
+      "hash": "e356b63ed20e5e7a1edd50ec45aa55ed09ee299c2e3beb2ddd5c62a8d9c4fd8e"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\ui-refresh\\before\\plan-exams.png",
+      "hash": "2a3805069c45d3427278b9ed9790d97f34e124d9346db9e28585114cb03c3c25"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\ui-refresh\\before\\plan-input.png",
+      "hash": "a8c5d0da22027ae466264e41d487480509dc679fcd6a372f779efe49a96e36c6"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\ui-refresh\\before\\plan-time.png",
+      "hash": "757f7ab58742c9397a81d24769983ee2678b1d4751254733ddf1a7cd91210915"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\ui-refresh\\before\\plan.png",
+      "hash": "45e897b3ff09cffbdda8ce5bd1f714f50e504ec403a871c05a790875aab152fa"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\ui-refresh\\before\\preview.png",
+      "hash": "f2a8dc963700248cc4dbbef822ed9a9d4d632b57bd7374072b8e6a8009909288"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\ui-refresh\\before\\profile.png",
+      "hash": "2af01d579c0c0b209be9b2bd34a089b24735ade7bc220c8178efcb1b2c197d2e"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\ui-refresh\\before\\signup.png",
+      "hash": "a9dc119409529d044e29fd5e439caab085766f18cb8de62350cdaa55749bdc76"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\ui-refresh\\index.html",
+      "hash": "665bce350233be3da31b40cc2c91ccd2eba9f1bd4b2d5776fd64fd8c9f2188e1"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\ui-refresh\\plan.md",
+      "hash": "c0e8661a2d24e03caa83f577b2fc5159e34c21cd0db14155ac616a0e049f7be8"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\ui-refresh\\report.md",
+      "hash": "6b6cedb838b0d5785a984bb7750432a6d88cd32564c6305e2f0d47b1d92bd978"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\ui-refresh\\scope-verification.json",
+      "hash": "fe6b8770bcb7330de15e117ca00f83e4370b69becfec04caaefd5793be734b21"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\ui-refresh\\source-review.patch",
+      "hash": "2476ef612f3901fd015c5deb1481ee1647f1c4523e305be41b92f13731a4ed7d"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\ui-switches\\analyze.log",
+      "hash": "240fa51269c686555ceffbabd1e45e913c2d696054ded41bad87ae7d53a25e1b"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\ui-switches\\apk-build.log",
+      "hash": "ef6abb8c3aef19bc3666b430b62860afe4de6d737e5380e6f48e7a329007ed3e"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\ui-switches\\apk-result.json",
+      "hash": "3e29f4deba17d4788ae74131bbd0a7bf2fceefe7da2ca52e40ea5d5e9551dd4c"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\ui-switches\\flutter-all.log",
+      "hash": "eca1544f08eab29e4dd040e91fd19e311ce2a4905919baeada43e02b9d4c8d00"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\ui-switches\\git-before.txt",
+      "hash": "bea812f21d010ed468752d15923e50d1f4d05478640b866c09617e57457168ee"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\ui-switches\\home-month.png",
+      "hash": "792a329e0c934fa0bda0677bdfb40057d016abf22105d9c8af46c79a8f230102"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\ui-switches\\home-week.png",
+      "hash": "1465e2fbf694a1c8a0ebef94f282e85c27bbbf4d1503d53135c7fe982bc4cdd3"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\ui-switches\\plan.md",
+      "hash": "5403ae79342e80d779b40626d8bbd7b8aefd3bb3906649f63d947a0d1cc3d34d"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\ui-switches\\runtime-result.json",
+      "hash": "bc503b31981d2161558f77eda021287d3bca65a3501a08cdce39fe9af26df100"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\ui-switches\\scope-before.json",
+      "hash": "83221993b9a8f017efd200d351aab08e40673838bea9d9bfa909cdfc08939f1e"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\ui-switches\\scope-result.json",
+      "hash": "0e6d36d04c6eb62e7cdbdf947c8093e58fd98408fb62fc65bc8127311538bd5b"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\ui-switches\\statistics.png",
+      "hash": "7f3ee8e2bf58f27910ee2bcc6279c14fb1e99ac061f8e61518e8ef8395c7fe82"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\ui-switches\\timer.png",
+      "hash": "d5aa4c19d4868731b168c8321ca276642db6c390d4e12fa0b1c22999402447d0"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\ui-switches\\verification.md",
+      "hash": "e0b1c622e120e6a96c5706803cd08c282390126eccfe66d0d5cbcb5cfaf1eacf"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\docs\\verification.md",
+      "hash": "d2f1912740d34c08d98ac8e491b94be0660ce36f9ce4581f95121e37132011d8"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\integration_test\\admin_entry_test.dart",
+      "hash": "4779b34004aa46798b15ac767f476b2875cc74c08ea6995e67cc220e9ade17ef"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\integration_test\\admin_live_test.dart",
+      "hash": "657cc737424ea75a0edd78d2db6b200d331dd82f1bbb805ecbc283d109ed597b"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\integration_test\\choice_intro_test.dart",
+      "hash": "1a2b355329801cffd884d71081f4c0b1ea6ce87ba6fb9445ed5d0367e4b37dfd"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\integration_test\\entry_polish_test.dart",
+      "hash": "6815c569882b013fa8ff2ff17b4f81adf8a45404e73e8580d00a4f82362cd626"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\integration_test\\mobile_flow_test.dart",
+      "hash": "93ac4ef0ddf12bd48d21f6f89988462d54889bf93e29def1e2b386bc55d32918"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\integration_test\\plan_calendar_test.dart",
+      "hash": "4a80c9342426dbcefc112f14730f57da2c9ce342e0d1cea36002f877c9f68f41"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\integration_test\\study_actions_live_test.dart",
+      "hash": "1a93930714b160a37571d8db7c9dd56f59f0c0b289f9120291f9774d8277f216"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\integration_test\\study_edit_live_test.dart",
+      "hash": "5ce7d4149ca98550d9db12b45b408daa18aa9073195bf3b800182a95332bcadd"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\integration_test\\study_live_test.dart",
+      "hash": "18939b2cb9004bf4006517be21a3c2f34bcbd972f60a14be6a816c87c7e24869"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\integration_test\\study_timer_live_test.dart",
+      "hash": "070ca49726b8e69d63b3fecb9544505e7767af486abfd7eb6e567e1ec984b197"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\integration_test\\support\\java\\NotificationDumpTest.java",
+      "hash": "b3417294032547bbabef12fe3e5d31b89c94f1411ce968eb3cd3fa017d3bdf1f"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\integration_test\\support\\java\\StudyApiContractTest.java",
+      "hash": "e6ccb3eb44d232084c5e92dd31cbd0c999c595350683931a5996dac709a42907"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\integration_test\\support\\study_api_fixture.py",
+      "hash": "74be11aeb59f8506a834040d06883ea05f597b28d40287bf8d11593ec485c631"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\integration_test\\timer_cumulative_preview_test.dart",
+      "hash": "59e7996be4be09347433122300dc2dd832c0efd53b733465338bea8db5fb78ec"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\integration_test\\timer_navigation_live_test.dart",
+      "hash": "a0a5a8633c127d7f6e67011d357b0487cc7567deea539a07a36f9773fff9e231"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\integration_test\\timer_ring_preview_test.dart",
+      "hash": "b0b01431e4a73140641a6a362c4549a765c628af749fbf149dc4faddd65fda50"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\lib\\data\\api.dart",
+      "hash": "de60bb334053b2475b5319b443dec7604640f458f28a6666db91030fd6d50022"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\lib\\data\\models.dart",
+      "hash": "13fbaf117266054248c6aeb8e4fbb09ad80183d492caa88744d600edc8e1a2df"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\lib\\data\\plan_comparison.dart",
+      "hash": "4bd7c6cbee49261bc85b0909aa52952765b6090550b208316f5f23c09991f349"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\lib\\data\\plan_draft.dart",
+      "hash": "ce2275b3b02aec2ba1e9f2d79e7f5fcf15d112dc1aef6a58b79e738618fa545c"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\lib\\data\\session.dart",
+      "hash": "31b27a0c8b3ad4f1acf6bb08f40a3be6090463e1b88ae6b2bb12445587efb6d5"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\lib\\data\\study_models.dart",
+      "hash": "24a112384bfebea4be7325224bdcd0a9b29a6b234533a11445917794463aa105"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\lib\\data\\study_timer.dart",
+      "hash": "e099916ef2e93fadb8fdf4864917784553734abbdf4ae78f616506c670583f00"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\lib\\data\\study_timer_notifications.dart",
+      "hash": "7f37e2f0fc7902f1fe8b584f5305400a94afbee60658dcbad1ad38a9b7b2bcff"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\lib\\main.dart",
+      "hash": "85d8beac2700b604b6aca56f996458c2d1037c62915f512baf6eb0dd20edd53f"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\lib\\ui\\admin_api.dart",
+      "hash": "6a40b8668706bebf3996e7d756e2ecaba66df5f695500216dea5e07b5a58fdaf"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\lib\\ui\\admin_collect.dart",
+      "hash": "1442dbaac86fb97290bdeb4da789955bee01570fbeb70ecaf00af3d76859aa27"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\lib\\ui\\admin_link.dart",
+      "hash": "96a768bc5f0141285297dc89fa9658ae1ccc5feaf05b149bc2cc5ead2edda473"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\lib\\ui\\admin_operations.dart",
+      "hash": "e3c4dcb13564b3d1763d6a29ca08ca8a44c67ba061fde10d89ede6919271b6ec"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\lib\\ui\\admin_reviews.dart",
+      "hash": "51ebb9b0accaf43dfd07ac1178f84479a759db70851ed46945673a47f1a06469"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\lib\\ui\\admin_screen.dart",
+      "hash": "e56362dd481f3827f06effd737a72fead944535ef2e7665f4950be710c62b08b"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\lib\\ui\\admin_sources.dart",
+      "hash": "81e8f891f6d221d747a7a41a2e08044527a746f049728cced2c88405541d7f80"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\lib\\ui\\admin_widgets.dart",
+      "hash": "ef7c90eb763337a2d8cb967e01eb0d9fd5815b3e7a65783165d4550be91013d0"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\lib\\ui\\auth.dart",
+      "hash": "6971ad4a153bc22f2260cb2781995a69aa930def28f58d9c3fb47566485102f3"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\lib\\ui\\auth_intro.dart",
+      "hash": "1bb54f58516a6e570c87ca6a294ebc9360e87ee9905e2448458e4fee29108652"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\lib\\ui\\chat.dart",
+      "hash": "5ca1c1af1212777a9ba8a1258a7bcc5bb0af7457539bf1a9b2f37198b6ffc0da"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\lib\\ui\\dashboard.dart",
+      "hash": "0d38cdf5e57914d27c7476edc29ed537f77940eec90803fcbd4256a22274b24d"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\lib\\ui\\design.dart",
+      "hash": "5ffe455bba76ef20da20ca4d1e7aa724dca21064a235e5d8a3417c89b71bd8ef"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\lib\\ui\\goal.dart",
+      "hash": "6f176f1918e03edfe144959e9b1f4f3338dd681081e5667675bd962ac5a7ffdc"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\lib\\ui\\plan_comparison.dart",
+      "hash": "3be96d7f9f8fe67490027c06273925521d4c1799ae6b9f76aca35f1f7578fbef"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\lib\\ui\\plan_goal_section.dart",
+      "hash": "e5bc4697dc90ad9055ac5df911cff4612d12f082f434a052b9faebe6c3f3a1fe"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\lib\\ui\\plan_month_calendar.dart",
+      "hash": "129698f6200fb08cbaacc86439f56f7bdadbd7aaf25960c51a9d1590a69678a2"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\lib\\ui\\planner.dart",
+      "hash": "92b1bbc223a52d968fccbdfb1b29787dfb4ac8c68eaeb0fcb96b574d22117193"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\lib\\ui\\profile_edit.dart",
+      "hash": "68ae7eb0fc7841dea0d5bb0f2b33d8320990b2b49504543b46de68fe32b41317"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\lib\\ui\\study_chart.dart",
+      "hash": "a25c5fe69c10c40d8d934e9dc2d635432b4624e006be3efdebbb27726fd44114"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\lib\\ui\\study_delete_dialog.dart",
+      "hash": "7f9487a651884f8c6f011ff55d3a772606030575b619cef4a06b6bbc6af1e724"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\lib\\ui\\study_record_form.dart",
+      "hash": "491e853a300a93be8ee26726fdd8067703ab507d36319adbf8a5c586e2616ef4"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\lib\\ui\\study_records.dart",
+      "hash": "28853dfa382febf13dbe0073b825c869319a617eb897d0eaee2f42e701be9931"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\lib\\ui\\study_subject_history.dart",
+      "hash": "add11cb727239b7be15a45786c7f473e7f25f51f1b52d299c20d7d457c9360b3"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\lib\\ui\\study_task_picker.dart",
+      "hash": "092485d6fe9cd035ab0fb03c9a21b2e44790226e99359fe570c732c4b209b828"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\lib\\ui\\study_timer_progress.dart",
+      "hash": "6ab32bf2eb896bcdec556dcd8124902984767fd671d85cebeda95e2030451fa0"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\lib\\ui\\study_timer_screen.dart",
+      "hash": "d4c745137709d91192769e720ab531a795542a1b731bf66f49621128304f6b46"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\lib\\ui\\view_switch.dart",
+      "hash": "487db78148227cea6790a9a1d8fa4fe91b04e270e634ebdb2731492123da4cdf"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\passpace_mobile.iml",
+      "hash": "3e54151359630119d202a3925812d5b0d507e964cb5ec91859eb8099849a5330"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\postman\\study-actions-readonly.postman_collection.json",
+      "hash": "8a7604c02780e81f8598aef874583e74fd927b6cb56e193f9096bb60e4015ac3"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\postman\\study-records-readonly.postman_collection.json",
+      "hash": "7dbcea2f91b73718259663f24b56285114d72e6f7191995fd518000682ba70b0"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\pubspec.lock",
+      "hash": "84e0d9f5be75f3da7f2035b3916892a2a333d6a99c0f3c1cb959a14d83c45676"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\pubspec.yaml",
+      "hash": "9d5f394346ad4eaa6c7fd472d79928816b5b16e26e7267a4b5cf91f63e197cb0"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\scripts\\Start-TeamServer.ps1",
+      "hash": "0689243f9727136e6f041daa86120fc767ef7679a6f7025419b9a420b5f8583c"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\scripts\\generate-api-artifacts.py",
+      "hash": "fb077788c393d818b98ccc2e33eaade0d2da2224d3784a0645b281e29120ae71"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\scripts\\verify-study-actions-scope.py",
+      "hash": "79f434b73b0a9f0a3b560fdd04c4715271d47497c98ae1eddbe0b80af6813029"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\scripts\\verify-study-edit.py",
+      "hash": "532af29b926c1ca92821495e13e3ab90c36a997ae9080317910f9e3e4889f004"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\scripts\\verify-study-timer-scope.py",
+      "hash": "75289f30974d6961c1bd23aeac9a4149e59ce9445ab9cc4cd4a6809c8f1b4047"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\scripts\\verify-timer-navigation-scope.py",
+      "hash": "ac1fd92177c85f8a128d2ef4e4df249ee70701345f78510ddda05442b74d8c4a"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\test\\admin_api_test.dart",
+      "hash": "8742d1dcf325dd3873bf36efad143bc4a185fbce2261dcf8a9244f789960fa41"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\test\\admin_choice_visibility_test.dart",
+      "hash": "b6f200e7fb8e09981a8192056d5fd570563221056250dca4de349e9415085a6d"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\test\\admin_entry_test.dart",
+      "hash": "98bcf616fcead6898d185cede9984983530a3285bf4135bc04268e7635462568"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\test\\admin_native_test.dart",
+      "hash": "58f7212ce47ffe767b6d505673abda5295db2fe94917f6ba74e06b5508d06c9a"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\test\\auth_entry_test.dart",
+      "hash": "6ad1d10cc212624c9382153c1d0a366f262a5823e8d7756193942454b92599fa"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\test\\learning_plan_hub_test.dart",
+      "hash": "aa366728446efc4ee89299b8863e90077d31448f7e75a389567911c30f95acd3"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\test\\plan_data_test.dart",
+      "hash": "e5483fa563c63d3c7d1b1a39f952228a261fc93d73be782b3c5a707cde9a1d8b"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\test\\plan_month_calendar_test.dart",
+      "hash": "76a27ea413572f0c0f23b68607f294ebec3f97ff0d6fe2604e56b6c479844952"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\test\\planner_features_test.dart",
+      "hash": "5ffb3288791f8b64cf17fe661c7a12a1e3830b92af4191e89be271b0d2f6287b"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\test\\study_actions_test.dart",
+      "hash": "6f1b40a519ea3f052c6982161df3f74b14b65086ec7af9ded451c5713018dc19"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\test\\study_api_test.dart",
+      "hash": "d9b6829015c295d7accc2de2a2eec17b2323195bfed787672f13fbb7413016ca"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\test\\study_chart_test.dart",
+      "hash": "3024ae8b14b397d1d5b8fc20fc1a44cd7ab91adb8d89aa447b27a82111f90935"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\test\\study_edit_test.dart",
+      "hash": "6d38d2ff19bcd78547dea0efda33b6b3eb99d4f5304263cffedd4942c8a50172"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\test\\study_notification_test.dart",
+      "hash": "d824115dc9c97d487eff7bebd05e851b8020a7859b5461ec80697bc276f0f9a9"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\test\\study_records_test.dart",
+      "hash": "2f6f8e9aec1696a3068642eb070a753fa94f1001849bd2923bdc267c1e9d2a08"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\test\\study_subjects_test.dart",
+      "hash": "744c59c82e1e3dcce1dcf6f50450df51c79701161d47caf0a57e03f38b049329"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\test\\study_timer_cumulative_test.dart",
+      "hash": "1fdb9ce6df9154e741283fb6da7cd574c97f6c01c1f199ccef29b0863afdf113"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\test\\study_timer_progress_test.dart",
+      "hash": "a78ff731375c72cc0f99c385994b47f0ddc7350f28fb1368a0f2deaf10c11821"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\test\\study_timer_screen_test.dart",
+      "hash": "0d9f5b24c6b212c1d08519b742dc1069380dbcc00f20a0ff1c61eaf76dad81ba"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\test\\study_timer_test.dart",
+      "hash": "f0bdc33f4645949e2587df1ae2e7aa867327c814573aca43514b2cdb5f1205f0"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\test\\support\\admin_fixture.dart",
+      "hash": "a0c6f945a4c4ffc1a0468c97117ce969439187f32874694f25f06c5234c110a1"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\test\\support\\draft_storage.dart",
+      "hash": "26e8268fe6624f1337b49c66d40132c33a9818aca0cd1eee5beccaf656e974fd"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\test\\support\\study_fixture.dart",
+      "hash": "ce5e97683eb32b06aca7ff25a74768def873aa2343e03ceb051980d7db4107b4"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\test\\timer_navigation_test.dart",
+      "hash": "7d6b8704b33698089d1d3005308cea0d95d1f32e7afe64959f961c40f192f6ab"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\test\\ui_accessibility_test.dart",
+      "hash": "9078f1ebfa50a4f211ede94b3b94c9a24ae637c00841eae28dfc616f46392d30"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\test\\widget_test.dart",
+      "hash": "beddc352e00c4a7f565c9386685a853f794a13525f7ce3b134eb3cc112b7a3f9"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\test_driver\\choice_intro_driver.dart",
+      "hash": "3e4bce65de0823291ab5f59201d71ba8ca0b6fef5e91bd76e80ef52822c41e84"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\test_driver\\native_admin_driver.dart",
+      "hash": "c1a788bd0d233ce0022e5bedf8d3f897d84d5d9003b72cee572607ee8b133fae"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\test_driver\\study_actions_driver.dart",
+      "hash": "824de64d233df7d5ac6f40ab1c674dca7d7e2e49464ec0e5598b56a66aa5254f"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\test_driver\\study_driver.dart",
+      "hash": "0db1e9688f29f644aef15105c3e2cae58647c0fa34f778ee39013c5d7f661851"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\test_driver\\study_edit_driver.dart",
+      "hash": "e79ae4141ee85469d6a3022bab07ca0a93d8eeeef320c6d6ca8bda9d68180a68"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\test_driver\\study_timer_driver.dart",
+      "hash": "37a3e2bf2e604073810bf5eaf2aba1f23d37763bf6d0a6ef42638342615ad262"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\test_driver\\timer_cumulative_driver.dart",
+      "hash": "ea85dfe6cb7c16a718b66e9c6d30b00557ec72df373688a6f72441b959490757"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\test_driver\\timer_navigation_driver.dart",
+      "hash": "1cdd1a641b5dd4ad5913bd2299375bd40c3ce20180bd96b3f34e437e033ac45e"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\test_driver\\timer_ring_driver.dart",
+      "hash": "e1c4a403b77fbd75d1e48214e732a32b6b6b4c94052459e5c58af8364b2701f1"
+    },
+    {
+      "path": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\서버 켜기.cmd",
+      "hash": "a0bd495f0db7eef382917ee1f244a2dcc27bd2e3af25e1396a8f0a0078e81ee9"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "mode": "normal lib/main.dart debug APK on emulator-5554",
+  "updatedInstallation": true,
+  "hotReload": "succeeded",
+  "runtimeErrors": [],
+  "privateTestServerStopped": true,
+  "temporaryCredentialFilesRemoved": true,
+  "productionTestWrites": false
+}

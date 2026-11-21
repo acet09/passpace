@@ -1,0 +1,19 @@
+{
+  "normalEntrypoint": "lib/main.dart",
+  "emulatorInstalled": true,
+  "visibleScreen": "AuthScreen",
+  "hotReloadSucceeded": true,
+  "dartRuntimeErrors": 0,
+  "protectedServerPortsRetained": [
+    8080,
+    18080
+  ],
+  "temporaryServerPortsStopped": [
+    3325,
+    18085
+  ],
+  "privateTestCredentialsRemoved": true,
+  "unitWidgetTestsPassed": 88,
+  "mockAndroidScenariosPassed": 2,
+  "isolatedRealApiScenariosPassed": 1
+}

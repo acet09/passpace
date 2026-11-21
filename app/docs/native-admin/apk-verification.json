@@ -1,0 +1,9 @@
+{
+  "checks": {
+    "nativeAdminIncluded": true,
+    "browserBridgeNotCalledByDart": true,
+    "testEntrypointAbsent": true
+  },
+  "bytes": 158833171,
+  "sha256": "e935ed98027adbd7c158e206a4b1797bfe47556c15e756061bae0b1a9917ef9f"
+}

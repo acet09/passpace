@@ -1,0 +1,18 @@
+{
+  "mode": "real HTTP original Spring Boot binary against disposable MariaDB",
+  "checks": [
+    "patch-auto-discovered",
+    "isolated-api-account",
+    "existing-post-still-works",
+    "real-patch-same-id-date-minutes",
+    "stale-edit-json-409",
+    "foreign-record-json-403",
+    "unauthenticated-json-401",
+    "invalid-patch-json-400",
+    "isolated-cap-fixture",
+    "date-move-cap-409",
+    "failed-patches-preserve-one-updated-record",
+    "both-date-totals-reflect-edit"
+  ],
+  "productionWrites": false
+}

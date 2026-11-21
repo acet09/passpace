@@ -1,0 +1,12 @@
+{
+  "apk": "C:\\Users\\std66\\Documents\\ChatGPT\\PASS_FACE _ TEST\\passpace_mobile\\build\\app\\outputs\\flutter-apk\\app-debug.apk",
+  "sha256": "0266d360ebd0d8b460489a879add75dcc3e6db39be16d48699f4d46043090f6e",
+  "bytes": 198927918,
+  "normalEntrypoint": "lib/main.dart",
+  "testMarkersAbsent": {
+    "STUDY_TEST_PASSWORD": true,
+    "STUDY_TEST_ORIGIN": true,
+    "study_actions_live_test.dart": true,
+    "app_verify_": true
+  }
+}

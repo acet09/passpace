@@ -1,0 +1,11 @@
+{
+  "normalEntrypoint": "lib/main.dart",
+  "emulatorUpdated": true,
+  "visibleScreen": "AuthScreen",
+  "hotReloadSucceeded": true,
+  "dartRuntimeErrors": 0,
+  "unitWidgetTestsPassed": 92,
+  "mockAndroidScenariosPassed": 1,
+  "actualApiWritesPerformed": false,
+  "backendProposalImplemented": false
+}

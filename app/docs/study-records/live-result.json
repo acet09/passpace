@@ -1,0 +1,1 @@
+{"result":{"mode":"isolated real Spring Boot and MariaDB","checks":["login","manual-save","history","statistics-total","line","bars","30-day-range","tab-reentry"],"productionWrites":false},"screenshots":["live-study-bars","live-study-history","live-study-history-before","live-study-input","live-study-line","live-study-month"]}
