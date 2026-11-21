@@ -2,12 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../data/api.dart';
+import '../data/chat_plan.dart';
 import '../data/models.dart';
+import 'chat_plan.dart';
 import 'design.dart';
 
 class ChatScreen extends StatefulWidget {
   final PassApi api;
-  const ChatScreen(this.api, {super.key});
+
+  /// 채팅 안에서 만든 계획을 저장했을 때 (홈·학습계획 새로고침용).
+  final VoidCallback? onPlanSaved;
+  const ChatScreen(this.api, {super.key, this.onPlanSaved});
   @override
   State<ChatScreen> createState() => ChatScreenState();
 }
@@ -15,12 +20,17 @@ class ChatScreen extends StatefulWidget {
 class _Turn {
   final String question;
   Reply? reply;
+  ChatPlanSetup? plan;
+  String? planError, planNote;
+  bool planLoading = false, planRetry = false;
+  final key = GlobalKey();
   _Turn(this.question);
 }
 
 class ChatScreenState extends State<ChatScreen> {
   final turns = <_Turn>[];
   final draft = TextEditingController(), scroll = ScrollController();
+  final planInputs = ChatPlanInputs();
   int? conversation;
   bool busy = false;
   String? error;
@@ -28,6 +38,7 @@ class ChatScreenState extends State<ChatScreen> {
   void dispose() {
     draft.dispose();
     scroll.dispose();
+    planInputs.dispose();
     super.dispose();
   }
 
@@ -52,6 +63,21 @@ class ChatScreenState extends State<ChatScreen> {
     });
   }
 
+  // 계획 카드는 길어서 맨 아래 대신 질문부터 보이게 올린다.
+  void _reveal(_Turn turn) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final target = turn.key.currentContext;
+      if (!mounted || target == null) return;
+      Scrollable.ensureVisible(
+        target,
+        duration: MediaQuery.disableAnimationsOf(context)
+            ? Duration.zero
+            : const Duration(milliseconds: 220),
+        curve: Curves.easeOut,
+      );
+    });
+  }
+
   Future<void> send([String? preset]) async {
     final text = (preset ?? draft.text).trim();
     if (busy || text.isEmpty) return;
@@ -71,6 +97,11 @@ class ChatScreenState extends State<ChatScreen> {
         turn.reply = reply;
         conversation = reply.conversation;
       });
+      if (reply.notice == autoPlanNotice) {
+        await _openPlan(turn);
+      } else {
+        _applyWeekdays(turn);
+      }
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -82,8 +113,76 @@ class ChatScreenState extends State<ChatScreen> {
     } finally {
       if (mounted) {
         setState(() => busy = false);
-        bottom();
+        if (turn.plan == null) {
+          bottom();
+        } else {
+          _reveal(turn);
+        }
       }
+    }
+  }
+
+  /// 계획 카드를 연 뒤 "화요일은 안 돼"처럼 요일만 다시 말하면 열려 있는 카드의 공부 요일을 바꾼다.
+  void _applyWeekdays(_Turn turn) {
+    if (!turns.any((t) => t.plan != null)) return;
+    // "평일 1시간, 주말 3시간"처럼 요일마다 다른 시간을 말했으면 요일별 시간으로 바꾼다.
+    final perDay = weekdayMinutesInMessage(turn.question);
+    if (perDay != null) {
+      planInputs.update(() {
+        planInputs.split = false;
+        planInputs.byWeekday = true;
+        planInputs.setDayMinutes(perDay);
+      });
+      final text = [
+        for (final day in perDay.keys.toList()..sort())
+          '${weekdays[day - 1]} ${durationLabel(perDay[day]!)}',
+      ].join(' · ');
+      setState(
+        () => turn.planNote =
+            '요일별 공부시간을 바꿨어요: $text. '
+            '위 계획 카드에서 다시 계산하면 반영됩니다.',
+      );
+      return;
+    }
+    final days = weekdaysInMessage(turn.question);
+    if (days == null) return;
+    planInputs.update(() {
+      planInputs.weekdays
+        ..clear()
+        ..addAll(days);
+      // 요일별 시간을 쓰는 중이면 안 되는 요일의 시간을 지운다.
+      planInputs.dayMinutes.removeWhere((day, _) => !days.contains(day));
+    });
+    setState(
+      () => turn.planNote =
+          '공부 요일을 바꿨어요: ${weekdayNames(days)}. '
+          '위 계획 카드에서 다시 계산하면 이 요일에만 배정됩니다.',
+    );
+  }
+
+  /// 서버가 계획 입력을 요청한 답변: 과목 목록을 읽어 같은 대화 안에 계획 카드를 연다.
+  Future<void> _openPlan(_Turn turn) async {
+    if (turn.planLoading) return;
+    setState(() {
+      turn.planLoading = true;
+      turn.planError = null;
+    });
+    try {
+      // 목록을 못 읽은 경우에만 다시 시도할 수 있다. 질문 자체의 문제는 다시 열어도 같다.
+      turn.planRetry = true;
+      final catalog = await widget.api.catalog();
+      turn.planRetry = false;
+      turn.plan = ChatPlanSetup.from(
+        turn.question,
+        catalog,
+        planInputs,
+        dayInSeoul(),
+      );
+    } catch (e) {
+      turn.planError = e is ApiError ? e.message : '과목 목록을 불러오지 못했어요.';
+    } finally {
+      turn.planLoading = false;
+      if (mounted) setState(() {});
     }
   }
 
@@ -225,6 +324,7 @@ class ChatScreenState extends State<ChatScreen> {
                 ),
               for (final turn in turns) ...[
                 Align(
+                  key: turn.key,
                   alignment: Alignment.centerRight,
                   child: Container(
                     margin: const EdgeInsets.only(
@@ -295,7 +395,8 @@ class ChatScreenState extends State<ChatScreen> {
                           r.answer,
                           style: const TextStyle(fontSize: 14, height: 1.7),
                         ),
-                        if ((r.notice ?? '').trim().isNotEmpty) ...[
+                        if ((r.notice ?? '').trim().isNotEmpty &&
+                            r.notice != autoPlanNotice) ...[
                           const SizedBox(height: 14),
                           const Divider(),
                           const SizedBox(height: 12),
@@ -334,6 +435,43 @@ class ChatScreenState extends State<ChatScreen> {
                       ],
                     ),
                   ),
+                if (turn.plan case final plan?)
+                  ChatPlanCard(
+                    widget.api,
+                    plan,
+                    planInputs,
+                    conversation: () =>
+                        turns.contains(turn) ? conversation : null,
+                    onSaved: widget.onPlanSaved,
+                  ),
+                if (turn.planNote case final note?)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 10),
+                    child: Semantics(
+                      liveRegion: true,
+                      child: Pane(
+                        color: pale,
+                        padding: 14,
+                        child: Text(
+                          note,
+                          style: const TextStyle(fontSize: 13, height: 1.5),
+                        ),
+                      ),
+                    ),
+                  ),
+                if (turn.planError case final message?) ...[
+                  AlertText(message),
+                  if (turn.planRetry)
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: TextButton(
+                        onPressed: turn.planLoading
+                            ? null
+                            : () => _openPlan(turn),
+                        child: const Text('계획 입력 다시 열기'),
+                      ),
+                    ),
+                ],
               ],
               if (busy)
                 Padding(

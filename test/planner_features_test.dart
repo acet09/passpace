@@ -301,12 +301,12 @@ void main() {
     await tap(t, find.byType(BackButton));
     f.active = f.plan(2, 2, 45);
     await tap(t, find.text('이 계획 저장'));
-    await tap(t, find.text('저장하기'));
-    expect(find.textContaining('저장된 계획이 바뀌었어요'), findsOneWidget);
+    await tap(t, find.text('바로 사용'));
+    expect(find.textContaining('사용 중인 계획이 바뀌었어요'), findsOneWidget);
     expect(f.saves, 0);
     expect(find.text('버전 2 → 새 계획'), findsOneWidget);
     await tap(t, find.text('이 계획 저장'));
-    await tap(t, find.text('저장하기'));
+    await tap(t, find.text('바로 사용'));
     expect(f.saves, 1);
     expect(f.result!.draftCleared, true);
     expect(await f.repository.read(), isNull);
@@ -318,7 +318,7 @@ void main() {
     await toPreview(t);
     f.storage.failWrites = true;
     await tap(t, find.text('이 계획 저장'));
-    await tap(t, find.text('저장하기'));
+    await tap(t, find.text('바로 사용'));
     expect(f.saves, 1);
     expect(f.result!.draftCleared, false);
     expect(find.text('계획 열기'), findsOneWidget);

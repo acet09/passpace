@@ -158,8 +158,52 @@ class PassApi {
 
   Future<Preview> preview(Json form) async =>
       Preview.from(await _send('POST', '$plannerPath/preview', body: form));
-  Future<void> save(Json form) =>
-      _send('POST', '$plannerPath/save', body: form);
+
+  /// [activate] 가 true 면 바로 사용하고 쓰던 계획은 목록에 보관, false 면 목록에만 추가한다.
+  Future<Json> save(Json form, {bool activate = true}) => _send(
+    'POST',
+    '$plannerPath/save${activate ? '' : '?activate=false'}',
+    body: form,
+  );
+
+  /// 저장한 계획 목록 (지금 쓰는 계획이 맨 위).
+  Future<List<PlanSummary>> plans() async => rows(
+    (await _send('GET', '$plannerPath/plans'))['plans'],
+  ).map(PlanSummary.from).toList();
+
+  /// 목록의 계획 한 건을 날짜별 할 일까지.
+  Future<SavedPlan> plan(int id) async => SavedPlan.from(
+    object((await _send('GET', '$plannerPath/plans/$id'))['plan']),
+  );
+  Future<void> usePlan(int id) =>
+      _send('POST', '$plannerPath/plans/$id/activate');
+  Future<void> deletePlan(int id) =>
+      _send('DELETE', '$plannerPath/plans/$id');
+
+  /// 지금 계획이 많이 밀렸으면 다시 짠 일정을 돌려준다. 추천할 것이 없으면 null.
+  Future<ReplanAdvice?> replan() async {
+    final data = await _send('GET', '$plannerPath/replan');
+    return data['needed'] == true && data['proposal'] != null
+        ? ReplanAdvice.from(data)
+        : null;
+  }
+
+  /// 추천을 받아들인다: 다시 짠 일정이 사용 중인 계획이 되고 쓰던 계획은 목록에 보관된다.
+  Future<Json> acceptReplan() => _send('POST', '$plannerPath/replan/accept');
+
+  /// 추천을 거절한다: 한동안 다시 묻지 않는다.
+  Future<void> dismissReplan() =>
+      _send('POST', '$plannerPath/replan/dismiss');
+
+  /// 채팅 안 계획 계산. 서버가 요약 답변을 같은 대화방에 남긴다.
+  Future<ChatPlanReply> previewChat(Json form, int conversation) async =>
+      ChatPlanReply.from(
+        await _send(
+          'POST',
+          '$plannerPath/preview-chat',
+          body: {'plan': form, 'conId': conversation},
+        ),
+      );
   Future<Reply> chat(String message, int? conversation) async => Reply.from(
     await _send(
       'POST',

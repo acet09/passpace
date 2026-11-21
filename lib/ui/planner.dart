@@ -8,6 +8,7 @@ import '../data/models.dart';
 import '../data/plan_draft.dart';
 import '../data/plan_comparison.dart';
 import 'plan_comparison.dart';
+import 'plan_list.dart';
 import 'design.dart';
 
 class PlannerScreen extends StatelessWidget {
@@ -873,42 +874,27 @@ class _PreviewScreenState extends State<_PreviewScreen> {
   late PlanComparison comparison = PlanComparison(previous, widget.result);
   Future<void> save() async {
     if (busy) return;
-    final yes = await showDialog<bool>(
-      context: context,
-      builder: (c) => AlertDialog(
-        title: const Text('이 계획으로 시작할까요?'),
-        content: const Text(
-          '웹과 앱에서 같은 일정을 확인할 수 있어요. 기존에 저장한 계획이 있다면 이 계획으로 교체됩니다.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(c, false),
-            child: const Text('취소'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(c, true),
-            child: const Text('저장하기'),
-          ),
-        ],
-      ),
-    );
-    if (!mounted || yes != true) return;
+    final activate = await askPlanSave(context);
+    if (!mounted || activate == null) return;
     setState(() {
       busy = true;
       error = null;
     });
     try {
-      final latest = await widget.api.saved();
-      if (!mounted) return;
-      if (!PlanComparison.samePlan(previous, latest)) {
-        setState(() {
-          previous = latest;
-          comparison = PlanComparison(latest, widget.result);
-          error = '저장된 계획이 바뀌었어요. 최신 변경 내용을 확인한 뒤 다시 저장해 주세요.';
-        });
-        return;
+      // 바로 사용할 때만, 비교해 보여 준 "쓰던 계획"이 그사이 바뀌지 않았는지 확인한다.
+      if (activate) {
+        final latest = await widget.api.saved();
+        if (!mounted) return;
+        if (!PlanComparison.samePlan(previous, latest)) {
+          setState(() {
+            previous = latest;
+            comparison = PlanComparison(latest, widget.result);
+            error = '사용 중인 계획이 바뀌었어요. 최신 변경 내용을 확인한 뒤 다시 저장해 주세요.';
+          });
+          return;
+        }
       }
-      await widget.api.save(widget.form);
+      await widget.api.save(widget.form, activate: activate);
       final cleared = await widget.onCommitted();
       if (mounted) Navigator.pop(context, PlanSaveResult(cleared));
     } catch (e) {
