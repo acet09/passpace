@@ -33,10 +33,18 @@ public class MultiGoalPlanCalculator {
             this(key, certificationName, examDate, subjects, null, null);
         }
     }
-    /** 요일 1=월요일, 2=화요일, ... 7=일요일. null은 기존 API 호환을 위해 매일로 처리한다. */
-    public record PlanRequest(Integer dailyMinutes, List<GoalInput> goals, List<Integer> studyWeekdays) {
+    /**
+     * 요일 1=월요일, 2=화요일, ... 7=일요일. studyWeekdays 가 null이면 기존 API 호환을 위해 매일로 처리한다.
+     * weekdayMinutes: 요일마다 공부 가능시간이 다를 때 요일 → 그날의 최대 시간(분).
+     *   값이 있으면 여기에 적힌 요일에만 배정하고(studyWeekdays 는 쓰지 않음), dailyMinutes 는 가장 긴 요일의 시간으로 본다.
+     */
+    public record PlanRequest(Integer dailyMinutes, List<GoalInput> goals, List<Integer> studyWeekdays,
+                              Map<Integer, Integer> weekdayMinutes) {
+        public PlanRequest(Integer dailyMinutes, List<GoalInput> goals, List<Integer> studyWeekdays) {
+            this(dailyMinutes, goals, studyWeekdays, null);
+        }
         public PlanRequest(Integer dailyMinutes, List<GoalInput> goals) {
-            this(dailyMinutes, goals, null);
+            this(dailyMinutes, goals, null, null);
         }
     }
     public record SubjectSummary(String name, int familiarity, double weight,
@@ -56,12 +64,13 @@ public class MultiGoalPlanCalculator {
                                int totalRemainingMinutes, int totalShortfallMinutes,
                                int minimumDailyMinutes, int additionalDailyMinutes, boolean feasible, List<GoalSummary> goals,
                                List<Feasibility> deadlineChecks,
-                               List<DaySchedule> days, List<String> notices) {}
+                               List<DaySchedule> days, List<String> notices,
+                               Map<Integer, Integer> weekdayMinutes) {}
 
     private static final int MAX_HORIZON_DAYS = 540;
     // 과목을 8분씩 찢어 배정하는 일을 막기 위한 목표당 1회 학습 블록.
     // 단, 목표에 남은 전체 학습량이 이보다 작을 때는 마지막 잔여시간을 허용한다.
-    private static final int MIN_SESSION_MINUTES = 45;
+    private static final int MIN_SESSION_MINUTES = 50;
     // 시험 직전 1주일은 재점검/복습을 위한 여유로 남긴다(해당 시간은 임의 생성하지 않음).
     private static final int MAX_BUFFER_DAYS = 7;
     private static final double MAX_BASE_HOURS = 2000;
@@ -71,13 +80,23 @@ public class MultiGoalPlanCalculator {
     /** today는 테스트할 수 있도록 인자로 전달한다. 시험 당일은 학습일에서 제외한다. */
     public PlanResponse calculate(PlanRequest request, LocalDate today) {
         Objects.requireNonNull(today, "오늘 날짜가 필요합니다.");
-        if (request == null || request.dailyMinutes() == null ||
-                request.dailyMinutes() < 30 || request.dailyMinutes() > 960)
+        if (request == null) throw new IllegalArgumentException("하루 총 공부시간은 30~960분으로 입력해 주세요.");
+        // 요일별 시간이 있으면 그 요일에만, 그날의 시간만큼 배정한다. 없으면 모든 공부 요일이 같은 시간이다.
+        Map<Integer, Integer> byWeekday = normalizeWeekdayMinutes(request.weekdayMinutes());
+        if (byWeekday == null && (request.dailyMinutes() == null ||
+                request.dailyMinutes() < 30 || request.dailyMinutes() > 960))
             throw new IllegalArgumentException("하루 총 공부시간은 30~960분으로 입력해 주세요.");
         if (request.goals() == null || request.goals().isEmpty() || request.goals().size() > MAX_GOALS)
             throw new IllegalArgumentException("자격증 목표는 1~12개 선택해 주세요.");
 
-        Set<Integer> allowedWeekdays = normalizeWeekdays(request.studyWeekdays());
+        Set<Integer> allowedWeekdays = byWeekday == null
+                ? normalizeWeekdays(request.studyWeekdays()) : byWeekday.keySet();
+        // 가장 긴 날의 시간. 응답의 dailyMinutes 와 자격증별 상한의 기준으로 쓴다.
+        final int longestDay = byWeekday == null ? request.dailyMinutes()
+                : byWeekday.values().stream().mapToInt(Integer::intValue).max().orElse(0);
+        // caps[요일] = 그 요일에 쓸 수 있는 시간(분). 공부하지 않는 요일은 0.
+        final int[] caps = new int[8];
+        for (int d : allowedWeekdays) caps[d] = byWeekday == null ? longestDay : byWeekday.get(d);
         Set<String> keys = new HashSet<>();
         List<GoalWork> goals = new ArrayList<>();
         int allMinutes = 0;
@@ -145,8 +164,8 @@ public class MultiGoalPlanCalculator {
             if (countStudyDays(effectiveStart, pacedEnd.plusDays(1), allowedWeekdays) == 0)
                 pacedEnd = goal.examDate().minusDays(1);
             // 자격증별 하루 상한. 지정하지 않으면 하루 총 시간이 곧 상한이다.
-            int dailyCap = goal.dailyMinutes() == null ? request.dailyMinutes()
-                    : Math.min(goal.dailyMinutes(), request.dailyMinutes());
+            int dailyCap = goal.dailyMinutes() == null ? longestDay
+                    : Math.min(goal.dailyMinutes(), longestDay);
             GoalWork workingGoal = new GoalWork(goal, subjects, goalMinutes,
                     start, effectiveStart, pacedEnd, dailyCap);
             if (goalMinutes == 0) workingGoal.finishedOn = today;
@@ -159,8 +178,7 @@ public class MultiGoalPlanCalculator {
         // 누적 마감량은 응답 호환성을 위해 유지한다. 별도로 각 시작/마감 구간의 수요 밀도를 확인한다.
         for (GoalWork g : goals) {
             cumulative = Math.addExact(cumulative, g.originalMinutes);
-            int daysUntil = countStudyDays(today, g.input.examDate(), allowedWeekdays);
-            int available = daysUntil * request.dailyMinutes();
+            int available = sumCapacity(today, g.input.examDate(), caps);
             // 이전 응답 스키마의 마감일까지 누적 총량 점검은 유지한다.
             checks.add(new Feasibility(g.input.examDate(), cumulative, available,
                     Math.max(0, cumulative - available)));
@@ -168,6 +186,7 @@ public class MultiGoalPlanCalculator {
         // 두 자격증의 시험일이 겹치는 경우 한 자격증의 시간만 계산하는 오류 방지.
         // [A,B) 구간에 반드시 포함돼야 하는 목표의 수요 / 해당 구간의 날짜 수.
         boolean hasNoAvailableWindow = false;
+        int extraPerDay = 0;   // 요일별 시간일 때: 가장 빠듯한 구간에서 공부하는 날마다 더 필요한 시간
         for (GoalWork first : goals) {
             for (GoalWork last : goals) {
                 LocalDate a = first.effectiveStart;
@@ -185,6 +204,8 @@ public class MultiGoalPlanCalculator {
                 }
                 minimumDailyMinutes = Math.max(minimumDailyMinutes,
                         (demand + duration - 1) / duration);
+                int lacking = demand - sumCapacity(a, b, caps);
+                if (lacking > 0) extraPerDay = Math.max(extraPerDay, (lacking + duration - 1) / duration);
             }
         }
 
@@ -198,8 +219,9 @@ public class MultiGoalPlanCalculator {
                             && scheduledDay.isBefore(g.input.examDate()))
                     .toList();
             if (active.isEmpty()) continue;
-            int capacity = request.dailyMinutes();
-            int sessionMin = Math.min(MIN_SESSION_MINUTES, request.dailyMinutes());
+            final int dayCapacity = caps[day.getDayOfWeek().getValue()];
+            int capacity = dayCapacity;
+            int sessionMin = Math.min(MIN_SESSION_MINUTES, dayCapacity);
             Map<GoalWork, Integer> budgets = new LinkedHashMap<>();
             // 기본 예상학습량을 목표별 [학습 시작일, 시험 직전] 구간에 분산한다.
             // 하루 가능시간은 '매일 무조건 채우는 의무량'이 아니라 상한이다.
@@ -213,6 +235,20 @@ public class MultiGoalPlanCalculator {
                 // 날짜가 임박한 경우 이전에 못 채운 양을 우선 배정한다.
                 int daysLeft = countStudyDays(day, g.input.examDate(), allowedWeekdays);
                 int rescue = (g.remaining + daysLeft - 1) / daysLeft;
+                if (byWeekday != null) {
+                    // 요일마다 시간이 다르면 날짜 수가 아니라 쓸 수 있는 시간에 비례해 나눈다
+                    // (긴 날에 더 많이, 짧은 날에 덜). 시간이 모두 같으면 위의 계산과 같은 값이다.
+                    int capPaced = sumCapacity(g.effectiveStart, g.pacedEnd.plusDays(1), caps);
+                    int capElapsed = sumCapacity(g.effectiveStart, day.plusDays(1), caps);
+                    targetDone = capPaced == 0 ? g.originalMinutes : (int) Math.ceil(
+                            g.originalMinutes * (double) Math.min(capElapsed, capPaced) / capPaced);
+                    due = Math.max(0, targetDone - g.scheduled);
+                    // 시간이 짧은 요일은 그날 몫이 한 블록(50분)에 조금 못 미쳐 매번 건너뛰고 긴 요일에 몰리기 쉽다.
+                    // 몫이 블록의 절반 이상이면 한 블록을 잡아 그 요일에도 공부하게 한다 (다음 긴 날의 몫이 그만큼 준다).
+                    if (due * 2 >= goalSession) due = Math.max(due, goalSession);
+                    int capLeft = sumCapacity(day, g.input.examDate(), caps);
+                    rescue = (int) Math.ceil(g.remaining * (double) dayCapacity / capLeft);
+                }
                 int demand = Math.max(due, rescue);
                 // 선택한 시작일이 실제 첫 학습일이 되도록 첫날에는 한 블록을 잡는다.
                 if (day.equals(nextStudyDay(g.effectiveStart, allowedWeekdays)))
@@ -249,7 +285,7 @@ public class MultiGoalPlanCalculator {
                 studiedToday.add(g);
                 givenToday.put(g, given);
             }
-            // 자격증 3개처럼 여럿이 겹치면 뒤 순위 목표가 45분 블록을 못 받고 자투리 시간만 남는 날이 생긴다.
+            // 자격증 3개처럼 여럿이 겹치면 뒤 순위 목표가 50분 블록을 못 받고 자투리 시간만 남는 날이 생긴다.
             // 그 자투리를 버리면 뒤 순위 목표가 매일 밀리므로, 오늘 공부하는 목표(마감 빠른 순)에 얹어 진도를 당긴다.
             // → 다음 날 그 목표의 몫이 줄어 밀린 목표가 온전한 블록을 받는다. 아무도 밀리지 않은 날은 그대로 둔다.
             if (someoneWaited) {
@@ -263,7 +299,7 @@ public class MultiGoalPlanCalculator {
                     allocated += given;
                 }
             }
-            if (allocated > 0) days.add(new DaySchedule(day, request.dailyMinutes(),
+            if (allocated > 0) days.add(new DaySchedule(day, dayCapacity,
                     allocated, List.copyOf(allocations)));
         }
 
@@ -287,11 +323,13 @@ public class MultiGoalPlanCalculator {
         notices.add("학습시간은 과목별 입력 기준시간 × 사전 이해도(낮음 1.3 / 보통 1.0 / 높음 0.7)로 계산한 추정치입니다.");
         notices.add("진도와 실제 소요시간이 함께 입력되면 관측 속도를 보수적으로 반영해 남은 시간을 다시 계산합니다.");
         notices.add("각 목표는 독립적인 시작일(기본값 오늘)부터 시험일 전까지 배정하고, 같은 날의 하루 가용시간을 공유합니다.");
-        notices.add("공부 요일: " + weekdayLabels(allowedWeekdays) + ". 선택한 요일에만 배정하며, 하루 시간은 선택한 자격증이 함께 씁니다.");
+        notices.add(byWeekday == null
+                ? "공부 요일: " + weekdayLabels(allowedWeekdays) + ". 선택한 요일에만 배정하며, 하루 시간은 선택한 자격증이 함께 씁니다."
+                : "요일별 공부시간: " + weekdayMinutesLabel(byWeekday) + ". 적은 요일에만, 그날의 시간까지만 배정합니다.");
         if (goals.size() > 1)
             notices.add("같은 날 여러 자격증이 겹치면 시험일이 빠른 자격증부터 블록을 배정합니다. 블록을 못 받은 자격증이 있는 날은 "
                     + "남는 자투리 시간을 그날 공부하는 자격증에 얹어 진도를 당기고, 밀린 자격증은 이후 학습일에 밀린 만큼 더 배정합니다.");
-        notices.add("하루 가용시간은 상한이며 매일 전부 채우지 않습니다. 목표당 기본 학습 블록은 하루 시간이 45분 이상일 때 45분입니다(최종 잔여시간 제외).");
+        notices.add("하루 가용시간은 상한이며 매일 전부 채우지 않습니다. 목표당 기본 학습 블록은 하루 시간이 50분 이상일 때 50분입니다(최종 잔여시간 제외).");
         notices.add("예상 학습량은 임시 기준시간을 활용합니다. 기출·복습/모의고사 추가 시간을 사실인 것처럼 자동 생성하지 않습니다.");
         for (GoalWork g : goals) {
             if (g.input.dailyMinutes() == null) continue;
@@ -306,10 +344,46 @@ public class MultiGoalPlanCalculator {
             notices.add("어떤 목표의 시작일~시험일 사이에 선택한 학습 요일이 없습니다. 요일 또는 시작일·시험일을 조정해 주세요.");
         if (shortage > 0)
             notices.add("선택한 요일·가능시간·시험일로는 일부 학습량이 남습니다. 요일 추가, 하루 시간 증가 또는 목표일 조정이 필요합니다.");
-        return new PlanResponse(today, request.dailyMinutes(), allMinutes, shortage,
-                minimumDailyMinutes, Math.max(0, minimumDailyMinutes - request.dailyMinutes()),
+        return new PlanResponse(today, longestDay, allMinutes, shortage,
+                minimumDailyMinutes,
+                byWeekday == null ? Math.max(0, minimumDailyMinutes - longestDay) : extraPerDay,
                 shortage == 0, List.copyOf(summaries), List.copyOf(checks),
-                List.copyOf(days), List.copyOf(notices));
+                List.copyOf(days), List.copyOf(notices), byWeekday);
+    }
+
+    /** 요일 → 분. null·빈 값이면 null(요일별 시간 안 씀). 0분인 요일은 쉬는 날로 보고 뺀다. */
+    private static Map<Integer, Integer> normalizeWeekdayMinutes(Map<Integer, Integer> requested) {
+        if (requested == null || requested.isEmpty()) return null;
+        Map<Integer, Integer> minutes = new java.util.TreeMap<>();
+        for (Map.Entry<Integer, Integer> e : requested.entrySet()) {
+            Integer day = e.getKey(), n = e.getValue();
+            if (day == null || day < 1 || day > 7)
+                throw new IllegalArgumentException("요일 값은 월=1부터 일=7까지만 입력해 주세요.");
+            if (n == null || n == 0) continue;
+            if (n < 30 || n > 960)
+                throw new IllegalArgumentException("요일별 공부시간은 30~960분으로 입력해 주세요.");
+            minutes.put(day, n);
+        }
+        if (minutes.isEmpty())
+            throw new IllegalArgumentException("공부할 요일을 월~일 중 최소 한 개 이상 선택해 주세요.");
+        return java.util.Collections.unmodifiableMap(minutes);
+    }
+
+    /** start 포함, endExclusive 제외 구간에서 쓸 수 있는 시간의 합(분). */
+    private static int sumCapacity(LocalDate start, LocalDate endExclusive, int[] caps) {
+        int sum = 0;
+        for (LocalDate date = start; date.isBefore(endExclusive); date = date.plusDays(1))
+            sum = Math.addExact(sum, caps[date.getDayOfWeek().getValue()]);
+        return sum;
+    }
+
+    /** "월 60분·토 240분" */
+    public static String weekdayMinutesLabel(Map<Integer, Integer> minutes) {
+        String[] names = {"월", "화", "수", "목", "금", "토", "일"};
+        List<String> parts = new ArrayList<>();
+        for (int i = 1; i <= 7; i++)
+            if (minutes.get(i) != null) parts.add(names[i - 1] + " " + minutes.get(i) + "분");
+        return String.join("·", parts);
     }
 
     /**

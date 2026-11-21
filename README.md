@@ -129,3 +129,22 @@ IntelliJ 실행 설정 → Active profiles 에 `fake` → 용성의 후기 SQL �
   - 2027 필기 4과목 이름 (큐넷 출제기준) / 합격 기준 문장
   - 단계 비율(30·40·50%)과 이해도 가중치(1.3/1.0/0.7)는 초기 설계값
 - 범위 밖 (확장 지점): 복수 자격증, 타이머·학습기록, 계획 저장(STUDY_PLANS), 재편성(AI_PLAN_PROPOSALS), 관심자격 추천, 관리자 인증, 정기 수집 스케줄러
+
+## 6. 2026-11-19 변경 사항 (동건: 계획 저장·요일별 시간·재편성)
+
+`feature/passpace-chat-donggeon` 에 `develop`(한결 학습기록 API, 용성 과목 언급 수집·중앙값 집계)을 합친 뒤 아래를 추가했다. 새 테이블은 없다. 앱(Flutter)의 화면 변경은 앱 저장소 README 에 적었다.
+
+| 파일 | 바뀐 것 |
+|---|---|
+| `repository/ChatPlanStore` | 저장한 계획을 지우지 않고 목록으로 관리(목록·한 건 조회·전환·삭제), 요일별 가능시간 저장, 재편성용 조회와 추천 기록 |
+| `controller/ReviewBasedPlannerController` | `/save?activate=`, `/plans/**`, `/replan/**` 추가. 요청의 `weekdayMinutes` 전달 |
+| `service/MultiGoalPlanCalculator` | 요일별 공부시간(`weekdayMinutes`) 계산, 최소 학습 블록 45분 → 50분 |
+| `service/PlanReplanner` (새 파일) | 밀림 판단(계획 전체의 20%)과 남은 공부량 재배정 요청 (DB 없는 순수 계산) |
+| `static/js/chatbot.js` | 안내 문구의 블록 시간만 50분으로 수정 |
+
+- **계획 상태**: 사용자당 `ACTIVE` 1건(지금 쓰는 계획), 나머지는 `REPLACED`(보관). 학습기록(한결) 쪽이 읽는 두 값만 쓴다.
+- **요일별 시간**: 요청에 `weekdayMinutes`(`{"1":60,"6":240}`)가 있으면 그 요일에만, 그날의 시간까지만 배정한다. 없으면 기존과 같은 결과다. 저장할 때 `STUDY_PLANS.weekday_minutes` 에 요일별 가능시간을 남긴다.
+- **재편성 추천**: 어제까지 배정된 시간 중 하지 못한 시간이 계획 전체의 20% 이상이면 `GET /replan` 이 다시 짠 일정을 돌려준다. 수락·거절은 `AI_PLAN_PROPOSALS`(`delay_reason_type = 'BEHIND_SCHEDULE'`, `model_name = 'RULE'`)에 남긴다. `STUDY_SESSIONS` 는 읽기만 한다.
+- **DB**: `db/10_review_subject_mentions.sql`(용성)을 실행해야 과목 언급이 저장된다.
+- **테스트**: `gradlew test` 117개 통과 (`MultiGoalPlanCalculatorTest` 요일별 시간·50분 블록, `PlanReplannerTest` 추가).
+- 5장의 "범위 밖" 중 **계획 저장(STUDY_PLANS)** 과 **재편성(AI_PLAN_PROPOSALS)** 은 이번에 구현했다. 재편성은 정기 스케줄러가 아니라 앱에서 홈을 열 때 확인한다.
