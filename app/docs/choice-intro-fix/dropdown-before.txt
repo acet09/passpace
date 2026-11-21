@@ -1,0 +1,91 @@
+00:00 +0: loading C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/admin_choice_visibility_test.dart
+00:00 +0: 수집 사이트·방식의 선택값은 실제로 보이고 변경 후에도 유지된다: 1.0
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: a value greater than or equal to <23.9>
+  Actual: <4.0>
+   Which: is not a value greater than or equal to <23.9>
+선택된 전체 글자가 실제 글자 높이보다 작은 영역에 눌려 가려지면 안 됩니다.
+
+When the exception was thrown, this was the stack:
+#4      expectSelectedLabelVisible (file:///C:/Users/std66/Documents/ChatGPT/PASS_FACE%20_%20TEST/passpace_mobile/test/admin_choice_visibility_test.dart:15:3)
+#5      main.<anonymous closure> (file:///C:/Users/std66/Documents/ChatGPT/PASS_FACE%20_%20TEST/passpace_mobile/test/admin_choice_visibility_test.dart:35:7)
+<asynchronous suspension>
+#6      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#7      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///C:/Users/std66/Documents/ChatGPT/PASS_FACE%20_%20TEST/passpace_mobile/test/admin_choice_visibility_test.dart line 15
+The test description was:
+  수집 사이트·방식의 선택값은 실제로 보이고 변경 후에도 유지된다: 1.0
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:00 +0 -1: 수집 사이트·방식의 선택값은 실제로 보이고 변경 후에도 유지된다: 1.0 [E]
+  Test failed. See exception logs above.
+  The test description was: 수집 사이트·방식의 선택값은 실제로 보이고 변경 후에도 유지된다: 1.0
+  
+00:00 +0 -1: 수집 사이트·방식의 선택값은 실제로 보이고 변경 후에도 유지된다: 1.5
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: a value greater than or equal to <35.9>
+  Actual: <16.0>
+   Which: is not a value greater than or equal to <35.9>
+선택된 전체 글자가 실제 글자 높이보다 작은 영역에 눌려 가려지면 안 됩니다.
+
+When the exception was thrown, this was the stack:
+#4      expectSelectedLabelVisible (file:///C:/Users/std66/Documents/ChatGPT/PASS_FACE%20_%20TEST/passpace_mobile/test/admin_choice_visibility_test.dart:15:3)
+#5      main.<anonymous closure> (file:///C:/Users/std66/Documents/ChatGPT/PASS_FACE%20_%20TEST/passpace_mobile/test/admin_choice_visibility_test.dart:35:7)
+<asynchronous suspension>
+#6      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#7      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///C:/Users/std66/Documents/ChatGPT/PASS_FACE%20_%20TEST/passpace_mobile/test/admin_choice_visibility_test.dart line 15
+The test description was:
+  수집 사이트·방식의 선택값은 실제로 보이고 변경 후에도 유지된다: 1.5
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:00 +0 -2: 수집 사이트·방식의 선택값은 실제로 보이고 변경 후에도 유지된다: 1.5 [E]
+  Test failed. See exception logs above.
+  The test description was: 수집 사이트·방식의 선택값은 실제로 보이고 변경 후에도 유지된다: 1.5
+  
+00:00 +0 -2: 수집 사이트·방식의 선택값은 실제로 보이고 변경 후에도 유지된다: 2.0
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: a value greater than or equal to <47.9>
+  Actual: <28.0>
+   Which: is not a value greater than or equal to <47.9>
+선택된 전체 글자가 실제 글자 높이보다 작은 영역에 눌려 가려지면 안 됩니다.
+
+When the exception was thrown, this was the stack:
+#4      expectSelectedLabelVisible (file:///C:/Users/std66/Documents/ChatGPT/PASS_FACE%20_%20TEST/passpace_mobile/test/admin_choice_visibility_test.dart:15:3)
+#5      main.<anonymous closure> (file:///C:/Users/std66/Documents/ChatGPT/PASS_FACE%20_%20TEST/passpace_mobile/test/admin_choice_visibility_test.dart:35:7)
+<asynchronous suspension>
+#6      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#7      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///C:/Users/std66/Documents/ChatGPT/PASS_FACE%20_%20TEST/passpace_mobile/test/admin_choice_visibility_test.dart line 15
+The test description was:
+  수집 사이트·방식의 선택값은 실제로 보이고 변경 후에도 유지된다: 2.0
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:00 +0 -3: 수집 사이트·방식의 선택값은 실제로 보이고 변경 후에도 유지된다: 2.0 [E]
+  Test failed. See exception logs above.
+  The test description was: 수집 사이트·방식의 선택값은 실제로 보이고 변경 후에도 유지된다: 2.0
+  
+00:00 +0 -3: Some tests failed.
+
+Failing tests:
+  C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/admin_choice_visibility_test.dart: 수집 사이트·방식의 선택값은 실제로 보이고 변경 후에도 유지된다: 1.0
+  C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/admin_choice_visibility_test.dart: 수집 사이트·방식의 선택값은 실제로 보이고 변경 후에도 유지된다: 1.5
+  C:/Users/std66/Documents/ChatGPT/PASS_FACE _ TEST/passpace_mobile/test/admin_choice_visibility_test.dart: 수집 사이트·방식의 선택값은 실제로 보이고 변경 후에도 유지된다: 2.0

@@ -1,0 +1,1684 @@
+--- before/lib/ui/design.dart
++++ after/lib/ui/design.dart
+@@ -5,28 +5,31 @@
+ import '../data/api.dart';
+ import '../data/models.dart';
+ 
++const ink = Color(0xff192840);
++const muted = Color(0xff52617a);
++const blue = Color(0xff3155c7);
++const pale = Color(0xffedf2ff);
++const paper = Color(0xfff7f9fc);
++const line = Color(0xffe0e6ef);
++const acid = Color(0xffc4dcff);
++const green = Color(0xff136c53);
++const amber = Color(0xff865114);
+-const ink = Color(0xff182544);
+-const muted = Color(0xff64718a);
+-const blue = Color(0xff375ce7);
+-const pale = Color(0xffeef2ff);
+-const paper = Color(0xfff7f8fc);
+-const line = Color(0xffe8ecf4);
+-const acid = Color(0xffdcf6aa);
+-const green = Color(0xff15765d);
+-const amber = Color(0xff925b12);
+ 
+ ThemeData paceTheme() {
+   final base = ThemeData(
+     useMaterial3: true,
+     brightness: Brightness.light,
++    materialTapTargetSize: MaterialTapTargetSize.padded,
+     colorScheme: ColorScheme.fromSeed(seedColor: blue).copyWith(
+       primary: blue,
+       onPrimary: Colors.white,
+       surface: Colors.white,
+       onSurface: ink,
++      outline: const Color(0xff8190a6),
++      error: const Color(0xffa12a36),
+-      outline: line,
+     ),
+   );
++  final shape = RoundedRectangleBorder(borderRadius: BorderRadius.circular(14));
+   return base.copyWith(
+     scaffoldBackgroundColor: paper,
+     visualDensity: VisualDensity.standard,
+@@ -37,78 +40,85 @@
+       surfaceTintColor: Colors.transparent,
+       centerTitle: false,
+       scrolledUnderElevation: 0,
++      titleSpacing: 20,
+       titleTextStyle: TextStyle(
++        fontSize: 19,
+-        fontSize: 20,
+         fontWeight: FontWeight.w700,
+         color: ink,
+         letterSpacing: -.5,
+       ),
+     ),
++    iconButtonTheme: IconButtonThemeData(
++      style: IconButton.styleFrom(
++        minimumSize: const Size(48, 48),
++        foregroundColor: muted,
++      ),
++    ),
+     dividerTheme: const DividerThemeData(color: line, space: 1),
+     snackBarTheme: SnackBarThemeData(
+       behavior: SnackBarBehavior.floating,
+       backgroundColor: ink,
++      shape: shape,
+-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+     ),
+     filledButtonTheme: FilledButtonThemeData(
+       style: FilledButton.styleFrom(
+         minimumSize: const Size(48, 54),
++        shape: shape,
+-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+         textStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
++        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+       ),
+     ),
+     outlinedButtonTheme: OutlinedButtonThemeData(
+       style: OutlinedButton.styleFrom(
++        minimumSize: const Size(48, 52),
+-        minimumSize: const Size(48, 50),
+         foregroundColor: ink,
++        side: const BorderSide(color: Color(0xff8190a6)),
++        shape: shape,
+-        side: const BorderSide(color: line),
+-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+       ),
+     ),
+     textButtonTheme: TextButtonThemeData(
+       style: TextButton.styleFrom(
++        minimumSize: const Size(48, 48),
++        textStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+-        textStyle: const TextStyle(fontWeight: FontWeight.w600),
+-        minimumSize: const Size(44, 44),
+       ),
+     ),
+     chipTheme: base.chipTheme.copyWith(
++      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
++      side: const BorderSide(color: Color(0xff8190a6)),
+-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(11)),
+-      side: const BorderSide(color: line),
+       selectedColor: pale,
+       labelStyle: const TextStyle(
++        fontSize: 14,
+-        fontSize: 13,
+         fontWeight: FontWeight.w600,
+         color: ink,
+       ),
++      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 9),
+-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 7),
+     ),
+     inputDecorationTheme: InputDecorationTheme(
+       filled: true,
+       fillColor: Colors.white,
++      errorMaxLines: 4,
++      helperMaxLines: 4,
++      labelStyle: const TextStyle(color: muted, fontSize: 14),
+-      errorMaxLines: 3,
+-      helperMaxLines: 3,
+-      labelStyle: const TextStyle(color: muted),
+       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 17),
+       border: OutlineInputBorder(
++        borderRadius: BorderRadius.circular(12),
++        borderSide: const BorderSide(color: Color(0xff8190a6)),
+-        borderRadius: BorderRadius.circular(14),
+-        borderSide: const BorderSide(color: line),
+       ),
+       enabledBorder: OutlineInputBorder(
++        borderRadius: BorderRadius.circular(12),
++        borderSide: const BorderSide(color: Color(0xff8190a6)),
+-        borderRadius: BorderRadius.circular(14),
+-        borderSide: const BorderSide(color: line),
+       ),
+       focusedBorder: OutlineInputBorder(
++        borderRadius: BorderRadius.circular(12),
++        borderSide: const BorderSide(color: blue, width: 1.8),
+-        borderRadius: BorderRadius.circular(14),
+-        borderSide: const BorderSide(color: blue, width: 1.5),
+       ),
+     ),
+     navigationBarTheme: NavigationBarThemeData(
+       backgroundColor: Colors.white,
+       surfaceTintColor: Colors.transparent,
+       indicatorColor: pale,
++      height: 76,
+-      height: 72,
+       labelTextStyle: WidgetStateProperty.resolveWith(
+         (s) => TextStyle(
+           fontSize: 12,
+@@ -125,6 +135,15 @@
+         ),
+       ),
+     ),
++    dialogTheme: DialogThemeData(
++      backgroundColor: Colors.white,
++      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
++    ),
++    bottomSheetTheme: const BottomSheetThemeData(
++      backgroundColor: paper,
++      surfaceTintColor: Colors.transparent,
++      showDragHandle: true,
++    ),
+   );
+ }
+ 
+@@ -307,7 +326,7 @@
+   const Pane({
+     super.key,
+     required this.child,
++    this.padding = 16,
+-    this.padding = 18,
+     this.color = Colors.white,
+   });
+   @override
+@@ -316,7 +335,7 @@
+     child: Material(
+       color: color,
+       shape: RoundedRectangleBorder(
++        borderRadius: BorderRadius.circular(18),
+-        borderRadius: BorderRadius.circular(20),
+         side: BorderSide(
+           color: color == Colors.white ? line : Colors.transparent,
+         ),
+@@ -370,6 +389,71 @@
+   }
+ }
+ 
++class HorizontalChoices extends StatefulWidget {
++  final int selectedIndex;
++  final List<Widget> children;
++  const HorizontalChoices({
++    super.key,
++    required this.selectedIndex,
++    required this.children,
++  });
++  @override
++  State<HorizontalChoices> createState() => _HorizontalChoicesState();
++}
++
++class _HorizontalChoicesState extends State<HorizontalChoices> {
++  final controller = ScrollController();
++  double previousWidth = -1;
++  bool reveal = true;
++  @override
++  void didUpdateWidget(HorizontalChoices old) {
++    super.didUpdateWidget(old);
++    if (old.selectedIndex != widget.selectedIndex) reveal = true;
++  }
++
++  @override
++  void dispose() {
++    controller.dispose();
++    super.dispose();
++  }
++
++  @override
++  Widget build(BuildContext context) => LayoutBuilder(
++    builder: (context, box) {
++      final width = math.max(52.0, box.maxWidth / widget.children.length);
++      if (previousWidth != box.maxWidth) {
++        previousWidth = box.maxWidth;
++        reveal = true;
++      }
++      if (reveal) {
++        reveal = false;
++        WidgetsBinding.instance.addPostFrameCallback((_) {
++          if (!mounted || !controller.hasClients) return;
++          final left = width * widget.selectedIndex;
++          final right = left + width;
++          final position = controller.position;
++          final offset = left < position.pixels
++              ? left
++              : right > position.pixels + box.maxWidth
++              ? right - box.maxWidth
++              : position.pixels;
++          controller.jumpTo(offset.clamp(0.0, position.maxScrollExtent));
++        });
++      }
++      return SingleChildScrollView(
++        controller: controller,
++        scrollDirection: Axis.horizontal,
++        child: Row(
++          children: [
++            for (final child in widget.children)
++              SizedBox(width: width, child: child),
++          ],
++        ),
++      );
++    },
++  );
++}
++
+ class Heading extends StatelessWidget {
+   final String text;
+   const Heading(this.text, {super.key});
+@@ -429,7 +513,7 @@
+   @override
+   Widget build(BuildContext context) => Text(
+     text,
++    style: const TextStyle(color: muted, fontSize: 14, height: 1.5),
+-    style: const TextStyle(color: muted, fontSize: 13, height: 1.55),
+   );
+ }
+ 
+@@ -451,7 +535,7 @@
+     ),
+     child: Text(
+       label,
++      style: TextStyle(color: color, fontWeight: FontWeight.w700, fontSize: 12),
+-      style: TextStyle(color: color, fontWeight: FontWeight.w700, fontSize: 11),
+     ),
+   );
+ }
+@@ -463,7 +547,7 @@
+   @override
+   Widget build(BuildContext context) {
+     final sql = name.toUpperCase().contains('SQL');
++    final color = sql ? blue : const Color(0xff526780);
+-    final color = sql ? blue : const Color(0xff8660cc);
+     return Container(
+       width: size,
+       height: size,
+@@ -575,6 +659,7 @@
+               child: CircularProgressIndicator(
+                 strokeWidth: 2,
+                 semanticsLabel: '처리 중',
++                color: blue,
+               ),
+             )
+           : Text(label, textAlign: TextAlign.center),
+@@ -597,41 +682,76 @@
+     this.summary,
+   });
+   @override
++  Widget build(BuildContext context) {
++    final media = MediaQuery.of(context);
++    final available =
++        (media.size.height -
++                media.viewInsets.bottom -
++                media.padding.vertical -
++                kToolbarHeight)
++            .clamp(160.0, double.infinity);
++    Widget message(Widget child, double height) => ConstrainedBox(
++      constraints: BoxConstraints(maxHeight: height),
++      child: SingleChildScrollView(primary: false, child: child),
++    );
++    return DecoratedBox(
++      decoration: const BoxDecoration(
++        color: Colors.white,
++        border: Border(top: BorderSide(color: line)),
++      ),
++      child: SafeArea(
++        top: false,
++        child: WidthLimit(
++          child: Padding(
++            padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
++            child: Column(
++              mainAxisSize: MainAxisSize.min,
++              crossAxisAlignment: CrossAxisAlignment.stretch,
++              children: [
++                if (error != null)
++                  message(
++                    AlertText(error!),
++                    (available * .22).clamp(48.0, 128.0),
++                  ),
++                if (summary != null)
++                  Padding(
++                    padding: const EdgeInsets.only(bottom: 10),
++                    child: message(
++                      HelpText(summary!),
++                      (available * .15).clamp(28.0, 80.0),
++                    ),
++                  ),
++                LayoutBuilder(
++                  builder: (context, b) {
++                    final back = onBack == null
++                        ? null
++                        : OutlinedButton(
++                            onPressed: busy ? null : onBack,
++                            child: const Text('이전'),
++                          );
++                    final primary = PrimaryAction(label, onTap, busy: busy);
++                    if (back != null &&
++                        (b.maxWidth < 260 || media.textScaler.scale(16) > 21)) {
++                      return Column(
++                        crossAxisAlignment: CrossAxisAlignment.stretch,
++                        children: [back, const SizedBox(height: 8), primary],
++                      );
++                    }
++                    return Row(
++                      children: [
++                        if (back != null) ...[back, const SizedBox(width: 10)],
++                        Expanded(child: primary),
++                      ],
++                    );
++                  },
+-  Widget build(BuildContext context) => Material(
+-    color: Colors.white,
+-    child: SafeArea(
+-      top: false,
+-      child: WidthLimit(
+-        child: Padding(
+-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+-          child: Column(
+-            mainAxisSize: MainAxisSize.min,
+-            crossAxisAlignment: CrossAxisAlignment.stretch,
+-            children: [
+-              if (error != null) AlertText(error!),
+-              if (summary != null)
+-                Padding(
+-                  padding: const EdgeInsets.only(bottom: 10),
+-                  child: HelpText(summary!),
+                 ),
++              ],
++            ),
+-              Row(
+-                children: [
+-                  if (onBack != null) ...[
+-                    OutlinedButton(
+-                      onPressed: busy ? null : onBack,
+-                      child: const Text('이전'),
+-                    ),
+-                    const SizedBox(width: 10),
+-                  ],
+-                  Expanded(child: PrimaryAction(label, onTap, busy: busy)),
+-                ],
+-              ),
+-            ],
+           ),
+         ),
+       ),
++    );
++  }
+-    ),
+-  );
+ }
+ 
+ class StepHeader extends StatelessWidget {
+@@ -680,7 +800,7 @@
+     tween: Tween(begin: 0, end: 1),
+     duration: MediaQuery.disableAnimationsOf(context)
+         ? Duration.zero
++        : const Duration(milliseconds: 180),
+-        : const Duration(milliseconds: 300),
+     curve: Curves.easeOutCubic,
+     builder: (_, v, child) => Opacity(
+       opacity: v,
+--- before/lib/ui/dashboard.dart
++++ after/lib/ui/dashboard.dart
+@@ -254,38 +254,12 @@
+             Text(
+               '${widget.session.user!.name}님의 학습',
+               style: const TextStyle(
++                fontSize: 23,
+-                fontSize: 26,
+                 fontWeight: FontWeight.w800,
+                 letterSpacing: -1,
+               ),
+             ),
++            const SizedBox(height: 18),
+-            const SizedBox(height: 19),
+-            Builder(
+-              builder: (context) {
+-                if (goalSnap.connectionState != ConnectionState.done) {
+-                  return const SizedBox(
+-                    height: 96,
+-                    child: Center(
+-                      child: CircularProgressIndicator(strokeWidth: 2),
+-                    ),
+-                  );
+-                }
+-                if (goalSnap.hasError) {
+-                  return Pane(
+-                    padding: 12,
+-                    child: ListTile(
+-                      contentPadding: EdgeInsets.zero,
+-                      leading: const Icon(Icons.flag_outlined, color: blue),
+-                      title: const Text('목표 정보를 확인해 주세요'),
+-                      trailing: const Icon(Icons.chevron_right),
+-                      onTap: goal,
+-                    ),
+-                  );
+-                }
+-                return GoalCard(goalSnap.data!, today, goal);
+-              },
+-            ),
+-            const SizedBox(height: 14),
+             if (plan == null)
+               EmptyPanel(
+                 Icons.auto_stories_outlined,
+@@ -308,8 +282,8 @@
+                   children: [
+                     if (tasks.isEmpty)
+                       const EmptyPanel(
++                        Icons.event_note_outlined,
++                        '계획된 학습 없음',
+-                        Icons.coffee_outlined,
+-                        '예정된 학습이 없어요',
+                         '공부할 날짜를 선택해 주세요.\n계획을 조정하고 싶다면 새 계획을 만들 수 있어요.',
+                       ),
+                     ...tasks.map(
+@@ -321,6 +295,31 @@
+                   ],
+                 ),
+               ),
++            Builder(
++              builder: (context) {
++                if (goalSnap.connectionState != ConnectionState.done) {
++                  return const SizedBox(
++                    height: 96,
++                    child: Center(
++                      child: CircularProgressIndicator(strokeWidth: 2),
++                    ),
++                  );
++                }
++                if (goalSnap.hasError) {
++                  return Pane(
++                    padding: 12,
++                    child: ListTile(
++                      contentPadding: EdgeInsets.zero,
++                      leading: const Icon(Icons.flag_outlined, color: blue),
++                      title: const Text('목표 정보를 확인해 주세요'),
++                      trailing: const Icon(Icons.chevron_right),
++                      onTap: goal,
++                    ),
++                  );
++                }
++                return GoalCard(goalSnap.data!, today, goal);
++              },
++            ),
+             if (plan != null) ...[
+               SectionRow('이번 주 학습', action: '계획 보기', onTap: () => selectTab(1)),
+               WeekStrip(
+@@ -389,56 +388,47 @@
+         : delta > 0
+         ? 'D-$delta'
+         : 'D+${-delta}';
++    return Padding(
++      padding: const EdgeInsets.only(top: 18, bottom: 4),
++      child: Material(
++        color: Colors.transparent,
++        borderRadius: BorderRadius.circular(12),
++        child: InkWell(
++          onTap: edit,
++          borderRadius: BorderRadius.circular(12),
++          child: Padding(
++            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
++            child: Row(
++              children: [
++                const Icon(Icons.flag_outlined, size: 21, color: muted),
++                const SizedBox(width: 12),
++                Expanded(
++                  child: Column(
++                    crossAxisAlignment: CrossAxisAlignment.start,
++                    children: [
++                      Text(
++                        date == null ? '어떤 시험을 준비하나요?' : data.examLabel,
++                        style: const TextStyle(
++                          fontSize: 14,
++                          fontWeight: FontWeight.w600,
++                        ),
++                      ),
++                      if (date != null) ...[
++                        const SizedBox(height: 3),
++                        Text(
++                          '${isoDay(date)} · ${delta! < 0 ? '목표일 지남' : '목표 시험일'}',
++                          style: const TextStyle(color: muted, fontSize: 12),
++                        ),
++                      ],
++                    ],
+-    return Pane(
+-      padding: 0,
+-      child: InkWell(
+-        onTap: edit,
+-        child: Padding(
+-          padding: const EdgeInsets.all(18),
+-          child: Row(
+-            children: [
+-              Container(
+-                padding: const EdgeInsets.symmetric(
+-                  vertical: 11,
+-                  horizontal: 12,
+-                ),
+-                decoration: BoxDecoration(
+-                  color: pale,
+-                  borderRadius: BorderRadius.circular(13),
+-                ),
+-                child: Text(
+-                  label,
+-                  style: const TextStyle(
+-                    color: blue,
+-                    fontSize: 18,
+-                    fontWeight: FontWeight.w800,
+-                    letterSpacing: -.5,
+                   ),
+                 ),
++                const SizedBox(width: 8),
++                StatusTag(label),
++                const SizedBox(width: 4),
++                const Icon(Icons.chevron_right_rounded, color: muted, size: 20),
++              ],
++            ),
+-              ),
+-              const SizedBox(width: 13),
+-              Expanded(
+-                child: Column(
+-                  crossAxisAlignment: CrossAxisAlignment.start,
+-                  children: [
+-                    Text(
+-                      date == null ? '어떤 시험을 준비하나요?' : data.examLabel,
+-                      style: const TextStyle(
+-                        fontSize: 14,
+-                        fontWeight: FontWeight.w700,
+-                      ),
+-                    ),
+-                    const SizedBox(height: 4),
+-                    HelpText(
+-                      date == null
+-                          ? '목표 시험일을 설정해 주세요.'
+-                          : '${isoDay(date)} · ${delta! < 0 ? '목표일 지남' : '목표 시험일'}',
+-                    ),
+-                  ],
+-                ),
+-              ),
+-              const Icon(Icons.chevron_right_rounded, color: muted, size: 21),
+-            ],
+           ),
+         ),
+       ),
+@@ -460,62 +450,70 @@
+     final total = tasks.fold(0, (n, t) => n + t.minutes),
+         exams = tasks.map((t) => t.exam).toSet().length;
+     return Container(
++      padding: const EdgeInsets.all(18),
+-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+       decoration: BoxDecoration(
++        color: blue,
++        borderRadius: BorderRadius.circular(18),
+-        gradient: const LinearGradient(
+-          colors: [Color(0xff334fbf), Color(0xff5578ef)],
+-          begin: Alignment.topLeft,
+-          end: Alignment.bottomRight,
+-        ),
+-        borderRadius: BorderRadius.circular(22),
+       ),
++      child: LayoutBuilder(
++        builder: (context, b) {
++          final summary = Column(
+-      child: Column(
+-        crossAxisAlignment: CrossAxisAlignment.start,
+-        children: [
+-          Row(
+             crossAxisAlignment: CrossAxisAlignment.start,
+             children: [
++              Text(
++                date == today ? '오늘의 계획 시간' : '${shortDay(date)} 계획 시간',
++                style: const TextStyle(
++                  color: Colors.white,
++                  fontSize: 13,
++                  fontWeight: FontWeight.w500,
++                ),
++              ),
++              const SizedBox(height: 6),
++              Text(
++                durationLabel(total),
++                style: const TextStyle(
++                  color: Colors.white,
++                  fontSize: 27,
++                  fontWeight: FontWeight.w800,
++                  letterSpacing: -.7,
+-              Expanded(
+-                child: Column(
+-                  crossAxisAlignment: CrossAxisAlignment.start,
+-                  children: [
+-                    Text(
+-                      date == today ? '오늘의 계획 시간' : '${shortDay(date)} 계획 시간',
+-                      style: const TextStyle(
+-                        color: Color(0xffe7edff),
+-                        fontSize: 12,
+-                        fontWeight: FontWeight.w600,
+-                      ),
+-                    ),
+-                    const SizedBox(height: 4),
+-                    Text(
+-                      durationLabel(total),
+-                      style: const TextStyle(
+-                        color: Colors.white,
+-                        fontSize: 28,
+-                        fontWeight: FontWeight.w800,
+-                        letterSpacing: -.8,
+-                      ),
+-                    ),
+-                  ],
+                 ),
+               ),
++            ],
++          );
++          final count = Column(
++            crossAxisAlignment: CrossAxisAlignment.start,
++            children: [
++              Text(
++                '${tasks.length}개 학습 항목',
++                style: const TextStyle(
++                  color: Colors.white,
++                  fontSize: 13,
++                  fontWeight: FontWeight.w600,
+-              const Padding(
+-                padding: EdgeInsets.only(top: 3),
+-                child: Icon(
+-                  Icons.schedule_rounded,
+-                  color: Color(0xffe7edff),
+-                  size: 23,
+                 ),
+               ),
++              const SizedBox(height: 4),
++              Text(
++                '$exams개 시험',
++                style: const TextStyle(color: Colors.white, fontSize: 12),
++              ),
+             ],
++          );
++          if (b.maxWidth < 270 ||
++              MediaQuery.textScalerOf(context).scale(14) > 20) {
++            return Column(
++              crossAxisAlignment: CrossAxisAlignment.start,
++              children: [summary, const SizedBox(height: 12), count],
++            );
++          }
++          return Row(
++            crossAxisAlignment: CrossAxisAlignment.center,
++            children: [
++              Expanded(child: summary),
++              const SizedBox(width: 16),
++              count,
++            ],
++          );
++        },
+-          ),
+-          const SizedBox(height: 8),
+-          Text(
+-            '${tasks.length}개 학습 항목 · $exams개 시험',
+-            style: const TextStyle(color: Colors.white, fontSize: 12),
+-          ),
+-        ],
+       ),
+     );
+   }
+@@ -535,125 +533,123 @@
+   @override
+   Widget build(BuildContext context) {
+     final mon = plusDays(selected, 1 - selected.weekday);
++    final period = mon.month == plusDays(mon, 6).month
++        ? '${mon.year}년 ${mon.month}월'
++        : '${shortDay(mon)} – ${shortDay(plusDays(mon, 6))}';
++    final previous = IconButton(
++      tooltip: '이전 주',
++      onPressed: () => change(plusDays(selected, -7)),
++      icon: const Icon(Icons.chevron_left_rounded, size: 21),
++    );
++    final next = IconButton(
++      tooltip: '다음 주',
++      onPressed: () => change(plusDays(selected, 7)),
++      icon: const Icon(Icons.chevron_right_rounded, size: 21),
++    );
++    final now = TextButton(
++      onPressed: () => change(today),
++      child: const Text('오늘', style: TextStyle(fontSize: 13)),
++    );
++    final title = Text(
++      period,
++      textAlign: TextAlign.center,
++      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
++    );
+     return Pane(
++      padding: 10,
+-      padding: 9,
+       child: Column(
+         children: [
++          if (MediaQuery.textScalerOf(context).scale(14) > 20)
++            Column(
++              children: [
++                title,
++                Row(
++                  children: [
++                    previous,
++                    const Spacer(),
++                    now,
++                    const Spacer(),
++                    next,
++                  ],
+-          Row(
+-            children: [
+-              IconButton(
+-                tooltip: '이전 주',
+-                onPressed: () => change(plusDays(selected, -7)),
+-                icon: const Icon(Icons.chevron_left_rounded, size: 21),
+-              ),
+-              Expanded(
+-                child: Text(
+-                  mon.month == plusDays(mon, 6).month
+-                      ? '${mon.year}년 ${mon.month}월'
+-                      : '${shortDay(mon)} – ${shortDay(plusDays(mon, 6))}',
+-                  textAlign: TextAlign.center,
+-                  style: const TextStyle(
+-                    fontWeight: FontWeight.w700,
+-                    fontSize: 14,
+-                  ),
+                 ),
++              ],
++            )
++          else
++            Row(
++              children: [
++                previous,
++                Expanded(child: title),
++                now,
++                next,
++              ],
++            ),
++          const SizedBox(height: 6),
++          HorizontalChoices(
++            key: ValueKey(isoDay(mon)),
++            selectedIndex: selected.weekday - 1,
++            children: List.generate(7, (i) {
++              final d = plusDays(mon, i),
++                  on = d == selected,
++                  has = plan?.on(d).isNotEmpty ?? false,
++                  isToday = d == today;
++              return Semantics(
++                button: true,
++                selected: on,
++                onTap: () => change(d),
++                label: '${shortDay(d)} ${weekdays[i]}요일${has ? ', 계획 있음' : ''}',
++                child: ExcludeSemantics(
++                  child: Padding(
++                    padding: const EdgeInsets.symmetric(horizontal: 2),
++                    child: Material(
++                      color: on ? blue : Colors.white,
++                      borderRadius: BorderRadius.circular(12),
++                      child: InkWell(
++                        borderRadius: BorderRadius.circular(12),
++                        onTap: () => change(d),
++                        child: Padding(
++                          padding: const EdgeInsets.symmetric(vertical: 10),
++                          child: Column(
++                            children: [
++                              Text(
++                                weekdays[i],
++                                style: TextStyle(
++                                  fontSize: 12,
++                                  color: on ? Colors.white : muted,
++                                ),
++                              ),
++                              const SizedBox(height: 6),
++                              Text(
++                                '${d.day}',
++                                style: TextStyle(
++                                  fontSize: 17,
++                                  fontWeight: FontWeight.w700,
++                                  color: on
++                                      ? Colors.white
++                                      : isToday
++                                      ? blue
++                                      : ink,
++                                ),
++                              ),
++                              const SizedBox(height: 6),
++                              Container(
++                                width: 4,
++                                height: 4,
++                                decoration: BoxDecoration(
++                                  shape: BoxShape.circle,
++                                  color: has
++                                      ? (on ? Colors.white : blue)
++                                      : Colors.transparent,
+-              ),
+-              TextButton(
+-                onPressed: () => change(today),
+-                child: const Text('오늘', style: TextStyle(fontSize: 12)),
+-              ),
+-              IconButton(
+-                tooltip: '다음 주',
+-                onPressed: () => change(plusDays(selected, 7)),
+-                icon: const Icon(Icons.chevron_right_rounded, size: 21),
+-              ),
+-            ],
+-          ),
+-          const SizedBox(height: 5),
+-          LayoutBuilder(
+-            builder: (context, b) {
+-              final width = (b.maxWidth / 7)
+-                  .clamp(40.0, double.infinity)
+-                  .toDouble();
+-              return SingleChildScrollView(
+-                scrollDirection: Axis.horizontal,
+-                child: Row(
+-                  children: List.generate(7, (i) {
+-                    final d = plusDays(mon, i),
+-                        on = d == selected,
+-                        has = plan?.on(d).isNotEmpty ?? false,
+-                        isToday = d == today;
+-                    return Semantics(
+-                      button: true,
+-                      selected: on,
+-                      onTap: () => change(d),
+-                      label:
+-                          '${shortDay(d)} ${weekdays[i]}요일${has ? ', 계획 있음' : ''}',
+-                      child: ExcludeSemantics(
+-                        child: SizedBox(
+-                          width: width,
+-                          child: Padding(
+-                            padding: const EdgeInsets.symmetric(horizontal: 2),
+-                            child: Material(
+-                              color: on ? blue : Colors.white,
+-                              borderRadius: BorderRadius.circular(15),
+-                              child: InkWell(
+-                                borderRadius: BorderRadius.circular(15),
+-                                onTap: () => change(d),
+-                                child: Padding(
+-                                  padding: const EdgeInsets.symmetric(
+-                                    vertical: 10,
+-                                  ),
+-                                  child: Column(
+-                                    children: [
+-                                      Text(
+-                                        weekdays[i],
+-                                        style: TextStyle(
+-                                          fontSize: 11,
+-                                          color: on
+-                                              ? Colors.white.withValues(
+-                                                  alpha: .8,
+-                                                )
+-                                              : muted,
+-                                        ),
+-                                      ),
+-                                      const SizedBox(height: 7),
+-                                      Text(
+-                                        '${d.day}',
+-                                        style: TextStyle(
+-                                          fontWeight: FontWeight.w700,
+-                                          fontSize: 17,
+-                                          color: on
+-                                              ? Colors.white
+-                                              : isToday
+-                                              ? blue
+-                                              : ink,
+-                                        ),
+-                                      ),
+-                                      const SizedBox(height: 7),
+-                                      Container(
+-                                        width: 4,
+-                                        height: 4,
+-                                        decoration: BoxDecoration(
+-                                          color: has
+-                                              ? (on ? acid : blue)
+-                                              : Colors.transparent,
+-                                          shape: BoxShape.circle,
+-                                        ),
+-                                      ),
+-                                    ],
+-                                  ),
+                                 ),
+                               ),
++                            ],
+-                            ),
+                           ),
+                         ),
+                       ),
++                    ),
++                  ),
+-                    );
+-                  }),
+                 ),
+               );
++            }),
+-            },
+           ),
+           const SizedBox(height: 4),
+         ],
+@@ -668,54 +664,78 @@
+   const TaskTile(this.task, {super.key, this.onTap});
+   @override
+   Widget build(BuildContext context) => Padding(
++    padding: const EdgeInsets.only(bottom: 10),
+-    padding: const EdgeInsets.only(bottom: 9),
+     child: Pane(
+       padding: 0,
+       child: InkWell(
+         onTap: onTap,
+         child: Padding(
+           padding: const EdgeInsets.all(16),
++          child: LayoutBuilder(
++            builder: (context, b) {
++              final stacked =
++                  b.maxWidth < 280 ||
++                  MediaQuery.textScalerOf(context).scale(14) > 20;
++              final time = Container(
++                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
++                decoration: BoxDecoration(
++                  color: pale,
++                  borderRadius: BorderRadius.circular(8),
++                ),
++                child: Text(
++                  durationLabel(task.minutes),
++                  style: const TextStyle(
++                    color: blue,
++                    fontSize: 13,
++                    fontWeight: FontWeight.w700,
++                  ),
++                ),
++              );
++              return Row(
++                crossAxisAlignment: CrossAxisAlignment.start,
++                children: [
++                  ExamIcon(task.exam, size: 36),
++                  const SizedBox(width: 12),
++                  Expanded(
++                    child: Column(
++                      crossAxisAlignment: CrossAxisAlignment.start,
++                      children: [
++                        Text(
++                          task.exam,
++                          style: const TextStyle(
++                            color: muted,
++                            fontSize: 12,
++                            height: 1.4,
++                          ),
++                        ),
++                        const SizedBox(height: 5),
++                        Text(
++                          task.subject,
++                          style: const TextStyle(
++                            fontSize: 16,
++                            fontWeight: FontWeight.w700,
++                            height: 1.4,
++                          ),
++                        ),
++                        if (stacked) ...[const SizedBox(height: 10), time],
++                      ],
++                    ),
++                  ),
++                  if (!stacked) ...[const SizedBox(width: 12), time],
++                  if (onTap != null) ...[
++                    const SizedBox(width: 5),
++                    const Padding(
++                      padding: EdgeInsets.only(top: 9),
++                      child: Icon(
++                        Icons.chevron_right_rounded,
++                        size: 19,
+-          child: Row(
+-            children: [
+-              ExamIcon(task.exam),
+-              const SizedBox(width: 12),
+-              Expanded(
+-                child: Column(
+-                  crossAxisAlignment: CrossAxisAlignment.start,
+-                  children: [
+-                    Text(
+-                      task.exam,
+-                      style: const TextStyle(
+                         color: muted,
+-                        fontSize: 11,
+-                        fontWeight: FontWeight.w500,
+                       ),
+                     ),
+-                    const SizedBox(height: 4),
+-                    Text(
+-                      task.subject,
+-                      style: const TextStyle(
+-                        fontSize: 15,
+-                        fontWeight: FontWeight.w700,
+-                      ),
+-                    ),
+                   ],
++                ],
++              );
++            },
+-                ),
+-              ),
+-              const SizedBox(width: 10),
+-              Text(
+-                durationLabel(task.minutes),
+-                style: const TextStyle(
+-                  color: blue,
+-                  fontWeight: FontWeight.w700,
+-                  fontSize: 13,
+-                ),
+-              ),
+-              if (onTap != null) ...[
+-                const SizedBox(width: 6),
+-                const Icon(Icons.chevron_right_rounded, size: 18, color: muted),
+-              ],
+-            ],
+           ),
+         ),
+       ),
+@@ -856,10 +876,12 @@
+                     child: Column(
+                       crossAxisAlignment: CrossAxisAlignment.start,
+                       children: [
++                        Wrap(
++                          alignment: WrapAlignment.spaceBetween,
++                          spacing: 12,
++                          runSpacing: 8,
+-                        Row(
+                           children: [
+                             StatusTag(status),
+-                            const Spacer(),
+                             Text(
+                               '버전 ${p.version}',
+                               style: const TextStyle(
+@@ -885,21 +907,34 @@
+                         const SizedBox(height: 8),
+                         HelpText('${isoDay(p.start)} – ${isoDay(p.end)}'),
+                         const SizedBox(height: 19),
++                        LayoutBuilder(
++                          builder: (context, b) {
++                            final values = [
++                              _Metric('준비하는 시험', '${exams.length}개'),
++                              _Metric('계획한 학습일', '${keys.length}일'),
++                              _Metric('총 계획 시간', durationLabel(p.totalMinutes)),
++                            ];
++                            if (b.maxWidth < 280 ||
++                                MediaQuery.textScalerOf(context).scale(14) >
++                                    20) {
++                              return Column(
++                                crossAxisAlignment: CrossAxisAlignment.start,
++                                children: [
++                                  for (int i = 0; i < values.length; i++) ...[
++                                    if (i > 0) const SizedBox(height: 14),
++                                    values[i],
++                                  ],
++                                ],
++                              );
++                            }
++                            return Row(
++                              crossAxisAlignment: CrossAxisAlignment.start,
++                              children: [
++                                for (final value in values)
++                                  Expanded(child: value),
++                              ],
++                            );
++                          },
+-                        Row(
+-                          children: [
+-                            Expanded(
+-                              child: _Metric('준비하는 시험', '${exams.length}개'),
+-                            ),
+-                            Expanded(
+-                              child: _Metric('계획한 학습일', '${keys.length}일'),
+-                            ),
+-                            Expanded(
+-                              child: _Metric(
+-                                '총 계획 시간',
+-                                durationLabel(p.totalMinutes),
+-                              ),
+-                            ),
+-                          ],
+                         ),
+                       ],
+                     ),
+@@ -951,31 +986,6 @@
+                   shape: const Border(),
+                   collapsedShape: const Border(),
+                   initiallyExpanded: view == 0 || on,
+-                  leading: Container(
+-                    width: 42,
+-                    height: 46,
+-                    decoration: BoxDecoration(
+-                      color: on ? pale : paper,
+-                      borderRadius: BorderRadius.circular(12),
+-                    ),
+-                    child: Column(
+-                      mainAxisAlignment: MainAxisAlignment.center,
+-                      children: [
+-                        Text(
+-                          weekdays[d.weekday - 1],
+-                          style: const TextStyle(fontSize: 10, color: muted),
+-                        ),
+-                        Text(
+-                          '${d.day}',
+-                          style: TextStyle(
+-                            fontSize: 18,
+-                            fontWeight: FontWeight.w800,
+-                            color: on ? blue : ink,
+-                          ),
+-                        ),
+-                      ],
+-                    ),
+-                  ),
+                   title: Text(
+                     on ? '오늘 · ${shortDay(d)}' : shortDay(d),
+                     style: TextStyle(
+@@ -1001,14 +1011,30 @@
+                               fontWeight: FontWeight.w600,
+                             ),
+                           ),
++                          subtitle: Padding(
++                            padding: const EdgeInsets.only(top: 5, bottom: 8),
++                            child: Column(
++                              crossAxisAlignment: CrossAxisAlignment.start,
++                              children: [
++                                Text(
++                                  t.exam,
++                                  style: const TextStyle(
++                                    fontSize: 12,
++                                    color: muted,
++                                  ),
++                                ),
++                                const SizedBox(height: 6),
++                                Text(
++                                  '계획 ${durationLabel(t.minutes)}',
++                                  style: const TextStyle(
++                                    color: blue,
++                                    fontSize: 14,
++                                    fontWeight: FontWeight.w600,
++                                  ),
++                                ),
++                              ],
++                            ),
+-                          subtitle: Text(
+-                            t.exam,
+-                            style: const TextStyle(fontSize: 11),
+                           ),
+-                          trailing: Text(
+-                            durationLabel(t.minutes),
+-                            style: const TextStyle(color: blue, fontSize: 12),
+-                          ),
+                           onTap: () =>
+                               showTaskDetails(context, t, onAsk: widget.onAsk),
+                         ),
+@@ -1031,7 +1057,7 @@
+   Widget build(BuildContext context) => Column(
+     crossAxisAlignment: CrossAxisAlignment.start,
+     children: [
++      Text(label, style: const TextStyle(color: muted, fontSize: 12)),
+-      Text(label, style: const TextStyle(color: muted, fontSize: 10)),
+       const SizedBox(height: 6),
+       Text(
+         value,
+--- before/lib/ui/auth.dart
++++ after/lib/ui/auth.dart
+@@ -77,26 +77,26 @@
+               ),
+             ],
+           ),
++          const SizedBox(height: 32),
++          const Align(
++            alignment: Alignment.centerLeft,
++            child: StatusTag('자격증 학습 지원'),
++          ),
++          const SizedBox(height: 16),
+-          const SizedBox(height: 21),
+           const Entrance(
++            child: Text(
++              '합격까지,\n나의 페이스로.',
++              style: TextStyle(
++                fontSize: 29,
++                fontWeight: FontWeight.w800,
++                height: 1.3,
++                letterSpacing: -.9,
++              ),
+-            child: PaceBanner(
+-              label: '자격증 학습 지원',
+-              headline: '합격을 향한 계획,\n나의 페이스로.',
+-              detail: '시험일까지 무엇을 얼마나 공부할지,\nPASS PACE와 함께 준비하세요.',
+             ),
+           ),
++          const SizedBox(height: 12),
++          const HelpText('로그인하고 나의 학습계획을 이어가세요.'),
++          const SizedBox(height: 28),
+-          const SizedBox(height: 29),
+-          const Text(
+-            '반가워요!',
+-            style: TextStyle(
+-              fontSize: 24,
+-              fontWeight: FontWeight.w800,
+-              letterSpacing: -.8,
+-            ),
+-          ),
+-          const SizedBox(height: 6),
+-          const HelpText('PASS PACE 계정으로 학습을 이어가세요.'),
+-          const SizedBox(height: 20),
+           if (success != null)
+             Semantics(
+               liveRegion: true,
+@@ -275,7 +275,7 @@
+                   const Text(
+                     '나에게 맞는 준비,\n지금 시작해 보세요.',
+                     style: TextStyle(
++                      fontSize: 23,
+-                      fontSize: 26,
+                       fontWeight: FontWeight.w800,
+                       letterSpacing: -1,
+                       height: 1.35,
+@@ -341,8 +341,9 @@
+                             ),
+                             const FieldGap(),
+                           ],
++                          const SizedBox(height: 8),
+-                          const Heading('학습 프로필'),
+                           DropdownButtonFormField<String>(
++                            isExpanded: true,
+                             decoration: const InputDecoration(
+                               labelText: '전공 구분',
+                             ),
+@@ -573,17 +574,28 @@
+   final String label, value;
+   const _InfoRow(this.label, this.value);
+   @override
++  Widget build(BuildContext context) => LayoutBuilder(
++    builder: (context, b) {
++      final name = Text(
++        label,
++        style: const TextStyle(color: muted, fontSize: 14),
++      );
++      final content = Text(
++        value,
++        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
++      );
++      if (b.maxWidth < 260 || MediaQuery.textScalerOf(context).scale(14) > 20) {
++        return Column(
++          crossAxisAlignment: CrossAxisAlignment.start,
++          children: [name, const SizedBox(height: 5), content],
++        );
++      }
++      return Row(
++        children: [
++          Expanded(child: name),
++          Flexible(child: content),
++        ],
++      );
++    },
+-  Widget build(BuildContext context) => Row(
+-    children: [
+-      Expanded(
+-        child: Text(label, style: const TextStyle(color: muted, fontSize: 13)),
+-      ),
+-      Flexible(
+-        child: Text(
+-          value,
+-          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+-        ),
+-      ),
+-    ],
+   );
+ }
+--- before/lib/ui/planner.dart
++++ after/lib/ui/planner.dart
+@@ -493,17 +493,17 @@
+     children: [
+       const SizedBox(height: 22),
+       const Text(
++        '학습할 시간을 정해요',
+-        '공부할 시간을\n먼저 정해볼까요?',
+         style: TextStyle(
++          fontSize: 24,
+-          fontSize: 27,
+           fontWeight: FontWeight.w800,
+           letterSpacing: -1,
+           height: 1.3,
+         ),
+       ),
+       const SizedBox(height: 10),
++      const HelpText('선택한 요일에 공부할 수 있는 최대 시간을 정해 주세요.'),
++      const SizedBox(height: 22),
+-      const HelpText('평소 무리 없이 지킬 수 있는 시간을 선택하세요.'),
+-      const Heading('하루 최대 학습 시간'),
+       TextField(
+         controller: minutes,
+         keyboardType: TextInputType.number,
+@@ -693,10 +693,11 @@
+                     s['name'],
+                     style: const TextStyle(
+                       fontWeight: FontWeight.w600,
++                      fontSize: 15,
++                      height: 1.4,
+-                      fontSize: 14,
+                     ),
+                   ),
++                  const SizedBox(height: 8),
+-                  const SizedBox(height: 7),
+                   Wrap(
+                     spacing: 8,
+                     children: List.generate(
+@@ -939,7 +940,7 @@
+                     ),
+                     const SizedBox(height: 15),
+                     Text(
++                      r.feasible ? '배정 시간을 확인해 보세요' : '목표에 맞게 시간을 조정해 보세요',
+-                      r.feasible ? '이 페이스로 준비해 보세요' : '목표에 맞게 시간을 조정해 보세요',
+                       style: const TextStyle(
+                         fontSize: 24,
+                         fontWeight: FontWeight.w800,
+@@ -1112,68 +1113,103 @@
+   const WeekLoad(this.days, {super.key});
+   @override
+   Widget build(BuildContext context) {
++    if (days.isEmpty) return const Pane(child: HelpText('계획된 학습 없음'));
+     final max = days
+         .map((d) => d['allocatedMinutes'] as int)
+         .fold(1, (n, v) => v > n ? v : n);
+     return Pane(
++      padding: 16,
+-      padding: 14,
+       child: Column(
+         crossAxisAlignment: CrossAxisAlignment.start,
+         children: [
+           const HelpText('날짜별 계획 시간 · 분'),
+           const SizedBox(height: 16),
++          LayoutBuilder(
++            builder: (context, b) {
++              final minWidth =
++                  (MediaQuery.textScalerOf(context).scale(12) * 1.8 + 12).clamp(
++                    34.0,
++                    84.0,
++                  );
++              final width = (b.maxWidth / days.length).clamp(
++                minWidth,
++                double.infinity,
++              );
++              final scrolls = width * days.length > b.maxWidth + 1;
++              return Column(
++                crossAxisAlignment: CrossAxisAlignment.start,
++                children: [
++                  SingleChildScrollView(
++                    scrollDirection: Axis.horizontal,
++                    child: Row(
++                      crossAxisAlignment: CrossAxisAlignment.end,
++                      children: days.map((d) {
++                        final n = d['allocatedMinutes'] as int,
++                            date = DateTime.parse(d['date']);
++                        return SizedBox(
++                          width: width,
++                          child: Semantics(
++                            label: '${shortDay(date)} 계획 $n분',
++                            child: ExcludeSemantics(
++                              child: Column(
++                                children: [
++                                  Text(
++                                    '$n',
++                                    style: const TextStyle(
++                                      fontSize: 12,
++                                      color: muted,
++                                    ),
++                                  ),
++                                  const SizedBox(height: 7),
++                                  SizedBox(
++                                    height: 76,
++                                    child: Align(
++                                      alignment: Alignment.bottomCenter,
++                                      child: FractionallySizedBox(
++                                        heightFactor: n / max,
++                                        widthFactor: .42,
++                                        child: Container(
++                                          decoration: const BoxDecoration(
++                                            color: blue,
++                                            borderRadius: BorderRadius.vertical(
++                                              top: Radius.circular(5),
++                                            ),
++                                          ),
++                                        ),
++                                      ),
++                                    ),
++                                  ),
++                                  const SizedBox(height: 9),
++                                  Text(
++                                    '${date.day}',
++                                    style: const TextStyle(
++                                      fontSize: 12,
++                                      fontWeight: FontWeight.w700,
++                                    ),
++                                  ),
++                                  const SizedBox(height: 3),
++                                  Text(
++                                    weekdays[date.weekday - 1],
++                                    style: const TextStyle(
++                                      fontSize: 12,
++                                      color: muted,
++                                    ),
+-          Row(
+-            crossAxisAlignment: CrossAxisAlignment.end,
+-            children: days.map((d) {
+-              final n = d['allocatedMinutes'] as int,
+-                  date = DateTime.parse(d['date']);
+-              return Expanded(
+-                child: Semantics(
+-                  label: '${shortDay(date)} 계획 $n분',
+-                  child: ExcludeSemantics(
+-                    child: Column(
+-                      children: [
+-                        Text(
+-                          '$n',
+-                          style: const TextStyle(fontSize: 10, color: muted),
+-                        ),
+-                        const SizedBox(height: 5),
+-                        SizedBox(
+-                          height: 64,
+-                          child: Align(
+-                            alignment: Alignment.bottomCenter,
+-                            child: FractionallySizedBox(
+-                              heightFactor: n / max,
+-                              widthFactor: .48,
+-                              child: Container(
+-                                decoration: BoxDecoration(
+-                                  color: blue.withValues(alpha: .8),
+-                                  borderRadius: const BorderRadius.vertical(
+-                                    top: Radius.circular(5),
+                                   ),
++                                ],
+-                                ),
+                               ),
+                             ),
+                           ),
++                        );
++                      }).toList(),
+-                        ),
+-                        const SizedBox(height: 7),
+-                        Text(
+-                          '${date.day}',
+-                          style: const TextStyle(
+-                            fontSize: 11,
+-                            fontWeight: FontWeight.w600,
+-                          ),
+-                        ),
+-                        Text(
+-                          weekdays[date.weekday - 1],
+-                          style: const TextStyle(fontSize: 10, color: muted),
+-                        ),
+-                      ],
+                     ),
+                   ),
++                  if (scrolls) ...[
++                    const SizedBox(height: 12),
++                    const HelpText('좌우로 밀어 7일의 배정을 확인하세요.'),
++                  ],
++                ],
+-                ),
+               );
++            },
+-            }).toList(),
+           ),
+         ],
+       ),
+--- before/lib/ui/plan_comparison.dart
++++ after/lib/ui/plan_comparison.dart
+@@ -31,7 +31,7 @@
+               builder: (context, b) {
+                 final values = [
+                   _Total('현재 배정 시간', c.beforeMinutes),
++                  _Total('새 배정 시간', c.afterMinutes, emphasized: true),
+-                  _Total('새 배정 시간', c.afterMinutes),
+                 ];
+                 if (b.maxWidth < 250 ||
+                     MediaQuery.textScalerOf(context).scale(14) > 20) {
+@@ -48,6 +48,7 @@
+                   crossAxisAlignment: CrossAxisAlignment.start,
+                   children: [
+                     Expanded(child: values[0]),
++                    const SizedBox(width: 10),
+                     Expanded(child: values[1]),
+                   ],
+                 );
+@@ -91,22 +92,35 @@
+ class _Total extends StatelessWidget {
+   final String label;
+   final int value;
++  final bool emphasized;
++  const _Total(this.label, this.value, {this.emphasized = false});
+-  const _Total(this.label, this.value);
+   @override
++  Widget build(BuildContext context) => Container(
++    width: double.infinity,
++    padding: const EdgeInsets.all(13),
++    decoration: BoxDecoration(
++      color: emphasized ? pale : paper,
++      borderRadius: BorderRadius.circular(12),
++      border: Border.all(color: emphasized ? const Color(0xffb7c8f4) : line),
++    ),
++    child: Column(
++      crossAxisAlignment: CrossAxisAlignment.start,
++      children: [
++        Text(
++          label,
++          style: TextStyle(color: emphasized ? blue : muted, fontSize: 13),
++        ),
++        const SizedBox(height: 7),
++        Text(
++          durationLabel(value),
++          style: TextStyle(
++            fontWeight: FontWeight.w800,
++            fontSize: 21,
++            color: emphasized ? blue : ink,
++          ),
+-  Widget build(BuildContext context) => Column(
+-    crossAxisAlignment: CrossAxisAlignment.start,
+-    children: [
+-      HelpText(label),
+-      const SizedBox(height: 5),
+-      Text(
+-        durationLabel(value),
+-        style: const TextStyle(
+-          fontWeight: FontWeight.w800,
+-          fontSize: 21,
+-          color: blue,
+         ),
++      ],
++    ),
+-      ),
+-    ],
+   );
+ }
+ 
+@@ -178,7 +192,7 @@
+                       children: [
+                         Text(
+                           '현재 ${durationLabel(change.before)}',
++                          style: const TextStyle(fontSize: 14, color: muted),
+-                          style: const TextStyle(fontSize: 13, color: muted),
+                         ),
+                         const Icon(
+                           Icons.arrow_forward_rounded,
+@@ -188,7 +202,7 @@
+                         Text(
+                           '새 계획 ${durationLabel(change.after)}',
+                           style: const TextStyle(
++                            fontSize: 14,
+-                            fontSize: 13,
+                             color: blue,
+                             fontWeight: FontWeight.w700,
+                           ),
+--- before/lib/ui/chat.dart
++++ after/lib/ui/chat.dart
+@@ -140,20 +140,20 @@
+                   child: Column(
+                     crossAxisAlignment: CrossAxisAlignment.stretch,
+                     children: [
++                      const SizedBox(height: 8),
+-                      const SizedBox(height: 18),
+                       Align(
+                         alignment: Alignment.centerLeft,
+                         child: Container(
++                          width: 44,
++                          height: 44,
+-                          width: 54,
+-                          height: 54,
+                           decoration: BoxDecoration(
+                             color: pale,
++                            borderRadius: BorderRadius.circular(14),
+-                            borderRadius: BorderRadius.circular(19),
+                           ),
+                           child: const Icon(
+                             Icons.forum_outlined,
+                             color: blue,
++                            size: 23,
+-                            size: 27,
+                           ),
+                         ),
+                       ),
+@@ -161,7 +161,7 @@
+                       const Text(
+                         '자격증 준비,\n무엇이 궁금한가요?',
+                         style: TextStyle(
++                          fontSize: 24,
+-                          fontSize: 28,
+                           fontWeight: FontWeight.w800,
+                           height: 1.35,
+                           letterSpacing: -1,
+@@ -177,8 +177,11 @@
+                       ].indexed)
+                         Padding(
+                           padding: const EdgeInsets.only(bottom: 9),
++                          child: Material(
++                            color: Colors.transparent,
++                            shape: const Border(
++                              bottom: BorderSide(color: line),
++                            ),
+-                          child: Pane(
+-                            padding: 0,
+                             child: InkWell(
+                               onTap: () => send(q),
+                               child: Padding(
+@@ -199,7 +202,7 @@
+                                       child: Text(
+                                         q,
+                                         style: const TextStyle(
++                                          fontSize: 14,
+-                                          fontSize: 13,
+                                           fontWeight: FontWeight.w500,
+                                           height: 1.5,
+                                         ),
+@@ -225,7 +228,7 @@
+                   alignment: Alignment.centerRight,
+                   child: Container(
+                     margin: const EdgeInsets.only(
++                      left: 24,
+-                      left: 36,
+                       top: 14,
+                       bottom: 16,
+                     ),
+@@ -246,7 +249,7 @@
+                       turn.question,
+                       style: const TextStyle(
+                         color: Colors.white,
++                        fontSize: 15,
+-                        fontSize: 14,
+                         height: 1.6,
+                       ),
+                     ),
+@@ -359,8 +362,9 @@
+         ),
+         Material(
+           color: Colors.white,
++          shape: const Border(top: BorderSide(color: line)),
+           child: Padding(
++            padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+             child: Row(
+               crossAxisAlignment: CrossAxisAlignment.end,
+               children: [
