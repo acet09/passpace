@@ -1,9 +1,0 @@
-{
-  "checks": {
-    "normalAppIncludesAdminChoice": true,
-    "integrationEntrypointsAbsent": true,
-    "proposedStudyApiNotImplemented": true
-  },
-  "bytes": 158833171,
-  "sha256": "7eedf86c67c274fe9cbed898bef77cb3a9250513384cda2264438ccb8af08c6f"
-}
