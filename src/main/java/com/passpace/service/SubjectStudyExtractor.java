@@ -28,6 +28,8 @@ import java.util.regex.Pattern;
  *  - 근거는 원문 문장이 아니라 뽑은 값으로 만든 요약문
  *  - 과목 시간 합이 총 공부시간보다 크면 시간 값을 모두 버린다 (잘못 읽은 것으로 봄)
  *
+ * [11-19] 학습일지(날짜로 시작하는 줄 3줄 이상)는 줄마다 적힌 과목 시간을 과목별로 더한다 ("3h 46m"·"3시간 46분"·"3:46"·"90분")
+ *
  * 아직 처리하지 않는 것 (팀 결정 필요)
  *  - "3·4과목" 같은 번호 표현 (옛 5과목/새 4과목 중 어느 순서인지 알 수 없음)
  *  - 하루 공부시간이 후기에 없을 때의 기본값 → 생성자 인자로만 받는다 (null 이면 일수 → 시간 환산 안 함)
@@ -83,6 +85,23 @@ public class SubjectStudyExtractor {
     private static final Pattern HARD = Pattern.compile("어려웠|어렵|헷갈|힘들|고생|취약|약점|까다");
     private static final Pattern SENTENCE = Pattern.compile("[^.!?\\n]+");
 
+    // ---------------- [11-19] 학습일지(날짜별 기록) ----------------
+    /**
+     * 날짜로 시작하는 일지 줄: "| 2026-07-28 | 3h 46m | 1과목 소프트웨어 설계 |", "7/28 DB 2시간", "3일차 언어 1시간 30분", "D-10 ...".
+     * 이런 줄이 MIN_LOG_LINES 줄 이상이면 학습일지로 보고, 줄마다 적힌 과목 시간을 과목별로 더한다.
+     */
+    private static final Pattern LOG_LINE = Pattern.compile(
+            "^[\\s|*>•·-]*(?:20\\d{2}\\s*[-./년]\\s*\\d{1,2}\\s*[-./월]\\s*\\d{1,2}\\s*일?"
+                    + "|\\d{1,2}\\s*월\\s*\\d{1,2}\\s*일|\\d{1,2}\\s*[./]\\s*\\d{1,2}(?![\\d.]|\\s*(?:시간|h|H))"
+                    + "|\\d{1,3}\\s*일\\s*(?:차|째)|[Dd]\\s*-\\s*\\d{1,3}|[Dd]ay\\s*\\d{1,3})");
+    private static final int MIN_LOG_LINES = 3;
+    /** 일지 줄의 공부시간: "3h 46m", "2h", "3시간 46분", "90분", "3:46" */
+    private static final Pattern LOG_HM_EN = Pattern.compile(
+            "(?<![\\d.A-Za-z])(\\d{1,2}(?:\\.\\d)?)\\s*[hH](?![A-Za-z])(?:\\s*(\\d{1,2})\\s*[mM](?![A-Za-z]))?");
+    private static final Pattern LOG_HM_KO = Pattern.compile("(?<![\\d.])(\\d{1,2}(?:\\.\\d)?)\\s*시간(?:\\s*(\\d{1,2})\\s*분)?");
+    private static final Pattern LOG_MIN = Pattern.compile("(?<![\\d.:])(\\d{1,3})\\s*(?:분|[mM]in)(?![A-Za-z])");
+    private static final Pattern LOG_COLON = Pattern.compile("(?<![\\d:])(\\d{1,2}):([0-5]\\d)(?![\\d:])");
+
     private final List<Pattern> patterns = new ArrayList<>();
     private final List<String> names = new ArrayList<>();
     private final Integer defaultDailyMinutes;
@@ -112,6 +131,8 @@ public class SubjectStudyExtractor {
         if (text == null || text.isBlank()) return List.of();
         Integer perDay = dailyMinutes != null ? dailyMinutes : defaultDailyMinutes;
         Map<String, Mention> found = new LinkedHashMap<>();   // 과목+종류별 첫 언급만
+        // [11-19] 학습일지 합산값이 있으면 문장에서 찾은 시간보다 먼저 쓴다 (일지는 첫 줄만 보면 크게 적게 잡힘)
+        for (Mention m : logHours(text)) found.put(m.subjectName() + "|" + m.type(), m);
 
         Matcher sm = SENTENCE.matcher(text);
         while (sm.find()) {
@@ -243,6 +264,64 @@ public class SubjectStudyExtractor {
         }
         if (HALF.matcher(seg).find()) return BigDecimal.valueOf(50);
         return null;
+    }
+
+    // ---------------- [11-19] 학습일지 합산 ----------------
+
+    /** 날짜로 시작하는 줄이 MIN_LOG_LINES 줄 이상이면, 과목이 하나만 적힌 줄의 시간을 과목별로 더한다 */
+    private List<Mention> logHours(String text) {
+        Map<String, Integer> minutes = new LinkedHashMap<>();
+        Map<String, Integer> lines = new LinkedHashMap<>();
+        int logLines = 0;
+        for (String line : text.split("\\R")) {
+            Matcher d = LOG_LINE.matcher(line);
+            if (!d.find()) continue;
+            logLines++;
+            String rest = line.substring(d.end());
+            Integer min = logMinutes(rest);
+            if (min == null || min <= 0 || min > 24 * 60) continue;
+            String subject = onlySubject(rest);
+            if (subject == null) continue;   // 과목이 없거나(기출 회차 등) 여러 과목이면 나누지 않는다
+            minutes.merge(subject, min, Integer::sum);
+            lines.merge(subject, 1, Integer::sum);
+        }
+        if (logLines < MIN_LOG_LINES) return List.of();
+        List<Mention> out = new ArrayList<>();
+        minutes.forEach((name, m) -> {
+            BigDecimal h = BigDecimal.valueOf(m).divide(BigDecimal.valueOf(60), 2, RoundingMode.HALF_UP);
+            out.add(new Mention(name, MentionType.HOURS, h, null, false,
+                    name + ": 학습일지 " + lines.get(name) + "줄 합산 " + plain(h) + "시간"));
+        });
+        return out;
+    }
+
+    /** 일지 줄 하나의 공부시간(분). 시계 시각 범위("19:00~21:00")처럼 콜론 시각이 둘 이상이면 읽지 않는다 */
+    private static Integer logMinutes(String rest) {
+        Matcher en = LOG_HM_EN.matcher(rest);
+        if (en.find()) return toMinutes(en.group(1), en.group(2));
+        Matcher ko = LOG_HM_KO.matcher(rest);
+        if (ko.find()) return toMinutes(ko.group(1), ko.group(2));
+        Matcher c = LOG_COLON.matcher(rest);
+        if (c.find()) {
+            int h = Integer.parseInt(c.group(1)), m = Integer.parseInt(c.group(2));
+            return c.find() ? null : h * 60 + m;
+        }
+        Matcher mi = LOG_MIN.matcher(rest);
+        return mi.find() ? Integer.parseInt(mi.group(1)) : null;
+    }
+
+    private static Integer toMinutes(String hours, String mins) {
+        int total = new BigDecimal(hours).multiply(BigDecimal.valueOf(60)).intValue();
+        return mins == null ? total : total + Integer.parseInt(mins);
+    }
+
+    /** 줄에 적힌 과목이 정확히 하나면 그 과목명, 아니면 null */
+    private String onlySubject(String rest) {
+        java.util.Set<String> hit = new java.util.LinkedHashSet<>();
+        for (int i = 0; i < patterns.size(); i++) {
+            if (patterns.get(i).matcher(rest).find()) hit.add(names.get(i));
+        }
+        return hit.size() == 1 ? hit.iterator().next() : null;
     }
 
     // ---------------- 검사 ----------------

@@ -87,6 +87,19 @@ public final class ReferenceMath {
         return null;
     }
 
+    /**
+     * [11-19] 표본에 추정값(준비일수 × 같은 시험 하루시간 중앙값)을 섞을지는 "전공 전체" 그룹의 직접 값 수로 한 번만 정한다.
+     * 전공 전체의 직접 값이 최소 표본 이상이면 어느 전공 그룹에서도 추정값을 섞지 않는다.
+     * (그룹마다 따로 정하면 전공 그룹이 추정값으로 채워져 전공 전체보다 표본이 많아지는 문제가 생김)
+     */
+    public static List<Double> pickHours(List<Double> direct, List<Double> guessed, int allMajorDirectCount, int minSample) {
+        List<Double> hours = new ArrayList<>(direct);
+        if (allMajorDirectCount < minSample) {
+            hours.addAll(guessed);
+        }
+        return hours;
+    }
+
     /** STUDY_REFERENCE_STATS.stat_key 형식: 자격증:시험구분:과목(ALL):전공(ALL) */
     public static String statKey(long certId, String examType, Long subjectId, String major) {
         return certId + ":" + examType + ":" + (subjectId == null ? "ALL" : subjectId) + ":" + (major == null ? "ALL" : major);

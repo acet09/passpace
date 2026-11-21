@@ -282,6 +282,18 @@ public class CollectAdminController {
         return ResponseUtil.SUCCESS(subjectBackfill.run(limit));
     }
 
+    /** [11-19] 과목 언급 끝까지 자동 채우기 시작 (바로 돌아오고 뒤에서 200건씩 반복) */
+    @PostMapping("/admin/collect/reviews/subject-backfill/auto")
+    public ResponseEntity<?> backfillSubjectsAuto() {
+        return ResponseUtil.SUCCESS(Map.of("message", subjectBackfill.startAuto()));
+    }
+
+    /** [11-19] 과목 언급 끝까지 자동 채우기 멈추기 */
+    @PostMapping("/admin/collect/reviews/subject-backfill/stop")
+    public ResponseEntity<?> backfillSubjectsStop() {
+        return ResponseUtil.SUCCESS(Map.of("message", subjectBackfill.stopAuto()));
+    }
+
     /** [11-16] 과목 언급 채우기 남은 양·진행 상황 */
     @GetMapping("/admin/collect/reviews/subject-backfill/status")
     public ResponseEntity<?> backfillSubjectsStatus() {

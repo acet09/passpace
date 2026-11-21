@@ -57,4 +57,23 @@ class RuleBasedReviewExtractorTest {
         String ad = "하루 3시간 공부해서 합격. 이 강의는 협찬으로 제공받아 작성했습니다.";
         assertThat(checker.check(extractor.extract("", ad), ad).reviewStatus()).isEqualTo("EXCLUDED");
     }
+
+    // ---------------- [11-19] 표·일지형 총 공부시간 ----------------
+
+    @Test
+    void 표_합계와_공부시간_문구에서_총시간을_분까지_뽑는다() {
+        // hwankr 필기 후기 합계 행, kicdor 실기 후기 문구
+        assertThat(extractor.extract("[정보처리기사] 필기 후기", "| **합계** | **23h 56m** | **7일** |").totalHours())
+                .isEqualByComparingTo("23.93");
+        assertThat(extractor.extract("정보처리기사 후기", "실기 시험 - 7.19 (토) 공부 시간 60시간 15분 공부 방법").totalHours())
+                .isEqualByComparingTo("60.25");
+        assertThat(extractor.extract("정처기 후기", "총 30시간 30분 공부했어요").totalHours()).isEqualByComparingTo("30.50");
+    }
+
+    @Test
+    void 하루_단위_공부시간은_총시간이_아니다() {
+        assertThat(extractor.extract("정처기 후기", "하루 공부 시간 3시간 정도였어요").totalHours()).isNull();
+        assertThat(extractor.extract("정처기 후기", "평일엔 공부 시간 2시간씩 잡았어요").totalHours()).isNull();
+        assertThat(extractor.extract("정처기 후기", "공부 시간의 30% 정도를 DB에 썼어요").totalHours()).isNull();
+    }
 }

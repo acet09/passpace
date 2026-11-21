@@ -68,7 +68,14 @@ public class RuleBasedReviewExtractor implements ReviewExtractor {
     private static final Pattern DAILY_HOUR = Pattern.compile("(?:하루|매일|일\\s*평균|평일)\\s*(?:에|평균|에\\s*평균)?\\s*(?:약|대략|최소)?\\s*(\\d{1,2}(?:\\.\\d)?)\\s*시간(?:\\s*(\\d{1,2})\\s*분)?" + NOT_STUDY);
     private static final Pattern DAILY_MIN = Pattern.compile("(?:하루|매일|일\\s*평균|평일)\\s*(?:에|평균)?\\s*(?:약|대략|최소)?\\s*(\\d{2,3})\\s*분");
     // 총 공부시간
-    private static final Pattern TOTAL = Pattern.compile("(?:총|전체|누적|순공(?:부)?)\\s*(?:공부\\s*시간|학습\\s*시간|시간)?\\s*[:은는]?\\s*(?:약|대략)?\\s*(\\d{1,4}(?:\\.\\d)?)\\s*시간");
+    private static final Pattern TOTAL = Pattern.compile("(?:총|전체|누적|순공(?:부)?)\\s*(?:공부\\s*시간|학습\\s*시간|시간)?\\s*[:은는]?\\s*(?:약|대략)?\\s*(\\d{1,4}(?:\\.\\d)?)\\s*시간(?:\\s*(\\d{1,2})\\s*분)?");
+    /**
+     * [11-19] 표·일지형 후기의 총 시간: "| **합계** | **23h 56m** |", "공부 시간 60시간 15분".
+     * "하루 공부시간 3시간", "평일엔 공부 시간 2시간씩"처럼 하루 단위 시간은 제외한다.
+     */
+    private static final Pattern TOTAL_LOG = Pattern.compile(
+            "(?:합계|(?<!(?:하루|매일|평균|평일|주말|일일|주당)(?:에|엔|에는)?\\s{0,2})공부\\s*시간)[\\s|*:은는]{0,12}(?:약|대략)?\\s*"
+                    + "(\\d{1,4}(?:\\.\\d)?)\\s*(?:시간|[hH](?![A-Za-z]))(?:\\s*(\\d{1,2})\\s*(?:분|[mM](?![A-Za-z])))?(?!\\s*(?:씩|정도\\s*씩))");
     // 응시 연도·회차: "2025년 2회", "2025 1회차"
     private static final Pattern ROUND = Pattern.compile("(20\\d{2})\\s*년?\\s*(?:정기\\s*)?(?:기사\\s*)?(\\d)\\s*회");
     private static final Pattern PROOF = Pattern.compile("최종\\s*합격|합격\\s*(?:증|화면|인증|확인|발표)|\\d{2,3}\\s*점");
@@ -263,9 +270,19 @@ public class RuleBasedReviewExtractor implements ReviewExtractor {
         };
     }
 
+    /** [11-19] "N시간 M분"·"Nh Mm"의 분까지 반영하고, 일반 문장 다음에 표·일지형 합계를 본다 */
     BigDecimal totalHours(String s) {
-        Matcher m = TOTAL.matcher(s);
-        return m.find() ? new BigDecimal(m.group(1)).setScale(2, RoundingMode.HALF_UP) : null;
+        for (Pattern p : new Pattern[]{TOTAL, TOTAL_LOG}) {
+            Matcher m = p.matcher(s);
+            if (m.find()) {
+                BigDecimal h = new BigDecimal(m.group(1));
+                if (m.group(2) != null) {
+                    h = h.add(new BigDecimal(m.group(2)).divide(BigDecimal.valueOf(60), 4, RoundingMode.HALF_UP));
+                }
+                return h.setScale(2, RoundingMode.HALF_UP);
+            }
+        }
+        return null;
     }
 
     Integer roundYear(String s) {
