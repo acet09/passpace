@@ -3,6 +3,12 @@
     [string]$ProjectDir = (Join-Path $env:USERPROFILE 'passpace11144')
 )
 
+# 모노레포(app/ + server/) 구조면 -ProjectDir 없이도 같은 저장소의 server/ 폴더를 사용
+if (-not $PSBoundParameters.ContainsKey('ProjectDir')) {
+    $repoServer = Join-Path $PSScriptRoot '..\..\server'
+    if (Test-Path -LiteralPath (Join-Path $repoServer 'gradlew.bat') -PathType Leaf) { $ProjectDir = (Resolve-Path -LiteralPath $repoServer).Path }
+}
+
 $ErrorActionPreference = 'Stop'
 $baseUrl = "http://127.0.0.1:$Port"
 
