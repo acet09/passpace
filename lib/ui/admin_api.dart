@@ -67,6 +67,8 @@ class AdminApi extends ChangeNotifier {
     '/reviews/discover',
     '/reviews/reset',
     '/reviews/subject-backfill',
+    '/reviews/subject-backfill/auto',
+    '/reviews/subject-backfill/stop',
   };
   bool get accessible => !_disposed && !_forbidden && showsAdminPage(session);
   @override

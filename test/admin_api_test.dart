@@ -62,6 +62,16 @@ void main() {
       f.requests.last.url.path,
       '/admin/collect/reviews/subject-backfill',
     );
+    expect(await api.post('/reviews/subject-backfill/auto'), isA<Map>());
+    expect(
+      f.requests.last.url.path,
+      '/admin/collect/reviews/subject-backfill/auto',
+    );
+    expect(await api.post('/reviews/subject-backfill/stop'), isA<Map>());
+    expect(
+      f.requests.last.url.path,
+      '/admin/collect/reviews/subject-backfill/stop',
+    );
   });
   test('리다이렉트는 따르지 않고 토큰을 외부 주소로 전달하지 않는다', () async {
     final f = AdminFixture(
