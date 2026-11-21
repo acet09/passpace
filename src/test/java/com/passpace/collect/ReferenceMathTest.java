@@ -73,4 +73,51 @@ class ReferenceMathTest {
         List<Double> guessed = List.of(40.0, 50.0);
         assertThat(ReferenceMath.pickHours(direct, guessed, 3, 10)).containsExactly(10.0, 20.0, 30.0, 40.0, 50.0);
     }
+
+    @Test
+    void 크롤링_직접값이_충분하면_네이버와_추정값을_쓰지_않는다() {
+        List<Double> direct = List.of(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0);
+        ReferenceMath.Pick p = ReferenceMath.pickWithNaver(direct, List.of(99.0), List.of(88.0), 33, 10);
+        assertThat(p.hours()).hasSize(10).doesNotContain(99.0, 88.0);
+        assertThat(p.naverUsed()).isZero();
+        assertThat(p.guessedUsed()).isZero();
+    }
+
+    @Test
+    void 크롤링이_부족하면_추정값보다_네이버를_먼저_채운다() {
+        // 컴활 필기: 크롤링 직접 3건 + 네이버 8건 = 11건 → 추정값(18건)은 쓰지 않는다
+        List<Double> direct = List.of(10.0, 20.0, 30.0);
+        List<Double> naver = List.of(21.0, 24.0, 27.0, 28.0, 30.0, 33.0, 40.0, 45.0);
+        ReferenceMath.Pick p = ReferenceMath.pickWithNaver(direct, naver, List.of(5.0, 6.0), 3, 10);
+        assertThat(p.hours()).hasSize(11).doesNotContain(5.0, 6.0);
+        assertThat(p.naverUsed()).isEqualTo(8);
+        assertThat(p.guessedUsed()).isZero();
+    }
+
+    @Test
+    void 네이버로도_부족하면_B안_조건일_때만_추정값을_더한다() {
+        List<Double> direct = List.of(10.0);
+        ReferenceMath.Pick allowed = ReferenceMath.pickWithNaver(direct, List.of(20.0), List.of(5.0, 6.0), 3, 10);
+        assertThat(allowed.hours()).containsExactly(10.0, 20.0, 5.0, 6.0);
+        ReferenceMath.Pick blocked = ReferenceMath.pickWithNaver(direct, List.of(20.0), List.of(5.0, 6.0), 33, 10);
+        assertThat(blocked.hours()).containsExactly(10.0, 20.0);
+    }
+
+    @Test
+    void 네이버_요약_후기_사용_조건() {
+        assertThat(ReferenceMath.naverUsable(30, 150, "실기 합격 · 준비 30일", 2026)).isTrue();
+        assertThat(ReferenceMath.naverUsable(150, 240, null, 2026)).isFalse();      // 준비 90일 초과
+        assertThat(ReferenceMath.naverUsable(30, 240, null, 2026)).isFalse();       // 하루 3시간 초과
+        assertThat(ReferenceMath.naverUsable(14, 180, "2020년 4회 실기 합격", 2026)).isFalse();  // 오래된 시험
+        assertThat(ReferenceMath.naverUsable(14, 180, "2024년 2회 필기 합격", 2026)).isTrue();
+    }
+
+    @Test
+    void 박스플롯_울타리() {
+        double[] f = ReferenceMath.iqrFences(List.of(10.0, 20.0, 30.0, 40.0, 500.0));
+        // Q1 20, Q3 40, IQR 20 → 울타리 -10 ~ 70 → 500 은 이상치
+        assertThat(f[0]).isEqualTo(-10.0);
+        assertThat(f[1]).isEqualTo(70.0);
+        assertThat(ReferenceMath.iqrFences(List.of(1.0, 2.0, 3.0))).isNull();
+    }
 }

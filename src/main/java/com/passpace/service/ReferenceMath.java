@@ -100,6 +100,66 @@ public final class ReferenceMath {
         return hours;
     }
 
+    /** [11-21] 표본 구성 결과: 쓸 값들, 그중 네이버 보충 건수, 추정값 건수 */
+    public record Pick(List<Double> hours, int naverUsed, int guessedUsed) {
+    }
+
+    /**
+     * [11-21] 표본 구성 순서: ① 크롤링 직접 값 → ② 최소 표본 미만이면 네이버 요약 후기(걸러진 것) 보충
+     * → ③ 그래도 미만이고, 전공 전체 크롤링 직접 값도 미만이면(B안) 하루시간 중앙값 추정값 보충.
+     * 크롤링 직접 값이 충분하면 네이버·추정값은 쓰지 않는다 (기존 값 유지).
+     */
+    public static Pick pickWithNaver(List<Double> direct, List<Double> naver, List<Double> guessed,
+                                     int allMajorDirectCount, int minSample) {
+        List<Double> hours = new ArrayList<>(direct);
+        int naverUsed = 0;
+        int guessedUsed = 0;
+        if (hours.size() < minSample && naver != null) {
+            hours.addAll(naver);
+            naverUsed = naver.size();
+        }
+        if (hours.size() < minSample && allMajorDirectCount < minSample && guessed != null) {
+            hours.addAll(guessed);
+            guessedUsed = guessed.size();
+        }
+        return new Pick(hours, naverUsed, guessedUsed);
+    }
+
+    /**
+     * [11-21] 네이버 요약 후기 1건을 통계에 써도 되는지 (요약문 오인식 방지).
+     * - 준비 기간 90일 초과: 필기 기간·재응시가 섞였을 가능성 → 제외
+     * - 하루 3시간(180분) 초과: 전업 수험·과장 가능성 → 제외
+     * - 요약문에 3년보다 오래된 "20xx년" 시험 언급: 카페 글은 작성일이 없어 대신 거른다 → 제외
+     */
+    public static boolean naverUsable(Integer prepDays, Integer dailyMinutes, String evidenceText, int currentYear) {
+        if (prepDays != null && prepDays > 90) return false;
+        if (dailyMinutes != null && dailyMinutes > 180) return false;
+        if (evidenceText != null) {
+            java.util.regex.Matcher m = java.util.regex.Pattern.compile("(20\\d{2})년").matcher(evidenceText);
+            if (m.find() && Integer.parseInt(m.group(1)) < currentYear - 3) return false;
+        }
+        return true;
+    }
+
+    /** [11-21] 박스플롯 울타리 {Q1 - 1.5×IQR, Q3 + 1.5×IQR}. 값이 4개 미만이면 null (거르지 않음) */
+    public static double[] iqrFences(List<Double> values) {
+        if (values == null || values.size() < 4) return null;
+        List<Double> s = new ArrayList<>(values);
+        Collections.sort(s);
+        double q1 = quantile(s, 0.25);
+        double q3 = quantile(s, 0.75);
+        double iqr = q3 - q1;
+        return new double[]{q1 - 1.5 * iqr, q3 + 1.5 * iqr};
+    }
+
+    /** 정렬된 값의 사분위수 (선형 보간) */
+    static double quantile(List<Double> sorted, double p) {
+        double k = (sorted.size() - 1) * p;
+        int f = (int) Math.floor(k);
+        int c = Math.min(f + 1, sorted.size() - 1);
+        return sorted.get(f) + (sorted.get(c) - sorted.get(f)) * (k - f);
+    }
+
     /** STUDY_REFERENCE_STATS.stat_key 형식: 자격증:시험구분:과목(ALL):전공(ALL) */
     public static String statKey(long certId, String examType, Long subjectId, String major) {
         return certId + ":" + examType + ":" + (subjectId == null ? "ALL" : subjectId) + ":" + (major == null ? "ALL" : major);
