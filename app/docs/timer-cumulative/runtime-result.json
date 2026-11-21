@@ -1,0 +1,15 @@
+{
+  "mode": "normal lib/main.dart APK on emulator-5554",
+  "updatedInstallation": true,
+  "hotReload": "succeeded",
+  "runtimeErrors": [],
+  "normalLaunchScreen": "login",
+  "normalSignedInWriteFlowTested": false,
+  "previewMode": "mock API and synthetic measurement on actual Android",
+  "previewChecksPassed": 4,
+  "previewScreenshots": 3,
+  "mockPosts": 2,
+  "savedSubjectMinutes": 20,
+  "realApiWrites": false,
+  "physicalPhoneTested": false
+}

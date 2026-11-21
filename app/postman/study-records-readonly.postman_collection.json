@@ -1,0 +1,84 @@
+{
+  "info": {
+    "name": "PASS PACE study read-only verification",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "수정된 본인 기록 조회",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/study/sessions?startDate={{startDate}}&endDate={{endDate}}&pageSize=100",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+              "const d=pm.response.json();",
+              "pm.test('SUCCESS envelope',()=>pm.expect(d.status).to.eql('SUCCESS'));",
+              "pm.test('updated record',()=>{const r=d.data.items.find(x=>x.sessionId===Number(pm.environment.get('expectedId')));pm.expect(r.studyDate).to.eql(pm.environment.get('expectedDate'));pm.expect(r.durationMinutes).to.eql(Number(pm.environment.get('expectedMinutes')));});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "수정 후 실제 시간 통계",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/dashboard/study-stats?period=CUSTOM&startDate={{startDate}}&endDate={{endDate}}",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP 200',()=>pm.response.to.have.status(200));",
+              "const d=pm.response.json().data;",
+              "pm.test('actual total',()=>pm.expect(d.totalMinutes).to.eql(Number(pm.environment.get('expectedTotal'))));",
+              "pm.test('Seoul date',()=>{pm.expect(d.timezone).to.eql('Asia/Seoul');pm.expect(d.startDate).to.eql(pm.environment.get('startDate'));pm.expect(d.endDate).to.eql(pm.environment.get('endDate'));});",
+              "pm.test('daily minutes',()=>pm.expect(d.dailyStudyMinutes.find(x=>x.studyDate===pm.environment.get('expectedDate')).durationMinutes).to.eql(Number(pm.environment.get('expectedMinutes'))));",
+              "pm.test('no invented completion',()=>pm.expect(d.completionRate).to.eql(null));"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": ""
+    },
+    {
+      "key": "token",
+      "value": ""
+    }
+  ]
+}

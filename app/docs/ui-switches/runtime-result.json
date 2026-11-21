@@ -1,0 +1,16 @@
+{
+  "mode": "normal lib/main.dart APK on emulator-5554",
+  "updatedInstallation": true,
+  "hotReload": "succeeded",
+  "hotRestartDuringLayoutVerification": "succeeded",
+  "runtimeErrors": [],
+  "readOnlyUiVerified": [
+    "record-tab-direct-timer",
+    "pinned-timer-history-statistics-switch",
+    "statistics-to-timer",
+    "home-week-to-month"
+  ],
+  "screenshots": ["timer.png", "statistics.png", "home-week.png", "home-month.png"],
+  "studyRecordWritesPerformed": false,
+  "physicalPhoneTested": false
+}
