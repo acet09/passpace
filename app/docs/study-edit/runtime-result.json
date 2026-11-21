@@ -1,9 +1,0 @@
-{
-  "entryPoint": "lib/main.dart",
-  "device": "Android emulator",
-  "installed": true,
-  "hotReload": "succeeded",
-  "runtimeErrors": [],
-  "server8080": "running with PATCH route",
-  "productionAccountTestWrites": false
-}

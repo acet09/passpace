@@ -1,7 +1,0 @@
-{
-  "entryPoint": "lib/main.dart",
-  "build": "debug",
-  "bytes": 198927918,
-  "sha256": "5c613727d6ad3610cdeab07bd121984b6b6e326527a8f00a36e2ce22ef0b945d",
-  "isolatedTestMarkersAbsent": true
-}
