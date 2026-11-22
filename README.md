@@ -17,7 +17,7 @@ src/main/java/com/passpace/          ← 12주차 강의안(ExCode) 형식: 기�
 ├─ error/       ErrorCode · ErrorResponseDto · GlobalExceptionHandler · exception/
 ├─ repository/  DB 접근 (JdbcTemplate)
 ├─ service/     업무 규칙 (AuthService 등)
-├─ client/      외부 API·페이지 가져오기 (Ollama, 공공데이터, 후기 페이지)
+├─ client/      외부 API·페이지 가져오기 (Claude API, 공공데이터, 후기 페이지)
 ├─ crawler/     후기 탐색·URL 장부
 └─ util/        ResponseUtil
 src/main/resources/
@@ -80,8 +80,7 @@ db/  01_schema(= passpace_erd.sql) → 02_schema_ext → 03_seed (04 는 더미 
 
 ### 3-1. 준비물
 - JDK 21, IntelliJ, MariaDB 10.11 이상, DBeaver
-- (챗봇) Ollama + `qwen3.5:4b` (6GB GPU) 또는 `qwen3.5:9b` (10GB GPU) — 없어도 앱은 실행되고 챗봇은 "기본 안내"로 답한다
-- NVIDIA 드라이버가 오래되면 Ollama 에서 `CUDA error: device kernel image is invalid` 가 난다 → 드라이버 최신화
+- (챗봇) Claude API 키 — 없어도 앱은 실행되고 챗봇은 "기본 안내"로 답한다. 7장 참고 (예전 로컬 LLM Ollama 는 쓰지 않는다)
 
 ### 3-2. DB (DBeaver, root 계정)
 ```sql
@@ -116,7 +115,7 @@ IntelliJ 실행 설정 → Active profiles 에 `fake` → 용성의 후기 SQL �
      → ② 빈 값 채우기: 질문 > 로그인 전공 > 마이페이지 목표 > 가장 가까운 시험일 / 그래도 없으면 되묻기
      → ③ 유사 집단 통계: ReviewStatsQuery → 합격자 하루 공부시간 평균·중앙값·최소·최대 (10건 미만이면 조건 확대, 그래도 부족하면 통계 미사용)
      → ④ Java 계산: 남은 일수, 총 가용시간, 3단계(3주 이상이면 주 단위로 끊음), 과목별 시간(이해도 가중치 1.3/1.0/0.7)
-     → ⑤ LLM 답변(합격 기준 문장 포함) → 숫자 검증(자료에 없는 숫자면 1회 재요청 → 실패 시 Java 기본 안내) / Ollama 사용 불가 → 원인과 함께 Java 기본 안내
+     → ⑤ LLM 답변(합격 기준 문장 포함) → 숫자 검증(자료에 없는 숫자면 1회 재요청 → 실패 시 Java 기본 안내) / LLM(Claude API) 사용 불가 → 원인과 함께 Java 기본 안내
      → ⑥ 답변 저장
 ```
 숫자는 모두 Java·SQL 이 계산하고 LLM 은 문장만 쓴다 (기획안 3.1, 5.5).
@@ -148,3 +147,19 @@ IntelliJ 실행 설정 → Active profiles 에 `fake` → 용성의 후기 SQL �
 - **DB**: `db/10_review_subject_mentions.sql`(용성)을 실행해야 과목 언급이 저장된다.
 - **테스트**: `gradlew test` 117개 통과 (`MultiGoalPlanCalculatorTest` 요일별 시간·50분 블록, `PlanReplannerTest` 추가).
 - 5장의 "범위 밖" 중 **계획 저장(STUDY_PLANS)** 과 **재편성(AI_PLAN_PROPOSALS)** 은 이번에 구현했다. 재편성은 정기 스케줄러가 아니라 앱에서 홈을 열 때 확인한다.
+
+## 7. 2026-11-22 변경 사항 (동건: 과목 비율·외부 LLM)
+
+| 파일 | 바뀐 것 |
+|---|---|
+| `controller/ReviewBasedPlannerController.applyReference` | 과목별 시간을 고정 비율(`StudyHoursEvidence`)로 다시 나누지 않고 `ref.subjects()` 의 시간(용성 집계: 수집 데이터 총 학습시간 × 과목 비율)을 그대로 쓴다. 후기 실측이 없거나 과목 수·이름이 맞지 않거나 과목 시간이 비어 있을 때만 기존 고정값을 쓴다 |
+| `service/PlanCalculator`, `service/ChatServiceImpl` | 상담 채팅의 단일 계획 답변도 같은 과목 비율을 쓴다: 과목별 시간 = 총 가용시간 × (`ref.subjects()` 시간 비율 × 이해도 가중치). 참고 시간이 없으면 예전처럼 똑같이 나눈다 |
+| `client/ClaudeClient` (새 파일) | 챗봇 LLM 호출을 로컬 Ollama 에서 Claude API(공식 Java SDK)로 바꿨다. `client/OllamaClient`, `OllamaUnavailableException` 삭제 → `LlmUnavailableException` |
+| `service/AnswerComposer`, `service/ConditionExtractor` | `ClaudeClient` 사용. temperature 인자는 없앴다 (모델이 받지 않음). 조건 추출 JSON 스키마에 `additionalProperties: false` 추가 |
+| `build.gradle` | `com.anthropic:anthropic-java:3.3.0` 추가 → **팀원 Gradle 새로고침 필요** |
+| `application.yml` | `passpace.ollama.*` → `passpace.claude.*` (api-key, model, effort, max-tokens, timeout-seconds) |
+
+- **API 키**: https://platform.claude.com 에서 발급. 환경변수 `ANTHROPIC_API_KEY` 또는 `application-local.yml` 의 `passpace.claude.api-key` 에 넣는다 (저장소에 올리지 않음).
+- **키가 없거나 호출이 실패하면** 예전 Ollama 가 꺼졌을 때와 같이 Java 기본 안내로 답한다. 숫자는 여전히 Java·SQL 이 계산하고 LLM 은 문장만 쓴다.
+- **모델**: 기본 `claude-opus-5-5`, `effort: low`. 비용을 줄이려면 `passpace.claude.model: claude-haiku-5-5`.
+- **테스트**: `gradlew test` 133개 통과. 실제 Claude API 호출(claude-sonnet-5-5)로 상담 답변 생성 확인.

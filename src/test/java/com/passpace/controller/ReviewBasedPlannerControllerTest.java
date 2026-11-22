@@ -122,19 +122,48 @@ class ReviewBasedPlannerControllerTest {
     }
 
     @Test
-    void 과목별_잠정값이_DB에_없는_자격증은_공식_문항_수_비율로_나눈다() {
-        GoalCatalog adsp = legacy("db-4-WRITTEN", "ADsP", "WRITTEN", Qualification.ADSP);
-        // DB 에 과목별 잠정 행이 없으면 JdbcStudyReferenceQuery 는 총 시간을 과목 수로 똑같이 나눠 준다
-        StudyReference equalSplit = new StudyReference(4, ExamType.WRITTEN, null, 50.0, 42, 3.0, 225.0, true,
-                "합격 후기 42건 실측 평균", List.of(new SubjectHours(15, "데이터 이해", 16.67, ""),
-                new SubjectHours(16, "데이터분석 기획", 16.67, ""), new SubjectHours(17, "데이터분석", 16.67, "")));
-        GoalCatalog goal = ReviewBasedPlannerController.applyReference(adsp, equalSplit, MajorType.NON_MAJOR);
+    void 과목_비율은_고정값이_아니라_수집_데이터_기준_ref_시간을_그대로_쓴다() {
+        // 고정 비율(StudyHoursEvidence)은 모델링 2 : SQL 3 이지만, 수집 데이터 집계는 1 : 3 으로 준다
+        StudyReference collected = new StudyReference(2, ExamType.WRITTEN, null, 40.0, 25, 2.0, 120.0, true,
+                "합격 후기 25건 실측 중앙값", List.of(
+                new SubjectHours(6, "데이터 모델링의 이해", 10.0, "총 학습시간 실측 25건 중앙값 × 과목 비율"),
+                new SubjectHours(7, "SQL 기본 및 활용", 30.0, "총 학습시간 실측 25건 중앙값 × 과목 비율")));
+        GoalCatalog goal = ReviewBasedPlannerController.applyReference(
+                legacySqld(MajorType.NON_MAJOR), collected, MajorType.NON_MAJOR);
 
         assertTrue(ReviewBasedPlannerController.isReviewBased(goal));
-        // 50시간 × 10:10:30
-        assertEquals(List.of(10.0, 10.0, 30.0), goal.subjects().stream().map(SubjectCatalog::baseHours).toList());
+        assertEquals(List.of(10.0, 30.0), goal.subjects().stream().map(SubjectCatalog::baseHours).toList());
+        assertTrue(goal.subjects().get(1).derivation().contains("이 과목 비율 75%"));
+        assertTrue(goal.subjects().get(1).derivation().contains("수집 데이터 집계 기준"));
+    }
+
+    @Test
+    void ADsP도_ref가_주는_과목_시간을_그대로_쓴다() {
+        GoalCatalog adsp = legacy("db-4-WRITTEN", "ADsP", "WRITTEN", Qualification.ADSP);
+        StudyReference ref = new StudyReference(4, ExamType.WRITTEN, null, 30.0, 58, 3.0, 360.0, true,
+                "합격 후기 58건 실측 중앙값", List.of(new SubjectHours(15, "데이터 이해", 6.0, ""),
+                new SubjectHours(16, "데이터분석 기획", 6.0, ""), new SubjectHours(17, "데이터분석", 18.0, "")));
+        GoalCatalog goal = ReviewBasedPlannerController.applyReference(adsp, ref, MajorType.NON_MAJOR);
+
+        assertTrue(ReviewBasedPlannerController.isReviewBased(goal));
+        assertEquals(List.of(6.0, 6.0, 18.0), goal.subjects().stream().map(SubjectCatalog::baseHours).toList());
         assertEquals(List.of(15L, 16L, 17L), goal.subjects().stream().map(SubjectCatalog::subjectId).toList());
-        assertTrue(goal.subjects().get(2).derivation().contains("공식 문항 수"));
+    }
+
+    @Test
+    void ref에_과목_시간이_없거나_과목_수가_다르면_고정값을_그대로_쓴다() {
+        GoalCatalog adsp = legacy("db-4-WRITTEN", "ADsP", "WRITTEN", Qualification.ADSP);
+        // 과목 시간이 비어 있음 (0)
+        StudyReference emptyHours = new StudyReference(4, ExamType.WRITTEN, null, 30.0, 58, 3.0, 360.0, true, "실측",
+                List.of(new SubjectHours(15, "데이터 이해", 0, ""), new SubjectHours(16, "데이터분석 기획", 6.0, ""),
+                        new SubjectHours(17, "데이터분석", 18.0, "")));
+        assertSame(adsp, ReviewBasedPlannerController.applyReference(adsp, emptyHours, MajorType.NON_MAJOR));
+        // 과목 수가 다름 (3과목인데 2과목만)
+        StudyReference fewer = new StudyReference(4, ExamType.WRITTEN, null, 30.0, 58, 3.0, 360.0, true, "실측",
+                List.of(new SubjectHours(15, "데이터 이해", 10.0, ""), new SubjectHours(17, "데이터분석", 20.0, "")));
+        assertSame(adsp, ReviewBasedPlannerController.applyReference(adsp, fewer, MajorType.NON_MAJOR));
+        // 고정값(공식 문항 수 비율 10:10:30)이 그대로 남는다
+        assertEquals(List.of(8.74, 8.74, 26.22), adsp.subjects().stream().map(SubjectCatalog::baseHours).toList());
     }
 
     @Test
