@@ -44,7 +44,7 @@ public class ClaudeClient {
     private final long maxTokens;
 
     public ClaudeClient(@Value("${passpace.claude.api-key:}") String apiKey,
-                        @Value("${passpace.claude.model:claude-opus-5-5}") String model,
+                        @Value("${passpace.claude.model:claude-sonnet-5-5}") String model,
                         @Value("${passpace.claude.effort:low}") String effort,
                         @Value("${passpace.claude.max-tokens:16000}") long maxTokens,
                         @Value("${passpace.claude.timeout-seconds:120}") int timeoutSeconds) {

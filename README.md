@@ -161,5 +161,5 @@ IntelliJ 실행 설정 → Active profiles 에 `fake` → 용성의 후기 SQL �
 
 - **API 키**: https://platform.claude.com 에서 발급. 환경변수 `ANTHROPIC_API_KEY` 또는 `application-local.yml` 의 `passpace.claude.api-key` 에 넣는다 (저장소에 올리지 않음).
 - **키가 없거나 호출이 실패하면** 예전 Ollama 가 꺼졌을 때와 같이 Java 기본 안내로 답한다. 숫자는 여전히 Java·SQL 이 계산하고 LLM 은 문장만 쓴다.
-- **모델**: 기본 `claude-opus-5-5`, `effort: low`. 비용을 줄이려면 `passpace.claude.model: claude-haiku-5-5`.
+- **모델**: 기본 `claude-sonnet-5-5`, `effort: low`. 더 줄이려면 `passpace.claude.model: claude-haiku-5-5`.
 - **테스트**: `gradlew test` 133개 통과. 실제 Claude API 호출(claude-sonnet-5-5)로 상담 답변 생성 확인.
