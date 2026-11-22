@@ -1,9 +1,21 @@
 ﻿param(
     [ValidateRange(1, 65535)][int]$Port = 8080,
-    [string]$ProjectDir = (Join-Path $env:USERPROFILE 'passpace11144')
+    [string]$ProjectDir = ''
 )
 
 $ErrorActionPreference = 'Stop'
+# Server project lookup: -ProjectDir > PASSPACE_SERVER_DIR > sibling folder of this app > old default.
+if (-not $ProjectDir) {
+    $appParent = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+    $ProjectDir = @(
+        $env:PASSPACE_SERVER_DIR
+        (Join-Path $appParent 'passpace-develop')
+        (Join-Path $appParent 'passpacehg')
+        (Join-Path $appParent 'passpace')
+        (Join-Path $env:USERPROFILE 'passpace11144')
+    ) | Where-Object { $_ -and (Test-Path -LiteralPath (Join-Path $_ 'gradlew.bat') -PathType Leaf) } | Select-Object -First 1
+    if (-not $ProjectDir) { $ProjectDir = Join-Path $appParent 'passpacehg' }
+}
 $baseUrl = "http://127.0.0.1:$Port"
 
 function Test-TeamApi {
@@ -42,6 +54,9 @@ function Find-Java21 {
     $candidates = @($env:JAVA_HOME)
     $dirs = @("$env:ProgramFiles\Java", "$env:ProgramFiles\Eclipse Adoptium")
     $candidates += @(Get-ChildItem -LiteralPath $dirs -Directory -Filter 'jdk-21*' -ErrorAction SilentlyContinue |
+        Sort-Object Name -Descending | Select-Object -ExpandProperty FullName)
+    # JDKs downloaded by IntelliJ / Android Studio (the release file check below picks 21).
+    $candidates += @(Get-ChildItem -LiteralPath "$env:USERPROFILE\.jdks" -Directory -ErrorAction SilentlyContinue |
         Sort-Object Name -Descending | Select-Object -ExpandProperty FullName)
     $compiler = Get-Command javac.exe -ErrorAction SilentlyContinue
     if ($compiler) { $candidates += Split-Path -Parent (Split-Path -Parent $compiler.Source) }
