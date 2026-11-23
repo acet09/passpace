@@ -29,6 +29,7 @@ src/main/resources/
 ├─ prompts/                          [동건] LLM 지시문
 └─ collect/                          [용성] 후기 탐색 목록·직접 지정 URL, 샘플 시험일정
 db/  01_schema(= passpace_erd.sql) → 02_schema_ext → 03_seed (04 는 더미 삭제) → 08_add_user_role (JWT 권한 칸)
+     → 09_review_sources (컴활·ADsP) → 10_review_subject_mentions (과목 언급) → 11_provisional_subject_ratio (과목 비율)
 ```
 
 | 담당 | 화면·주소 | 쓰는 테이블 | 읽는 테이블 |
@@ -87,7 +88,8 @@ db/  01_schema(= passpace_erd.sql) → 02_schema_ext → 03_seed (04 는 더미 
 CREATE USER IF NOT EXISTS 'passpace'@'localhost' IDENTIFIED BY 'passpace';
 GRANT ALL ON passpace_merged.* TO 'passpace'@'localhost';
 ```
-그다음 `db/01_schema.sql` → `db/02_schema_ext.sql` → `db/03_seed.sql` → `db/08_add_user_role.sql` 을 차례로 열고 **스크립트 실행(Alt+X)**.
+그다음 `db/01_schema.sql` → `db/02_schema_ext.sql` → `db/03_seed.sql` → `db/08_add_user_role.sql` → `db/09_review_sources.sql` → `db/10_review_subject_mentions.sql` → `db/11_provisional_subject_ratio.sql` 을 차례로 열고 **스크립트 실행(Alt+X)**.
+- 09 는 컴활 1급·ADsP 자격증·과목 행, 10 은 후기별 과목 언급 테이블(REVIEW_SUBJECT_MENTIONS), 11 은 ADsP·컴활 과목 비율 8줄이다 (6-1장). 셋 다 여러 번 실행해도 안전하다
 - 08 은 JWT 권한(`USERS.role`) 칸을 만든다. 관리자 화면을 쓰려면 08 파일 맨 아래 `UPDATE ... role = 'ADMIN'` 줄에 내 아이디를 넣어 따로 실행하고 **다시 로그인**
 - `01_schema.sql` 은 팀 기준 `passpace_erd.sql` 과 같은 내용이다. 이미 passpace_erd.sql 을 실행했다면 01 은 건너뛰고 02, 03 만 실행
 - 01 실행 결과 `table_count 20`, 03 실행 결과 `dummy_reviews 48` 이면 성공
@@ -147,6 +149,28 @@ IntelliJ 실행 설정 → Active profiles 에 `fake` → 용성의 후기 SQL �
 - **DB**: `db/10_review_subject_mentions.sql`(용성)을 실행해야 과목 언급이 저장된다.
 - **테스트**: `gradlew test` 117개 통과 (`MultiGoalPlanCalculatorTest` 요일별 시간·50분 블록, `PlanReplannerTest` 추가).
 - 5장의 "범위 밖" 중 **계획 저장(STUDY_PLANS)** 과 **재편성(AI_PLAN_PROPOSALS)** 은 이번에 구현했다. 재편성은 정기 스케줄러가 아니라 앱에서 홈을 열 때 확인한다.
+
+## 6-1. 2026-11-20 변경 사항 (용성: 총학습량·과목 비율 db/11)
+
+| 바뀐 것 | 내용 |
+|---|---|
+| 총학습량 계산 | 추정값(준비일수 × 하루시간 중앙값)을 섞을지 전공 그룹마다 따로 정하던 것을 통일. 전공 전체 직접 값이 10건 이상이면 모든 그룹에서 추정값을 뺀다 (정처기 필기 '전공' 42건 > '전공 전체' 34건이던 문제 해결) |
+| 일지형 후기 읽기 | '합계 23시간 56분', '4h 3m' 표기를 읽는다. 날짜로 시작하는 줄이 3줄 이상이면 과목별 시간을 합산 |
+| 수집 범위 | velog 후기 6개·hwankr 글 주소, 티스토리 검색어 41개 추가 |
+| 과목 언급 끝까지 자동 | 200건씩 이어서 처리. 차단(403·429)·남은 0건·진행 없음·멈추기 버튼에서 멈춤. 자동 실행 중 수동 실행은 받지 않음 |
+| 앱 관리자 화면 | 남은 수·진행률·읽는 글 3초마다 표시, 건수(1~200) 입력, 끝까지 자동·멈추기, 재집계 결과 표 |
+
+- **과목별 학습시간 (팀 합의)**: 후기 991건 중 과목별 시간이 적힌 글이 4건뿐이라 실측 평균 대신 **총학습량 × 과목 비율**로 제공한다. 비율 근거는 ADsP·컴활 1급은 공식 문항·배점, 정처기·SQLD는 합격자 1인 일지(db/03)
+- **db/11** (`db/11_provisional_subject_ratio.sql`): 새 테이블이 아니라 `STUDY_REFERENCE_STATS` 에 과목별 줄 8개 추가 (`stat_status = 'PROVISIONAL'`, 전공 구분 없음, 기준일 2026-11-20). 값은 비율로만 쓰인다 → 실제 과목 시간 = 총학습량 실측 중앙값 × 비율 (예: ADsP 10/10/10 → 6/6/18)
+
+| 자격증 | 시험 | 과목 | 값 | 근거 |
+|---|---|---|---|---|
+| ADsP | 필기 | 데이터 이해 / 데이터분석 기획 / 데이터분석 | 8.74 / 8.74 / 26.22 | 문항 10·10·30 / 50 |
+| 컴활 1급 | 필기 | 컴퓨터 일반 / 스프레드시트 일반 / 데이터베이스 일반 | 12.83 각각 | 문항 20 / 60 |
+| 컴활 1급 | 실기 | 스프레드시트 실무 / 데이터베이스 실무 | 30.00 각각 | 배점 100 / 200 |
+
+- **실행·되돌리기**: 팀원은 DBeaver 에서 db/11 을 한 번 실행 (여러 번 실행해도 안전). 되돌리기는 파일 맨 아래 주석의 DELETE 문
+- **테스트**: 서버 `gradlew test` 성공, 앱 `flutter test` 245개 통과. 재집계에서 추정값이 섞인 전공 줄이 사라진 것, db/11 실행 후 8줄 확인
 
 ## 7. 2026-11-22 변경 사항 (동건: 과목 비율·외부 LLM)
 
