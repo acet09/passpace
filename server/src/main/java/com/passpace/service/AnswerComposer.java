@@ -1,7 +1,7 @@
 package com.passpace.service;
 
-import com.passpace.client.OllamaClient;
-import com.passpace.error.exception.OllamaUnavailableException;
+import com.passpace.client.ClaudeClient;
+import com.passpace.error.exception.LlmUnavailableException;
 import com.passpace.dto.chat.ChatDtos.ComposedAnswer;
 import com.passpace.dto.chat.ChatDtos.Evidence;
 import com.passpace.dto.chat.ChatDtos.PhasePlan;
@@ -30,7 +30,7 @@ import java.util.regex.Pattern;
  * [동건] 처리 ④ 답변 생성 + ⑤ 숫자 검증
  *  - Java 가 계산한 값과 통계, 근거 후기를 사람이 읽는 텍스트(자료)로 만들어 LLM 에 보낸다
  *  - LLM 답변의 숫자가 자료에 없는 숫자면 1회 다시 요청 → 그래도 실패하면 Java 기본 안내로 대체
- *  - Ollama 가 꺼져 있어도 Java 기본 안내로 답한다 (챗봇이 멈추지 않게)
+ *  - 외부 LLM(Claude API)을 쓸 수 없어도(키 없음·연결 실패) Java 기본 안내로 답한다 (챗봇이 멈추지 않게)
  */
 @Component
 public class AnswerComposer {
@@ -38,12 +38,12 @@ public class AnswerComposer {
     private static final Logger log = LoggerFactory.getLogger(AnswerComposer.class);
     private static final Pattern CITE = Pattern.compile("\\[근거\\s*(\\d+)]");
 
-    private final OllamaClient ollama;
+    private final ClaudeClient llm;
     private final NumberGuard numberGuard = new NumberGuard();
     private final String systemPrompt;
 
-    public AnswerComposer(OllamaClient ollama) throws IOException {
-        this.ollama = ollama;
+    public AnswerComposer(ClaudeClient llm) throws IOException {
+        this.llm = llm;
         this.systemPrompt = new ClassPathResource("prompts/chat_answer_system.txt").getContentAsString(StandardCharsets.UTF_8);
     }
 
@@ -58,14 +58,14 @@ public class AnswerComposer {
         Set<String> allowed = numberGuard.allowedNumbers(payload);
         String notice = statsNotice(ctx);
         try {
-            String answer = ollama.chat(systemPrompt, payload, null, 0.2);
+            String answer = llm.chat(systemPrompt, payload, null);
             Set<String> violations = numberGuard.findViolations(answer, allowed);
             if (!violations.isEmpty()) {
                 log.warn("LLM 자료에 없는 숫자 {} - 재요청", violations);
-                answer = ollama.chat(systemPrompt,
+                answer = llm.chat(systemPrompt,
                         payload + "\n[수정 요구] 기존 답변에는 근거에 없는 숫자가 있었습니다: " +
                                 String.join(", ", violations) +
-                                ". 위 [자료]에 있는 숫자만 쓰고, 없는 숫자를 사용하지 마세요.", null, 0.1);
+                                ". 위 [자료]에 있는 숫자만 쓰고, 없는 숫자를 사용하지 마세요.", null);
                 violations = numberGuard.findViolations(answer, allowed);
             }
             if (violations.isEmpty())
@@ -74,7 +74,7 @@ public class AnswerComposer {
             return new ComposedAnswer(templateAnswer(ctx), false, allSources(ctx.stats()),
                     "LLM 답변에 자료로 확인되지 않은 숫자가 있어 기본 안내로 대체했습니다." +
                             (notice == null ? "" : " " + notice));
-        } catch (OllamaUnavailableException e) {
+        } catch (LlmUnavailableException e) {
             return new ComposedAnswer(templateAnswer(ctx), false, allSources(ctx.stats()),
                     "LLM 을 사용할 수 없어 기본 안내로 답변했습니다. (" + e.getMessage() + ")" +
                             (notice == null ? "" : " " + notice));
@@ -134,7 +134,7 @@ public class AnswerComposer {
         return sb.toString();
     }
 
-    // Ollama 연결 실패나 숫자 검증 실패 시에도 Java 값으로 답한다.
+    // LLM 연결 실패나 숫자 검증 실패 시에도 Java 값으로 답한다.
     String templateAnswer(AnswerContext c) {
         StringBuilder sb = new StringBuilder();
         if (!c.stats().available()) sb.append("통계 미사용: 유효 합격 후기 표본이 부족합니다.\n\n");

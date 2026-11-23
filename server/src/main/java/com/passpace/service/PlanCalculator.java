@@ -26,12 +26,22 @@ public class PlanCalculator {
 
     public PlanNumbers calculate(LocalDate today, LocalDate examDate, int dailyMinutes,
                                  List<String> subjects, Map<String, Integer> familiarity, StudyMethod method) {
+        return calculate(today, examDate, dailyMinutes, subjects, familiarity, method, null);
+    }
+
+    /**
+     * @param referenceHours 과목명 → 수집 데이터 기반 참고 시간 (통합 플래너와 같은 StudyReference.subjects() 값).
+     *                       모든 과목의 값이 있을 때만 과목 비율로 쓰고, 없거나 하나라도 빠지면 예전처럼 과목을 똑같이 본다
+     */
+    public PlanNumbers calculate(LocalDate today, LocalDate examDate, int dailyMinutes,
+                                 List<String> subjects, Map<String, Integer> familiarity, StudyMethod method,
+                                 Map<String, Double> referenceHours) {
         int remaining = (int) Math.max(0, ChronoUnit.DAYS.between(today, examDate));
         int weeks = (remaining + 6) / 7;
         double totalHours = round1(remaining * dailyMinutes / 60.0);
         return new PlanNumbers(remaining, weeks, dailyMinutes, totalHours,
                 phases(remaining, dailyMinutes, method),
-                subjects(subjects, familiarity == null ? Map.of() : familiarity, totalHours));
+                subjects(subjects, familiarity == null ? Map.of() : familiarity, totalHours, referenceHours));
     }
 
     List<PhasePlan> phases(int remaining, int dailyMinutes, StudyMethod method) {
@@ -73,16 +83,34 @@ public class PlanCalculator {
     }
 
     List<SubjectPlan> subjects(List<String> subjects, Map<String, Integer> familiarity, double totalHours) {
+        return subjects(subjects, familiarity, totalHours, null);
+    }
+
+    /**
+     * 과목별 시간 = 총 가용시간 × (과목 비율 × 이해도 가중치) / 합.
+     * 과목 비율은 수집 데이터 기반 참고 시간의 비율이고, 참고 시간이 없으면 모든 과목을 같은 비율로 본다.
+     */
+    List<SubjectPlan> subjects(List<String> subjects, Map<String, Integer> familiarity, double totalHours,
+                               Map<String, Double> referenceHours) {
         if (subjects == null || subjects.isEmpty()) return List.of();
         Map<String, Integer> known = familiarity == null ? Map.of() : familiarity;
-        double sum = subjects.stream().mapToDouble(s -> weight(known.get(s))).sum();
+        boolean useRatio = referenceHours != null && subjects.stream().allMatch(s -> {
+            Double h = referenceHours.get(s);
+            return h != null && Double.isFinite(h) && h > 0;
+        });
+        double sum = 0;
+        for (String subject : subjects)
+            sum += weight(known.get(subject)) * (useRatio ? referenceHours.get(subject) : 1.0);
         List<SubjectPlan> result = new ArrayList<>();
         for (String subject : subjects) {
             Integer level = known.get(subject);
             double w = weight(level);
-            result.add(new SubjectPlan(subject, level, w, round1(totalHours * w / sum)));
+            double share = w * (useRatio ? referenceHours.get(subject) : 1.0);
+            result.add(new SubjectPlan(subject, level, w, round1(totalHours * share / sum)));
         }
-        result.sort(Comparator.comparingDouble(SubjectPlan::weight).reversed()
+        // 시간이 많이 배정된 과목 먼저 (과목 비율이 없으면 예전과 같이 이해도 가중치 순서가 된다)
+        result.sort(Comparator.comparingDouble(SubjectPlan::hours).reversed()
+                .thenComparing(Comparator.comparingDouble(SubjectPlan::weight).reversed())
                 .thenComparing(SubjectPlan::subjectName));
         return result;
     }

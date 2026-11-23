@@ -12,5 +12,5 @@ logs/
 .env.*
 !.env.example
 *.log
-# 각자 PC에서 관리하는 수집 데이터
+# collect data (each PC)
 collect-data/

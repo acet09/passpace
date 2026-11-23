@@ -94,7 +94,7 @@ public class RegexConditionParser {
 
     static boolean mentionsDaily(String s) {
         // '총 150시간'은 전체 예산이지 '하루 150시간'이 아니다.
-        // 시간 단서만 있는 경우 Ollama가 일일 학습시간을 지어내지 못하도록 한다.
+        // 시간 단서만 있는 경우 LLM이 일일 학습시간을 지어내지 못하도록 한다.
         if (s == null) return false;
         return DAILY_RANGE.matcher(s).find() || DAILY_HALF.matcher(s).find()
                 || DAILY_HOUR.matcher(s).find() || DAILY_MIN.matcher(s).find()

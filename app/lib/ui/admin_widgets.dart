@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../data/api.dart';
 import '../data/models.dart';
 import 'admin_api.dart';
+import 'admin_info.dart';
 import 'design.dart';
 
 Json adminObject(Object? value) => object(value);
@@ -43,16 +44,29 @@ const adminStates = {
 class AdminSection extends StatelessWidget {
   final String title;
   final List<Widget> children;
-  const AdminSection(this.title, this.children, {super.key});
+
+  /// [11-21] 값이 있으면 제목 옆에 "수집자료정보" 링크를 보여 준다 (adminInfoTopics 의 키)
+  final String? info;
+  const AdminSection(this.title, this.children, {super.key, this.info});
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.only(top: 22),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          title,
-          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
+        Row(
+          children: [
+            Flexible(
+              child: Text(
+                title,
+                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
+              ),
+            ),
+            if (info != null) ...[
+              const SizedBox(width: 6),
+              AdminInfoLink(info!),
+            ],
+          ],
         ),
         const SizedBox(height: 12),
         ...children,

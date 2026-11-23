@@ -21,7 +21,7 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/** [동건] 챗봇 계산 로직 테스트 - DB·Spring·Ollama 없이 실행된다 */
+/** [동건] 챗봇 계산 로직 테스트 - DB·Spring·LLM 없이 실행된다 */
 class ChatLogicTest {
 
     private static final LocalDate TODAY = LocalDate.of(2026, 11, 6);
@@ -82,6 +82,31 @@ class ChatLogicTest {
                 .containsExactly("1~6주차", "7~16주차", "17~20주차");                 // 주차가 겹치지 않음
         assertThat(plan.subjects().get(0).subjectName()).isEqualTo("프로그래밍 언어 활용"); // 낯선 과목(1.3) 먼저
         assertThat(plan.subjects().get(3).subjectName()).isEqualTo("데이터베이스 구축");   // 익숙한 과목(0.7) 마지막
+    }
+
+    @Test
+    void 과목_참고시간이_있으면_그_비율로_나누고_없으면_똑같이_나눈다() {
+        List<String> subjects = List.of("데이터 이해", "데이터분석 기획", "데이터분석");
+        LocalDate exam = TODAY.plusDays(60);                                             // 60일 × 2시간 = 120시간
+
+        // 수집 데이터 기반 참고 시간 6 : 6 : 18 → 120시간을 24 / 24 / 72 로 나눈다 (시간 많은 과목 먼저)
+        PlanNumbers byRatio = new PlanCalculator().calculate(TODAY, exam, 120, subjects, Map.of(), null,
+                Map.of("데이터 이해", 6.0, "데이터분석 기획", 6.0, "데이터분석", 18.0));
+        assertThat(byRatio.subjects()).extracting(s -> s.subjectName())
+                .containsExactly("데이터분석", "데이터 이해", "데이터분석 기획");
+        assertThat(byRatio.subjects()).extracting(s -> s.hours()).containsExactly(72.0, 24.0, 24.0);
+
+        // 이해도 가중치(낯섦 1.3)는 과목 비율 위에 곱해진다: 6×1.3 : 6 : 18 = 7.8 : 6 : 18
+        PlanNumbers withLevel = new PlanCalculator().calculate(TODAY, exam, 120, subjects, Map.of("데이터 이해", 1), null,
+                Map.of("데이터 이해", 6.0, "데이터분석 기획", 6.0, "데이터분석", 18.0));
+        assertThat(withLevel.subjects()).extracting(s -> s.hours()).containsExactly(67.9, 29.4, 22.6);
+
+        // 참고 시간이 없거나 한 과목이라도 빠지면 예전처럼 똑같이 나눈다
+        PlanNumbers none = new PlanCalculator().calculate(TODAY, exam, 120, subjects, Map.of(), null, null);
+        assertThat(none.subjects()).extracting(s -> s.hours()).containsExactly(40.0, 40.0, 40.0);
+        PlanNumbers partial = new PlanCalculator().calculate(TODAY, exam, 120, subjects, Map.of(), null,
+                Map.of("데이터 이해", 6.0, "데이터분석", 18.0));
+        assertThat(partial.subjects()).extracting(s -> s.hours()).containsExactly(40.0, 40.0, 40.0);
     }
 
     @Test

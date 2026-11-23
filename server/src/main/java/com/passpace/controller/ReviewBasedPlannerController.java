@@ -308,7 +308,8 @@ public class ReviewBasedPlannerController {
 
     /**
      * 후기 실측 평균(VERIFIED)이 있으면 과목별 기준시간과 근거 설명을 그 값으로 바꾼 사본을 만든다.
-     * 실측이 없거나 과목 목록이 서로 맞지 않으면 받은 goal 을 그대로 돌려준다 (Spring·DB 없이 테스트 가능).
+     * 과목별 시간은 ref.subjects() 의 시간(수집 데이터 기반 비율)을 그대로 쓴다.
+     * 실측이 없거나 과목 목록·과목 시간이 서로 맞지 않으면 받은 goal(고정 비율 값)을 그대로 돌려준다 (Spring·DB 없이 테스트 가능).
      */
     static GoalCatalog applyReference(GoalCatalog goal, StudyReference ref, MajorType userMajor) {
         if (ref == null || !ref.verified() || ref.totalHours() <= 0 || ref.subjects() == null) return goal;
@@ -320,18 +321,13 @@ public class ReviewBasedPlannerController {
             if (h == null || !(h.hours() > 0)) return goal;
         }
 
-        // 과목별 시간 = 후기 총 평균 × 이 자격증의 잠정 과목 비율(기존 카탈로그 값의 비율).
-        // 정처기·SQLD 는 DB 잠정값과 같은 비율이라 결과가 같고, DB 에 과목별 잠정값이 없는 자격증(ADsP·컴활)도
-        // 똑같이 나누지 않고 공식 문항 수·배점 비율로 나눈다.
-        double catalogTotal = goal.subjects().stream()
-                .mapToDouble(s -> s.baseHours() == null ? 0 : s.baseHours()).sum();
-        if (!(catalogTotal > 0)) return goal;
+        // [11-22] 과목별 시간 = ref.subjects() 의 시간을 그대로 쓴다 (용성 집계: 수집 데이터 총 학습시간 × 과목 비율).
+        // 고정 비율(StudyHoursEvidence = 기존 카탈로그 값)은 위 검사에서 걸러진 경우에만 쓰인다:
+        // 후기 실측이 없거나, 과목 수·과목 이름이 맞지 않거나, 과목 시간이 비어 있으면 받은 goal 을 그대로 돌려준다.
         Map<String, Double> split = new HashMap<>();
         for (SubjectCatalog s : goal.subjects()) {
-            if (s.baseHours() == null || !(s.baseHours() > 0)) return goal;
-            split.put(normalize(s.name()), Math.round(ref.totalHours() * s.baseHours() / catalogTotal * 100.0) / 100.0);
+            split.put(normalize(s.name()), measured.get(normalize(s.name())).hours());
         }
-        boolean officialWeights = StudyHoursEvidence.usesOfficialWeights(goal.evidence());
 
         int samples = ref.sampleCount();
         boolean sameGroup = ref.appliedMajor() != null && ref.appliedMajor() == userMajor;
@@ -350,8 +346,8 @@ public class ReviewBasedPlannerController {
             String derivation = group + " " + samples + "건의 총 학습시간 평균 " + total + "시간 × 이 과목 비율 "
                     + Math.round(hours / ref.totalHours() * 100) + "% = " + hoursText(hours) + "시간. "
                     + (goal.subjects().size() == 1 ? "과목이 하나라 총 평균을 그대로 사용."
-                    : officialWeights ? "과목별 시간을 따로 적은 후기는 거의 없어 과목 비율은 공식 문항 수·배점 비율을 사용."
-                    : "과목별 시간을 따로 적은 후기는 거의 없어 과목 비율은 잠정 비율(공개 학습일지 1건)을 사용.");
+                    : "과목 비율은 수집 데이터 집계 기준"
+                    + (h.basis() == null || h.basis().isBlank() ? "." : " (" + h.basis() + ")."));
             subjects.add(new SubjectCatalog(h.subjectId(), s.name(), hours, true, type, 0, samples,
                     sameSyllabus, derivation, sameGroup ? samples : 0, sameGroup ? sameSyllabus : 0));
             estimates.add(new StudyHoursEvidence.SubjectEstimate(s.name(), hours, 0, samples,

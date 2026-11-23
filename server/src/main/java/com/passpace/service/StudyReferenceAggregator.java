@@ -28,9 +28,13 @@ import java.util.List;
 @Service
 public class StudyReferenceAggregator {
 
-    /** 집계 결과 한 줄 (관리자 화면 표시용) */
+    /**
+     * 집계 결과 한 줄 (관리자 화면 표시용).
+     * [11-21] naverUsed = 표본에 보충한 네이버 요약 후기 수, naverCount·naverMedian = 비교용 네이버 단독 값(걸러진 것)
+     */
     public record AggregateLine(long certificationId, String examType, String majorType,
-                                int sampleCount, Double meanHours, String result) {
+                                int sampleCount, Double meanHours, String result,
+                                int naverUsed, int naverCount, Double naverMedian) {
     }
 
     private final JdbcTemplate jdbc;
@@ -53,8 +57,10 @@ public class StudyReferenceAggregator {
                 // [11-19] 추정값을 섞을지는 전공 전체의 직접 값 수로 한 번만 정한다 (ReferenceMath.pickHours)
                 Double fallbackDaily = fallbackDailyMinutes(certId, exam.name());
                 int allMajorDirect = loadSamples(certId, exam.name(), null, fallbackDaily).direct().size();
+                // [11-21] 네이버 요약 후기 이상치 울타리는 자격증·시험 단위(전공 전체)로 한 번 정한다
+                double[] naverFences = ReferenceMath.iqrFences(loadNaver(certId, exam.name(), null, null));
                 for (String major : majors) {
-                    lines.add(refreshOne(certId, exam.name(), major, allMajorDirect, fallbackDaily));
+                    lines.add(refreshOne(certId, exam.name(), major, allMajorDirect, fallbackDaily, naverFences));
                 }
             }
         }
@@ -76,12 +82,54 @@ public class StudyReferenceAggregator {
     record Samples(List<Double> direct, List<Double> guessed, int converted) {
     }
 
-    AggregateLine refreshOne(long certId, String exam, String major, int allMajorDirect, Double fallbackDaily) {
+    AggregateLine refreshOne(long certId, String exam, String major, int allMajorDirect, Double fallbackDaily,
+                             double[] naverFences) {
         Samples s = loadSamples(certId, exam, major, fallbackDaily);
-        List<Double> hours = ReferenceMath.pickHours(s.direct(), s.guessed(), allMajorDirect, minSample);
+        // [11-21] 크롤링 직접 값 → 부족하면 네이버 요약 후기 → 그래도 부족하면 추정값 (ReferenceMath.pickWithNaver)
+        List<Double> naver = loadNaver(certId, exam, major, naverFences);
+        ReferenceMath.Pick pick = ReferenceMath.pickWithNaver(s.direct(), naver, s.guessed(), allMajorDirect, minSample);
         int[] converted = {s.converted()};
-        int[] estimated = {hours.size() - s.direct().size()};
-        return save(certId, exam, major, hours, converted, estimated, fallbackDaily);
+        int[] estimated = {pick.guessedUsed()};
+        Double naverMedian = naver.isEmpty() ? null : ReferenceMath.round2(ReferenceMath.median(naver));
+        return save(certId, exam, major, pick.hours(), converted, estimated, fallbackDaily,
+                pick.naverUsed(), naver.size(), naverMedian);
+    }
+
+    /**
+     * [11-21] 네이버 검색 API 로 모은 합격 후기 요약문(PENDING) 중 통계에 써도 되는 값.
+     * 크롤링과 같은 규칙(합격, 최근 3년, 작성자당 1건, 시간 계산 가능) + ReferenceMath.naverUsable + 박스플롯 울타리.
+     * 후기 상태(PENDING)는 바꾸지 않고 집계할 때만 읽는다. fences 가 null 이면 울타리로 거르지 않는다.
+     */
+    List<Double> loadNaver(long certId, String exam, String major, double[] fences) {
+        int year = LocalDate.now().getYear();
+        List<Double> out = new ArrayList<>();
+        jdbc.query("""
+                SELECT total_hours, prep_days, daily_minutes, evidence_text
+                FROM (
+                    SELECT p.total_hours, p.prep_days, p.daily_minutes, p.evidence_text, p.major_type,
+                           ROW_NUMBER() OVER (
+                               PARTITION BY COALESCE(p.author_hash, CONCAT('row-', p.review_id))
+                               ORDER BY p.posted_at DESC, p.review_id DESC) AS author_rank
+                    FROM PASS_REVIEWS p
+                    WHERE p.certification_id = ? AND p.exam_type = ?
+                      AND p.review_status = 'PENDING' AND p.pass_yn = 'Y'
+                      AND p.source_url LIKE '%naver.com%'
+                      AND (p.posted_at IS NULL OR p.posted_at >= DATE_SUB(CURDATE(), INTERVAL 3 YEAR))
+                ) t
+                WHERE author_rank = 1 AND (? IS NULL OR major_type = ?)
+                """, (rs, n) -> {
+                    Double total = rs.getObject("total_hours") == null ? null : rs.getDouble("total_hours");
+                    Integer prep = (Integer) rs.getObject("prep_days", Integer.class);
+                    Integer daily = (Integer) rs.getObject("daily_minutes", Integer.class);
+                    Double h = ReferenceMath.reviewHours(total, prep, daily);
+                    if (h != null && ReferenceMath.naverUsable(prep, daily, rs.getString("evidence_text"), year)
+                            && (fences == null || (h >= fences[0] && h <= fences[1]))) {
+                        out.add(h);
+                    }
+                    return null;
+                },
+                certId, exam, major, major);
+        return out;
     }
 
     Samples loadSamples(long certId, String exam, String major, Double fallbackDaily) {
@@ -128,12 +176,13 @@ public class StudyReferenceAggregator {
     }
 
     private AggregateLine save(long certId, String exam, String major, List<Double> hours,
-                               int[] converted, int[] estimated, Double fallbackDaily) {
+                               int[] converted, int[] estimated, Double fallbackDaily,
+                               int naverUsed, int naverCount, Double naverMedian) {
         String key = ReferenceMath.statKey(certId, exam, null, major);
         if (hours.size() < minSample) {
             jdbc.update("DELETE FROM STUDY_REFERENCE_STATS WHERE stat_key = ? AND stat_status = 'VERIFIED'", key + ":V");
             return new AggregateLine(certId, exam, major, hours.size(), null,
-                    "표본 부족(" + hours.size() + "/" + minSample + ") → 잠정값 사용");
+                    "표본 부족(" + hours.size() + "/" + minSample + ") → 잠정값 사용", naverUsed, naverCount, naverMedian);
         }
         // [11-16] 평균 → 중앙값 (튀는 값 영향 감소). 칸 이름은 mean_hours 그대로 두고 값만 중앙값을 넣는다
         double mean = ReferenceMath.median(hours);
@@ -142,6 +191,7 @@ public class StudyReferenceAggregator {
         String note = "합격 후기 " + hours.size() + "건(작성자당 1건, 최근 3년) 실측 중앙값 (범위 " + min + "~" + max + "시간"
                 + (major == null ? ", 전공 전체" : ", " + MajorType.fromCode(major).getLabel())
                 + (converted[0] > 0 ? ", 이 중 " + converted[0] + "건은 준비기간×하루시간 환산" : "")
+                + (naverUsed > 0 ? ", " + naverUsed + "건은 네이버 요약 후기 보충" : "")
                 + (estimated[0] > 0 ? ", " + estimated[0] + "건은 준비기간×같은 시험 하루시간 중앙값("
                         + Math.round(fallbackDaily) + "분) 추정" : "") + ")";
         jdbc.update("""
@@ -154,7 +204,9 @@ public class StudyReferenceAggregator {
                   source_note = VALUES(source_note), updated_at = NOW()
                 """, certId, exam, major, mean, min, max, hours.size(), LocalDate.now(), note, key + ":V");
         return new AggregateLine(certId, exam, major, hours.size(), mean,
-                "VERIFIED 저장" + (estimated[0] > 0 ? " (하루시간 추정 " + estimated[0] + "건 포함)" : ""));
+                "VERIFIED 저장" + (naverUsed > 0 ? " (네이버 보충 " + naverUsed + "건 포함)" : "")
+                        + (estimated[0] > 0 ? " (하루시간 추정 " + estimated[0] + "건 포함)" : ""),
+                naverUsed, naverCount, naverMedian);
     }
 
     /**

@@ -38,7 +38,7 @@ public enum ErrorCode {
     // ── 챗봇·학습계획 ── (동건)
     MISSING_MAJOR(400, "전공 구분이 설정되지 않았습니다. 마이페이지에서 전공 여부를 먼저 선택하세요.", "Major type is not set."),
     NOT_FOUND_CONVERSATION(404, "대화방을 찾을 수 없습니다.", "Conversation not found."),
-    LLM_UNAVAILABLE(503, "챗봇 서버(Ollama)에 연결할 수 없습니다.", "LLM server unavailable."),
+    LLM_UNAVAILABLE(503, "챗봇 LLM(Claude API)에 연결할 수 없습니다.", "LLM server unavailable."),
 
     ;
 
