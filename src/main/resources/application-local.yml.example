@@ -7,5 +7,5 @@ spring:
 passpace:
   collect:
     data-go-kr-key: 여기에_공공데이터포털_Decoding_인증키
-  ollama:
-    model: qwen3.5:4b
+  claude:
+    api-key: 여기에_Claude_API_키      # https://platform.claude.com 에서 발급 (sk-ant-...). 환경변수 ANTHROPIC_API_KEY 로 줘도 된다

@@ -38,6 +38,7 @@ dependencies {
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.17'
     implementation 'org.jsoup:jsoup:1.21.1'                                   // [용성] HTML 본문 추출
     implementation 'org.seleniumhq.selenium:selenium-java'                     // [용성] 티스토리 검색 화면 읽기 (PC 의 크롬 사용, 버전은 Spring Boot 관리)
+    implementation 'com.anthropic:anthropic-java:3.3.0'                        // [동건] 챗봇 외부 LLM (Claude API 공식 SDK)
     runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'                         // MariaDB 드라이버
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'

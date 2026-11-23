@@ -2,7 +2,7 @@ package com.passpace.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.passpace.client.OllamaClient;
+import com.passpace.client.ClaudeClient;
 import com.passpace.dto.chat.ChatDtos.ExtractedCondition;
 import com.passpace.constant.ExamType;
 import com.passpace.constant.MajorType;
@@ -33,12 +33,12 @@ public class ConditionExtractor {
     private static final Logger log = LoggerFactory.getLogger(ConditionExtractor.class);
 
     private final RegexConditionParser regexParser = new RegexConditionParser();
-    private final OllamaClient ollama;
+    private final ClaudeClient llm;
     private final ObjectMapper objectMapper;
     private final String systemPromptTemplate;
 
-    public ConditionExtractor(OllamaClient ollama, ObjectMapper objectMapper) throws IOException {
-        this.ollama = ollama;
+    public ConditionExtractor(ClaudeClient llm, ObjectMapper objectMapper) throws IOException {
+        this.llm = llm;
         this.objectMapper = objectMapper;
         this.systemPromptTemplate = new ClassPathResource("prompts/chat_condition_system.txt")
                 .getContentAsString(StandardCharsets.UTF_8);
@@ -84,8 +84,9 @@ public class ConditionExtractor {
                         "examType", Map.of("type", "string", "enum", List.of("WRITTEN", "PRACTICAL", "UNKNOWN")),
                         "examDate", Map.of("type", "string"),
                         "dailyHours", Map.of("type", "number")),
-                "required", List.of("majorType", "examType", "examDate", "dailyHours"));
-        String raw = ollama.chat(systemPromptTemplate.replace("{{today}}", today.toString()), message, schema, 0);
+                "required", List.of("majorType", "examType", "examDate", "dailyHours"),
+                "additionalProperties", false);   // Claude 구조화 출력(JSON 스키마)에 필요
+        String raw = llm.chat(systemPromptTemplate.replace("{{today}}", today.toString()), message, schema);
         JsonNode node = objectMapper.readTree(raw);
         MajorType major = null;
         ExamType examType = null;

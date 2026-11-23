@@ -12,13 +12,16 @@ import com.passpace.jwt.JwtPrincipal;
 import com.passpace.constant.ExamType;
 import com.passpace.constant.MajorType;
 import com.passpace.constant.StudyMethod;
+import com.passpace.domain.StudyReference;
 import com.passpace.domain.UserStudyProfile;
+import com.passpace.repository.StudyReferenceQuery;
 import com.passpace.repository.UserStudyProfileQuery;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -47,19 +50,21 @@ public class ChatServiceImpl implements ChatService {
     private final AnswerComposer answerComposer;
     private final ChatRepository chatRepository;
     private final UserStudyProfileQuery profileQuery;     // 공통 계약 (구현: 한결)
+    private final StudyReferenceQuery referenceQuery;     // 공통 계약 (구현: 용성) - 과목 비율
     private final PlanCalculator planCalculator = new PlanCalculator();
     private final RegexConditionParser intentParser = new RegexConditionParser();
     private final String examCode;
 
     public ChatServiceImpl(ConditionExtractor conditionExtractor, StatsAnalyzer statsAnalyzer,
                            AnswerComposer answerComposer, ChatRepository chatRepository,
-                           UserStudyProfileQuery profileQuery,
+                           UserStudyProfileQuery profileQuery, StudyReferenceQuery referenceQuery,
                            @Value("${passpace.certification-code}") String examCode) {
         this.conditionExtractor = conditionExtractor;
         this.statsAnalyzer = statsAnalyzer;
         this.answerComposer = answerComposer;
         this.chatRepository = chatRepository;
         this.profileQuery = profileQuery;
+        this.referenceQuery = referenceQuery;
         this.examCode = examCode;
     }
 
@@ -94,7 +99,7 @@ public class ChatServiceImpl implements ChatService {
             isPlan = true; // "실기는요?" 와 같은 이어지는 계획 질문
         }
         // 종목을 제시하며 학습계획을 요청하면 Java 통합 플래너에서 계산하도록
-        // 빠른 사전 이해도 선택을 연다. 이 경로는 Ollama 조건 추출을 호출하지 않는다.
+        // 빠른 사전 이해도 선택을 연다. 이 경로는 LLM 조건 추출을 호출하지 않는다.
         boolean certMention = mentionsSqlD(message) || message.contains("정처기")
                 || message.contains("정보처리기사") || mentionsAdsp(message) || mentionsComputer1(message);
         boolean planMention = message.contains("계획") || message.contains("공부")
@@ -129,7 +134,7 @@ public class ChatServiceImpl implements ChatService {
                     + "실기 2과목(스프레드시트 실무, 데이터베이스 실무)입니다. "
                     + "'컴활 1급 필기 계획 세워줘'라고 입력하면 직접 계산할 수 있어요.", null);
         }
-        // 단순 인사나 안내 요청에서는 느린 Ollama 조건 추출을 실행할 필요가 없다.
+        // 단순 인사나 안내 요청에서는 느린 LLM 조건 추출을 실행할 필요가 없다.
         if (!isPlan) return reply(conId, guideAnswer(message, current, certId), null);
         ExtractedCondition cond = conditionExtractor.extract(message, history, today);
 
@@ -167,13 +172,30 @@ public class ChatServiceImpl implements ChatService {
         List<String> subjects = chatRepository.findSubjectNames(certId, examType);
         Map<String, Integer> familiarity = profile == null || profile.familiarityBySubject() == null
                 ? Map.of() : profile.familiarityBySubject();
-        PlanNumbers plan = planCalculator.calculate(today, examDate, dailyMinutes, subjects, familiarity, method);
+        PlanNumbers plan = planCalculator.calculate(today, examDate, dailyMinutes, subjects, familiarity, method,
+                referenceHours(certId, examType, major));
         ComposedAnswer result = answerComposer.compose(new AnswerContext(message, today, examType,
                 major, examDate, dateNote, plan, stats, statsAnalyzer.getMinSample(),
                 chatRepository.findPassCriteria(certId).orElse(null)));
         chatRepository.insertMessage(conId, "assistant", result.text());
         return new ChatResponse(result.text(), conId, stats.sampleSize(), stats.available(),
                 stats.conditionLabel(), result.sources(), result.notice(), result.llmUsed());
+    }
+
+    /**
+     * [11-22] 과목 비율: 통합 플래너(applyReference)와 같은 StudyReference.subjects() 의 시간을 쓴다 (수집 데이터 기반).
+     * 값이 없거나 조회에 실패하면 빈 값 → PlanCalculator 가 예전처럼 과목을 똑같이 나눈다.
+     */
+    private Map<String, Double> referenceHours(long certId, ExamType examType, MajorType major) {
+        try {
+            StudyReference ref = referenceQuery.find(certId, examType, major).orElse(null);
+            if (ref == null || ref.subjects() == null) return Map.of();
+            Map<String, Double> hours = new HashMap<>();
+            for (StudyReference.SubjectHours s : ref.subjects()) hours.put(s.subjectName(), s.hours());
+            return hours;
+        } catch (org.springframework.dao.DataAccessException e) {
+            return Map.of();
+        }
     }
 
     /** 계획이 아닌 인사/과목 질문은 DB 목록을 보여 주고 계획을 재계산하지 않는다. */
