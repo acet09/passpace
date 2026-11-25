@@ -80,7 +80,16 @@ void main() {
 
     final nav = find.byType(NavigationBar);
     await tap(find.descendant(of: nav, matching: find.text('기록')));
+    await tap(find.byKey(const ValueKey('open-study-history')));
+    final day = find.byKey(ValueKey('history-day-${isoDay(original.date)}'));
+    if (find
+        .descendant(of: day, matching: find.byIcon(Icons.expand_more))
+        .evaluate()
+        .isNotEmpty) {
+      await tap(day);
+    }
     await capture('live-actions-before');
+    await tap(find.byKey(ValueKey('study-actions-${original.id}')));
     await tap(find.byKey(ValueKey('study-edit-${original.id}')));
     await tap(find.byKey(const ValueKey('study-task-picker')));
     await capture('live-actions-choices');
@@ -100,7 +109,7 @@ void main() {
     expect(linked.minutes, 60);
     dismissNotice();
     await capture('live-actions-linked');
-    await tap(find.text('공부시간 추가'));
+    await tap(find.byKey(const ValueKey('history-add')));
     await t.enterText(find.byKey(const ValueKey('study-minutes')), '25');
     FocusManager.instance.primaryFocus?.unfocus();
     await t.pumpAndSettle();
@@ -126,6 +135,7 @@ void main() {
     );
     dismissNotice();
     final delete = find.byKey(ValueKey('study-delete-${added.id}'));
+    await tap(find.byKey(ValueKey('study-actions-${added.id}')));
     await tap(delete);
     await capture('live-actions-delete-confirm');
     await tap(find.widgetWithText(TextButton, '취소'));
@@ -136,6 +146,7 @@ void main() {
       )).items.any((r) => r.id == added.id),
       true,
     );
+    await tap(find.byKey(ValueKey('study-actions-${added.id}')));
     await tap(delete);
     await tap(find.widgetWithText(FilledButton, '삭제'));
     final remaining = (await api.studySessions(today, today)).items.single;

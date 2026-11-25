@@ -9,11 +9,13 @@ import '../data/study_models.dart';
 import '../data/study_timer.dart';
 import 'design.dart';
 import 'study_subject_history.dart';
+import 'subject_color_picker.dart';
 
 /// Displays existing plan minutes; it never changes a plan or timer measurement.
 class StudyTimerProgress extends StatefulWidget {
   final PassApi api;
   final StudyTaskChoice? task;
+  final Color? subjectColor;
   final DateTime date;
   final Duration elapsed;
   final String label;
@@ -26,6 +28,7 @@ class StudyTimerProgress extends StatefulWidget {
     super.key,
     required this.api,
     required this.task,
+    this.subjectColor,
     required this.date,
     required this.elapsed,
     required this.label,
@@ -257,9 +260,29 @@ class _StudyTimerProgressState extends State<StudyTimerProgress>
         ? (total.inMilliseconds / (minutes * 60000)).clamp(0.0, 1.0)
         : 0.0;
     final percent = (value * 100).floor();
+    final subjectColor = widget.subjectColor;
+    final ringColor = subjectColor ?? blue;
+    final trackColor = subjectColor == null
+        ? const Color(0xffdce5fa)
+        : subjectColorTrack(subjectColor);
+    final faceColor = subjectColor == null
+        ? pale
+        : Color.alphaBlend(subjectColor.withValues(alpha: .06), Colors.white);
+    final labelsInside = MediaQuery.textScalerOf(context).scale(14) <= 18;
+    const measurementLabel = Text(
+      '이번 측정',
+      textAlign: TextAlign.center,
+      style: TextStyle(color: muted, fontSize: 13, fontWeight: FontWeight.w600),
+    );
+    final allocationLabel = Text(
+      '배정 ${durationLabel(minutes)}',
+      textAlign: TextAlign.center,
+      style: const TextStyle(color: muted, fontSize: 14),
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        if (!labelsInside) measurementLabel,
         LayoutBuilder(
           builder: (context, constraints) {
             final size = math.min(constraints.maxWidth, widget.maxDiameter);
@@ -269,6 +292,17 @@ class _StudyTimerProgressState extends State<StudyTimerProgress>
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
+                    Positioned.fill(
+                      child: Padding(
+                        padding: const EdgeInsets.all(21),
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: minutes > 0 ? faceColor : Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
                     Positioned.fill(
                       child: Padding(
                         padding: const EdgeInsets.all(8),
@@ -283,10 +317,10 @@ class _StudyTimerProgressState extends State<StudyTimerProgress>
                             child: CircularProgressIndicator(
                               key: const ValueKey('study-timer-progress'),
                               value: progress,
-                              strokeWidth: 14,
+                              strokeWidth: 11,
                               strokeCap: StrokeCap.round,
-                              color: blue,
-                              backgroundColor: const Color(0xffdce4f6),
+                              color: ringColor,
+                              backgroundColor: trackColor,
                               semanticsLabel:
                                   '선택 과목 배정 시간 대비 저장 기록과 이번 측정의 누적 시간',
                               semanticsValue: '$percent%',
@@ -296,40 +330,39 @@ class _StudyTimerProgressState extends State<StudyTimerProgress>
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.all(36),
+                      padding: const EdgeInsets.all(32),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Semantics(
-                            label:
-                                '측정한 시간 ${widget.elapsed.inHours}시간 ${widget.elapsed.inMinutes % 60}분 ${widget.elapsed.inSeconds % 60}초',
-                            child: ExcludeSemantics(
-                              child: FittedBox(
-                                fit: BoxFit.scaleDown,
-                                child: Text(
-                                  widget.label,
-                                  key: const ValueKey('study-timer-clock'),
-                                  style: const TextStyle(
-                                    fontSize: 46,
-                                    fontWeight: FontWeight.w800,
-                                    fontFeatures: [
-                                      FontFeature.tabularFigures(),
-                                    ],
+                          if (labelsInside) ...[
+                            measurementLabel,
+                            const SizedBox(height: 4),
+                          ],
+                          Flexible(
+                            child: Semantics(
+                              label:
+                                  '측정한 시간 ${widget.elapsed.inHours}시간 ${widget.elapsed.inMinutes % 60}분 ${widget.elapsed.inSeconds % 60}초',
+                              child: ExcludeSemantics(
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                    widget.label,
+                                    key: const ValueKey('study-timer-clock'),
+                                    style: const TextStyle(
+                                      fontSize: 48,
+                                      fontWeight: FontWeight.w800,
+                                      fontFeatures: [
+                                        FontFeature.tabularFigures(),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
                           ),
-                          if (minutes > 0) ...[
-                            const SizedBox(height: 12),
-                            Text(
-                              '배정 ${durationLabel(minutes)}',
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                color: muted,
-                                fontSize: 14,
-                              ),
-                            ),
+                          if (labelsInside && minutes > 0) ...[
+                            const SizedBox(height: 6),
+                            allocationLabel,
                           ],
                         ],
                       ),
@@ -340,6 +373,7 @@ class _StudyTimerProgressState extends State<StudyTimerProgress>
             );
           },
         ),
+        if (!labelsInside && minutes > 0) allocationLabel,
         const SizedBox(height: 16),
         Text(
           pendingSave
@@ -350,8 +384,8 @@ class _StudyTimerProgressState extends State<StudyTimerProgress>
               ? '학습 시간 불러오는 중…'
               : minutes > 0
               ? value >= 1
-                    ? '누적 ${timeLabel(total)} · 배정 시간 도달'
-                    : '누적 ${timeLabel(total)} · 배정 시간의 $percent%'
+                    ? '오늘 누적 ${timeLabel(total)} · 배정 시간 도달'
+                    : '오늘 누적 ${timeLabel(total)} · $percent%'
               : message ?? '배정 시간 없음',
           textAlign: TextAlign.center,
           style: TextStyle(
@@ -366,14 +400,6 @@ class _StudyTimerProgressState extends State<StudyTimerProgress>
           const SizedBox(height: 6),
           Text(
             '저장 ${durationLabel(savedMinutes!)} + 이번 측정 ${timeLabel(elapsed)}',
-            textAlign: TextAlign.center,
-            style: const TextStyle(color: muted, fontSize: 13),
-          ),
-        ],
-        ...[
-          const SizedBox(height: 6),
-          Text(
-            '${isoDay(widget.date)} · 배정 기준',
             textAlign: TextAlign.center,
             style: const TextStyle(color: muted, fontSize: 13),
           ),

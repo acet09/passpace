@@ -1,4 +1,5 @@
 import '../data/api.dart';
+import '../data/study_history.dart';
 import '../data/study_models.dart';
 
 class StudyHistoryLinkError implements Exception {
@@ -13,41 +14,10 @@ Future<int?> savedSubjectMinutes(
   List<StudyTaskChoice> active, {
   required bool Function() isCurrent,
 }) async {
-  final records = <int, StudyRecord>{};
-  for (var page = 0; page <= 10000; page++) {
-    final result = await api.studySessions(date, date, page: page);
-    if (!isCurrent()) return null;
-    if (result.page != page || result.items.any((r) => r.date != date)) {
-      throw const FormatException('Unexpected study day');
-    }
-    for (final record in result.items) {
-      final old = records[record.id];
-      if (old != null &&
-          (
-                old.minutes,
-                old.taskId,
-                old.planId,
-                old.subjectId,
-                old.subjectName,
-              ) !=
-              (
-                record.minutes,
-                record.taskId,
-                record.planId,
-                record.subjectId,
-                record.subjectName,
-              )) {
-        throw const FormatException('Study record changed between pages');
-      }
-      records[record.id] = record;
-    }
-    if (!result.hasNext) break;
-    if (page == 10000 || result.items.isEmpty) {
-      throw const FormatException('Incomplete study day');
-    }
-  }
+  final records = await readStudyHistory(api, date, date, isCurrent: isCurrent);
+  if (records == null) return null;
   final tasks = {for (final task in active) task.id: task};
-  final needsHistory = records.values.any(
+  final needsHistory = records.any(
     (r) =>
         r.taskId != null &&
         !(selected.subjectId != null && r.subjectId != null) &&
@@ -55,22 +25,14 @@ Future<int?> savedSubjectMinutes(
   );
   if (needsHistory) {
     // Historical links resolve saved records only; the picker remains ACTIVE-only.
-    for (var page = 0; page <= 10000; page++) {
-      final result = await api.studyPlanTasks(
-        includeReplaced: true,
-        page: page,
-      );
-      if (!isCurrent()) return null;
-      if (result.page != page) {
-        throw const FormatException('Unexpected task page');
-      }
-      for (final task in result.items) {
-        tasks[task.id] = task;
-      }
-      if (!result.hasNext) break;
-      if (page == 10000 || result.items.isEmpty) {
-        throw const FormatException('Incomplete historical task links');
-      }
+    final history = await readStudyTaskChoices(
+      api,
+      includeReplaced: true,
+      isCurrent: isCurrent,
+    );
+    if (history == null) return null;
+    for (final task in history) {
+      tasks[task.id] = task;
     }
     final current = tasks[selected.id];
     if (current == null ||
@@ -125,5 +87,5 @@ Future<int?> savedSubjectMinutes(
     return true;
   }
 
-  return records.values.where(sameSubject).fold<int>(0, (n, r) => n + r.minutes);
+  return records.where(sameSubject).fold<int>(0, (n, r) => n + r.minutes);
 }

@@ -144,11 +144,28 @@ Future<void> open(WidgetTester t, HubFixture f) async {
 }
 
 void main() {
+  testWidgets('월간 달력에서 선택한 날짜의 과목 목록이 열린다', (t) async {
+    final f = HubFixture()..taskDays = 2;
+    await open(t, f);
+    await tap(t, tab('학습계획'));
+    final tomorrow = plusDays(f.today, 1);
+    if (tomorrow.month != f.today.month) {
+      await tap(t, find.byTooltip('다음 달'));
+    }
+    await tap(t, find.byKey(ValueKey('calendar-day-${isoDay(tomorrow)}')));
+    final selected = find.widgetWithText(ExpansionTile, shortDay(tomorrow));
+    expect(selected, findsOneWidget);
+    expect(
+      find.descendant(of: selected, matching: find.text('SQL 활용')),
+      findsOneWidget,
+    );
+    expect(t.takeException(), isNull);
+  });
+
   testWidgets('전체 일정의 달력에서 빈 날짜를 선택하고 기존 목록으로 전환한다', (t) async {
     final f = HubFixture();
     await open(t, f);
     await tap(t, tab('학습계획'));
-    await tap(t, find.text('전체 일정'));
     expect(find.byKey(const ValueKey('plan-month-calendar')), findsOneWidget);
     await t.scrollUntilVisible(
       find.text('SQL 활용'),
@@ -188,54 +205,61 @@ void main() {
     await tap(t, find.byTooltip('목록으로 보기'));
     expect(find.byKey(const ValueKey('plan-month-calendar')), findsNothing);
     expect(find.text('날짜별 학습'), findsOneWidget);
+    final monthHeading = find.text('${f.today.year}년 ${f.today.month}월');
+    final dayHeading = find.text(
+      '오늘 · ${f.today.day}일 ${weekdays[f.today.weekday - 1]}요일',
+    );
+    expect(monthHeading, findsOneWidget);
+    expect(
+      t.getTopLeft(monthHeading).dy,
+      lessThan(t.getTopLeft(dayHeading).dy),
+    );
+    expect(
+      t.getTopLeft(dayHeading).dy,
+      lessThan(t.getTopLeft(find.text('SQL 활용')).dy),
+    );
     expect(f.goalWrites, isEmpty);
     expect(f.planWrites, 0);
     expect(t.takeException(), isNull);
   });
-  testWidgets('기본 설정을 접어도 탭 이동과 새로고침 후 접힌 상태를 유지한다', (t) async {
+  testWidgets('기본값은 학습계획 탭에 없고 새 계획 첫 단계에서만 열 수 있다', (t) async {
     final f = HubFixture()..taskDays = 30;
     await open(t, f);
     await tap(t, tab('학습계획'));
-    await tap(t, find.text('전체 일정'));
-    final close = find.byTooltip('목표와 기본 설정 접기');
     await tap(t, find.byTooltip('목록으로 보기'));
-    expect(close, findsOneWidget);
-    expect(t.getSize(close).height, greaterThanOrEqualTo(48));
-    await tap(t, close);
-    expect(find.text('설정 수정'), findsNothing);
-    expect(find.text('저장된 학습계획'), findsOneWidget);
-    final scroll = t
-        .widget<ListView>(find.byKey(const PageStorageKey('plan-scroll')))
-        .controller!;
-    scroll.jumpTo(2000);
-    await t.pumpAndSettle();
-    expect(find.text('목표와 기본 설정'), findsNothing);
-    await tap(t, tab('학습계획'));
-    expect(find.byTooltip('목표와 기본 설정 펼치기'), findsOneWidget);
+    expect(find.text('새 계획 기본값'), findsNothing);
+    expect(find.byTooltip('목표와 기본 설정'), findsNothing);
     await tap(t, tab('내 정보'));
-    await tap(t, find.text('학습계획 관리'));
-    expect(find.byTooltip('목표와 기본 설정 펼치기'), findsOneWidget);
-    t.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
-    t.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
-    await t.pumpAndSettle();
-    expect(find.byTooltip('목표와 기본 설정 펼치기'), findsOneWidget);
-    await tap(t, find.byTooltip('목표와 기본 설정 펼치기'));
-    expect(find.text('하루 최대 1시간 30분'), findsOneWidget);
+    await tap(t, tab('학습계획'));
+    expect(find.text('새 계획 기본값'), findsNothing);
+    await tap(t, find.byTooltip('새 계획 만들기'));
+    expect(find.text('새 계획 기본값'), findsOneWidget);
+    await tap(t, find.text('새 계획 기본값'));
+    expect(find.text('기존 값 불러오기'), findsOneWidget);
+    expect(find.text('기본값 수정'), findsOneWidget);
     expect(f.goalWrites, isEmpty);
     expect(f.planWrites, 0);
     expect(t.takeException(), isNull);
   });
-  testWidgets('접은 상태에서 설정을 저장하면 펼쳐서 계획 작성 안내를 보여준다', (t) async {
+
+  testWidgets('기본값 저장 후에도 현재 입력을 유지하고 필요할 때 다시 불러올 수 있다', (t) async {
     final f = HubFixture();
     await open(t, f);
     await tap(t, tab('학습계획'));
-    await tap(t, find.byTooltip('목표와 기본 설정 접기'));
-    await tap(t, find.byTooltip('목표와 기본 설정'));
+    await tap(t, find.byTooltip('새 계획 만들기'));
+    await t.enterText(find.byType(TextField).first, '130');
+    await tap(t, find.text('새 계획 기본값'));
+    await tap(t, find.text('기본값 수정'));
     await t.enterText(find.byType(TextField).first, '180');
-    await tap(t, find.text('목표 저장'));
-    expect(find.byTooltip('목표와 기본 설정 접기'), findsOneWidget);
-    expect(find.text('목표를 저장했어요'), findsOneWidget);
-    await tap(t, find.text('이 설정으로 계획 만들기'));
+    await tap(t, find.text('기본값 저장'));
+    await tap(t, find.text('현재 입력 유지'));
+    expect(
+      t.widget<TextField>(find.byType(TextField).first).controller!.text,
+      '130',
+    );
+    await tap(t, find.text('새 계획 기본값'));
+    await tap(t, find.text('기존 값 불러오기'));
+    await tap(t, find.text('불러오기'));
     expect(
       t.widget<TextField>(find.byType(TextField).first).controller!.text,
       '180',
@@ -251,7 +275,6 @@ void main() {
     final f = HubFixture()..taskDays = 30;
     await open(t, f);
     await tap(t, tab('학습계획'));
-    await tap(t, find.text('전체 일정'));
     await tap(t, find.byTooltip('목록으로 보기'));
     final list = find.byKey(const PageStorageKey('plan-scroll'));
     final controller = t.widget<ListView>(list).controller!;
@@ -261,13 +284,13 @@ void main() {
     await tap(t, tab('학습계획'));
     expect(t.takeException(), isNull);
     expect(controller.offset, 0);
-    expect(t.getTopLeft(find.text('목표와 기본 설정')).dy, lessThan(240));
+    expect(find.text('저장된 학습계획').hitTestable(), findsOneWidget);
+    expect(find.text('새 계획 기본값'), findsNothing);
   });
   testWidgets('다시 불러오는 동안에도 보고 있던 일정과 위치를 유지한다', (t) async {
     final f = HubFixture()..taskDays = 30;
     await open(t, f);
     await tap(t, tab('학습계획'));
-    await tap(t, find.text('전체 일정'));
     await tap(t, find.byTooltip('목록으로 보기'));
     final list = find.byKey(const PageStorageKey('plan-scroll'));
     final controller = t.widget<ListView>(list).controller!;
@@ -293,31 +316,27 @@ void main() {
     expect(f.planWrites, 0);
     expect(t.takeException(), isNull);
   });
-  testWidgets('홈·내 정보의 목표 동선은 학습계획 한곳으로 모인다', (t) async {
+  testWidgets('홈의 목표일은 기본값이 없는 학습계획 탭을 연다', (t) async {
     final f = HubFixture();
     await open(t, f);
+    String selectedTab() {
+      final bar = t.widget<NavigationBar>(find.byType(NavigationBar));
+      return (bar.destinations[bar.selectedIndex] as NavigationDestination)
+          .label;
+    }
+
     await tap(t, find.text('D-35'));
-    expect(
-      t.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex,
-      1,
-    );
-    expect(find.text('목표와 기본 설정'), findsOneWidget);
+    expect(selectedTab(), '학습계획');
+    expect(find.text('새 계획 기본값'), findsNothing);
     expect(find.text('저장된 학습계획'), findsOneWidget);
-    final schedule = find.text('SQL 활용');
-    final list = find
-        .descendant(
-          of: find.byKey(const PageStorageKey('plan-scroll')),
-          matching: find.byType(Scrollable),
-        )
-        .first;
-    await t.scrollUntilVisible(schedule, 260, scrollable: list);
     await tap(t, tab('내 정보'));
-    await tap(t, find.text('학습계획 관리'));
-    expect(
-      t.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex,
-      1,
-    );
-    expect(t.getTopLeft(find.text('목표와 기본 설정')).dy, lessThan(240));
+    expect(find.text('학습계획 관리'), findsNothing);
+    expect(find.text('학습 설정'), findsNothing);
+    expect(find.text('회원정보 수정'), findsOneWidget);
+    await tap(t, tab('학습계획'));
+    expect(selectedTab(), '학습계획');
+    expect(find.text('저장된 학습계획').hitTestable(), findsOneWidget);
+    expect(find.text('새 계획 기본값'), findsNothing);
     expect(f.goalWrites, isEmpty);
     expect(f.planWrites, 0);
   });
@@ -325,11 +344,13 @@ void main() {
     final f = HubFixture();
     await open(t, f);
     await tap(t, tab('학습계획'));
-    await tap(t, find.text('설정 수정'));
+    await tap(t, find.byTooltip('새 계획 만들기'));
+    await tap(t, find.text('새 계획 기본값'));
+    await tap(t, find.text('기본값 수정'));
     await t.enterText(find.byType(TextField).first, '180');
-    await tap(t, find.text('목표 저장'));
-    expect(find.text('목표와 기본 설정'), findsOneWidget);
-    expect(find.text('목표를 저장했어요'), findsOneWidget);
+    await tap(t, find.text('기본값 저장'));
+    await tap(t, find.text('기본값 적용'));
+    expect(find.text('저장한 기본값을 적용했어요.'), findsOneWidget);
     expect(f.goalWrites.single, {
       'examRoundId': null,
       'targetExamDate': isoDay(plusDays(f.today, 35)),
@@ -337,7 +358,6 @@ void main() {
       'familiarity': {'11': 3},
     });
     expect(f.planWrites, 0);
-    await tap(t, find.text('이 설정으로 계획 만들기'));
     expect(
       t.widget<TextField>(find.byType(TextField).first).controller!.text,
       '180',
@@ -356,18 +376,21 @@ void main() {
     final f = HubFixture();
     await open(t, f);
     await tap(t, tab('학습계획'));
-    await tap(t, find.text('설정 수정'));
+    await tap(t, find.byTooltip('새 계획 만들기'));
+    await tap(t, find.text('새 계획 기본값'));
+    await tap(t, find.text('기본값 수정'));
     await t.enterText(find.byType(TextField).first, '120');
     await tap(t, find.byType(BackButton));
     expect(f.goalWrites, isEmpty);
-    await tap(t, find.text('설정 수정'));
+    await tap(t, find.text('새 계획 기본값'));
+    await tap(t, find.text('기본값 수정'));
     expect(
       t.widget<TextField>(find.byType(TextField).first).controller!.text,
       '90',
     );
     await t.enterText(find.byType(TextField).first, '120');
     f.updateError = true;
-    await tap(t, find.text('목표 저장'));
+    await tap(t, find.text('기본값 저장'));
     expect(find.byType(TextField), findsOneWidget);
     expect(
       t.widget<TextField>(find.byType(TextField).first).controller!.text,
@@ -384,14 +407,17 @@ void main() {
         ..planError = !goalFails;
       await open(t, f);
       await tap(t, tab('학습계획'));
-      expect(find.text('목표와 기본 설정'), findsOneWidget);
+      expect(find.text('새 계획 기본값'), findsNothing);
       if (goalFails) {
-        expect(find.text('기본 설정을 불러오지 못했어요'), findsOneWidget);
         expect(find.text('저장된 학습계획'), findsOneWidget);
+        await tap(t, find.byTooltip('새 계획 만들기'));
+        expect(find.textContaining('저장한 목표를 불러오지 못했어요'), findsOneWidget);
       } else {
         expect(find.text('계획을 불러오지 못했어요'), findsOneWidget);
-        await tap(t, find.text('설정 수정'));
-        expect(find.text('목표 저장'), findsOneWidget);
+        await tap(t, find.byTooltip('새 계획 만들기'));
+        await tap(t, find.text('새 계획 기본값'));
+        await tap(t, find.text('기본값 수정'));
+        expect(find.text('기본값 저장'), findsOneWidget);
       }
       expect(f.goalWrites, isEmpty);
       expect(f.planWrites, 0);

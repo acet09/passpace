@@ -79,19 +79,31 @@ void main() {
     await t.pumpAndSettle();
     expect(find.text('2028년 2월'), findsOneWidget);
   });
-  testWidgets('선택한 날짜는 파란 강조와 접근성 상태를 유지하고 선택 문구는 표시하지 않는다', (t) async {
+  testWidgets('오늘은 테두리, 선택 날짜는 채움으로 구분한다', (t) async {
     await mount(t, DateTime(2028, 2, 29));
-    final day = find.byKey(const ValueKey('calendar-day-2028-02-29'));
-    expect(t.widget<Semantics>(day).properties.selected, true);
-    expect(
-      t
-          .widget<Material>(
-            find.descendant(of: day, matching: find.byType(Material)).first,
-          )
-          .color,
-      blue,
+    final today = find.byKey(const ValueKey('calendar-day-2028-02-29'));
+    final other = find.byKey(const ValueKey('calendar-day-2028-02-28'));
+    Material surface(Finder cell) => t.widget<Material>(
+      find.descendant(of: cell, matching: find.byType(Material)).first,
     );
-    expect(find.descendant(of: day, matching: find.text('선택')), findsNothing);
+    BorderSide border(Finder cell) =>
+        (surface(cell).shape! as RoundedRectangleBorder).side;
+
+    expect(find.widgetWithText(TextButton, '오늘'), findsNothing);
+    expect(t.widget<Semantics>(today).properties.selected, true);
+    expect(t.widget<Semantics>(today).properties.label, contains('오늘'));
+    expect(surface(today).color, pale);
+    expect(border(today).color, blue);
+    expect(border(today).style, BorderStyle.solid);
+    expect(find.descendant(of: today, matching: find.text('선택')), findsNothing);
+
+    await press(t, other);
+    expect(t.widget<Semantics>(today).properties.selected, false);
+    expect(surface(today).color, Colors.transparent);
+    expect(border(today).style, BorderStyle.solid);
+    expect(t.widget<Semantics>(other).properties.selected, true);
+    expect(surface(other).color, blue);
+    expect(border(other), BorderSide.none);
   });
   testWidgets('오늘이 계획 밖이면 계획 시작 또는 마지막 날짜를 보여준다', (t) async {
     await mount(t, DateTime(2026, 1, 1));
@@ -206,7 +218,7 @@ void main() {
           .onPressed,
       isNull,
     );
-    await press(t, find.widgetWithText(TextButton, '오늘'));
+    await press(t, find.byTooltip('이전 달'));
     expect(find.text('2028년 2월'), findsOneWidget);
   });
   for (final width in [320.0, 360.0, 412.0]) {

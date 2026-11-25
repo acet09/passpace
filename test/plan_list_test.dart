@@ -22,9 +22,11 @@ http.Response envelope(Object? data, [int code = 200]) => http.Response.bytes(
 void main() {
   testWidgets('저장한 계획을 여러 개 보고, 사용할 계획을 바꾸고, 지운다', (t) async {
     t.view.devicePixelRatio = 1;
-    t.view.physicalSize = const Size(420, 2400);
+    t.view.physicalSize = const Size(320, 2400);
+    t.platformDispatcher.textScaleFactorTestValue = 2;
     addTearDown(t.view.resetPhysicalSize);
     addTearDown(t.view.resetDevicePixelRatio);
+    addTearDown(t.platformDispatcher.clearTextScaleFactorTestValue);
     // 서버 흉내: 계획 세 개, 그중 하나만 사용 중.
     final plans = <int, String>{9: 'ADsP + SQLD', 8: 'SQLD', 3: '정처기 필기'};
     int? active = 9;
@@ -100,29 +102,39 @@ void main() {
     expect(find.text('ADsP + SQLD'), findsOneWidget);
     expect(find.text('SQLD'), findsOneWidget);
     expect(find.text('정처기 필기'), findsOneWidget);
-    expect(find.text('사용 중'), findsOneWidget);
-    expect(find.text('보관'), findsNWidgets(2));
-    expect(find.text('이 계획 사용'), findsNWidgets(2));
+    expect(find.text('사용 중인 계획'), findsOneWidget);
+    expect(find.text('보관한 계획'), findsOneWidget);
+    expect(find.text('이 계획 사용'), findsNothing);
+    expect(find.text('삭제'), findsNothing);
+    final activeCard = find.byKey(const ValueKey('active-plan-card-9'));
+    expect(
+      find.descendant(of: activeCard, matching: find.text('ADsP + SQLD')),
+      findsOneWidget,
+    );
 
     // 보관한 계획의 일정을 본다.
-    await t.tap(find.text('일정 보기').at(1));
+    await t.tap(find.text('SQLD'));
     await t.pumpAndSettle();
     expect(find.text('SQLD · SQL 기본 및 활용 · 90분'), findsOneWidget);
     await t.pageBack();
     await t.pumpAndSettle();
 
     // 보관한 계획을 사용하면 그 계획만 사용 중이 된다.
-    await t.tap(find.text('이 계획 사용').first);
+    await t.tap(find.byTooltip('SQLD 더보기'));
+    await t.pumpAndSettle();
+    await t.tap(find.text('이 계획 사용'));
     await t.pumpAndSettle();
     expect(calls, contains('POST /plans/8/activate'));
     expect(changed, 1);
     // 전환에 성공했으면 오류 안내가 없어야 한다.
     expect(find.byType(AlertText), findsNothing);
-    expect(find.text('사용 중'), findsOneWidget);
-    expect(find.text('이 계획 사용'), findsNWidgets(2));
+    expect(find.byKey(const ValueKey('active-plan-card-8')), findsOneWidget);
+    expect(activeCard, findsNothing);
 
     // 학습기록이 연결된 계획은 서버가 거절하고, 그 이유를 보여 준다.
-    await t.tap(find.text('삭제').last);
+    await t.tap(find.byTooltip('정처기 필기 더보기'));
+    await t.pumpAndSettle();
+    await t.tap(find.text('삭제'));
     await t.pumpAndSettle();
     await t.tap(find.widgetWithText(FilledButton, '삭제'));
     await t.pumpAndSettle();
@@ -131,7 +143,9 @@ void main() {
     expect(changed, 1);
 
     // 지울 수 있는 계획은 목록에서 사라진다.
-    await t.tap(find.text('삭제').first);
+    await t.tap(find.byTooltip('ADsP + SQLD 더보기'));
+    await t.pumpAndSettle();
+    await t.tap(find.text('삭제'));
     await t.pumpAndSettle();
     await t.tap(find.widgetWithText(FilledButton, '삭제'));
     await t.pumpAndSettle();

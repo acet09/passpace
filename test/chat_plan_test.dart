@@ -7,8 +7,11 @@ import 'package:http/testing.dart';
 import 'package:passpace_mobile/data/api.dart';
 import 'package:passpace_mobile/data/chat_plan.dart';
 import 'package:passpace_mobile/data/models.dart';
+import 'package:passpace_mobile/data/study_timer.dart';
 import 'package:passpace_mobile/ui/chat.dart';
 import 'package:passpace_mobile/ui/design.dart';
+
+import 'support/draft_storage.dart';
 
 http.Response envelope(Object? data, [int code = 200]) => http.Response.bytes(
   utf8.encode(
@@ -627,10 +630,23 @@ void main() {
     expect(find.text('변경된 입력으로 다시 계산'), findsOneWidget);
     expect(calls.containsKey('$plannerPath/save'), isFalse);
 
+    final timer = StudyTimer(MemoryDraftStorage(), emulatorOrigin, 'fixture');
+    addTearDown(timer.dispose);
+    await timer.restore();
+    api.planTimer = timer;
+    expect(await timer.start(), isTrue);
     await t.tap(find.text('이 계획을 학습계획에 넣기'));
     await t.pumpAndSettle();
-    // 바로 사용 · 목록에만 추가 중에서 고른다. 덮어쓴다는 안내는 없다.
+    final apply = find.widgetWithText(FilledButton, '바로 사용');
+    expect(t.widget<FilledButton>(apply).onPressed, isNull);
+    expect(find.textContaining('타이머 기록이 정리되기 전'), findsOneWidget);
     expect(find.text('목록에만 추가'), findsOneWidget);
+    expect(savedQueries, isEmpty);
+
+    expect(await timer.reset(), isTrue);
+    await t.pumpAndSettle();
+    expect(t.widget<FilledButton>(apply).onPressed, isNotNull);
+    expect(find.textContaining('타이머 기록이 정리되기 전'), findsNothing);
     expect(find.textContaining('교체'), findsNothing);
     await t.tap(find.text('바로 사용'));
     await t.pumpAndSettle();

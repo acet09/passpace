@@ -10,7 +10,7 @@ class GoalScreen extends StatelessWidget {
   const GoalScreen(this.api, {super.key});
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('학습계획 기본 설정')),
+    appBar: AppBar(title: const Text('기본값 수정')),
     body: SafeArea(
       child: LoadBox<GoalData>(
         load: api.goal,
@@ -98,19 +98,7 @@ class _GoalFormState extends State<_GoalForm> {
           Expanded(
             child: ScrollBody(
               children: [
-                const Text(
-                  '목표가 있으면,\n오늘의 방향이 보여요.',
-                  style: TextStyle(
-                    fontSize: 25,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -.9,
-                    height: 1.35,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                const HelpText(
-                  '시험일과 공부 시간을 저장하면\n학습계획 화면에서 계획 만들기를 이어갈 수 있어요.',
-                ),
+                const HelpText('새 계획에 사용할 시험일과 공부 시간을 저장해요.'),
                 const Heading('목표 시험'),
                 DropdownButtonFormField<int>(
                   initialValue: round ?? 0,
@@ -146,7 +134,7 @@ class _GoalFormState extends State<_GoalForm> {
                       ),
                     ),
                 ],
-                const Heading('하루 가용 시간'),
+                const Heading('하루 최대 학습 시간'),
                 TextField(
                   controller: minutes,
                   enabled: !busy,
@@ -207,7 +195,7 @@ class _GoalFormState extends State<_GoalForm> {
               ],
             ),
           ),
-          StickyActions('목표 저장', save, busy: busy, error: error),
+          StickyActions('기본값 저장', save, busy: busy, error: error),
         ],
       ),
     );

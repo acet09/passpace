@@ -5,28 +5,47 @@ import 'package:flutter/material.dart';
 import '../data/models.dart';
 import '../data/study_models.dart';
 import 'design.dart';
+import 'subject_color_picker.dart';
+
+typedef StudySubjectSlice = ({String name, int minutes, Color? color});
+typedef _LegendEntry = ({String name, Color color});
+
+_LegendEntry _legendEntry(StudySubjectSlice subject) =>
+    (name: subject.name, color: subject.color ?? muted);
 
 const _plotInset = 5.0;
+const _plotHeight = 150.0;
 double _plotWidth(double width) => math.max(1.0, width - _plotInset * 2);
 
 class StudyChart extends StatefulWidget {
   final StudyStats stats;
-  const StudyChart(this.stats, {super.key});
+  final Widget? breakdown;
+  final Map<DateTime, List<StudySubjectSlice>>? subjectsByDay;
+  const StudyChart(this.stats, {super.key, this.breakdown, this.subjectsByDay});
   @override
   State<StudyChart> createState() => _StudyChartState();
 }
 
 class _StudyChartState extends State<StudyChart> {
   bool bars = true;
+  _LegendEntry? _subjectFilter;
   late int selected = widget.stats.days.length - 1;
   late int dailyEnd = widget.stats.days.length;
   @override
   void didUpdateWidget(StudyChart old) {
     super.didUpdateWidget(old);
     if (!identical(old.stats, widget.stats)) {
+      _subjectFilter = null;
       selected = widget.stats.days.length - 1;
       dailyEnd = widget.stats.days.length;
     }
+  }
+
+  List<StudySubjectSlice>? _verifiedSubjects(StudyDay day) {
+    final subjects = widget.subjectsByDay?[day.date];
+    if (subjects == null) return null;
+    final minutes = subjects.fold(0, (sum, subject) => sum + subject.minutes);
+    return minutes == day.minutes ? subjects : null;
   }
 
   @override
@@ -34,6 +53,33 @@ class _StudyChartState extends State<StudyChart> {
     final stats = widget.stats;
     final days = stats.days;
     final day = days[selected];
+    final segments = days.map(_verifiedSubjects).toList(growable: false);
+    final legend = {
+      if (bars)
+        for (final subjects in segments.nonNulls)
+          for (final subject in subjects) _legendEntry(subject),
+    };
+    final filter = legend.contains(_subjectFilter) ? _subjectFilter : null;
+    final chartSegments = filter == null
+        ? segments
+        : [
+            for (final subjects in segments)
+              subjects
+                  ?.where((subject) => _legendEntry(subject) == filter)
+                  .toList(),
+          ];
+    final chartMinutes = <int?>[
+      for (final (index, date) in days.indexed)
+        if (filter == null || date.minutes == 0)
+          date.minutes
+        else
+          chartSegments[index]?.fold<int>(
+            0,
+            (sum, subject) => sum + subject.minutes,
+          ),
+    ];
+    final selectedSubjects = chartSegments[selected];
+    final selectedMinutes = chartMinutes[selected];
     final peak = days.fold(0, (n, d) => math.max(n, d.minutes));
     final ceiling = math.max(60, (peak / 60).ceil() * 60);
     final range =
@@ -45,37 +91,65 @@ class _StudyChartState extends State<StudyChart> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Pane(
+          color: pale,
+          padding: 20,
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('기록한 실제 공부시간', style: TextStyle(color: muted)),
+              const Text(
+                '총 공부 시간',
+                style: TextStyle(color: muted, fontWeight: FontWeight.w600),
+              ),
               const SizedBox(height: 6),
               Text(
                 durationLabel(stats.totalMinutes),
                 key: const ValueKey('study-total'),
                 style: const TextStyle(
-                  fontSize: 30,
+                  fontSize: 32,
                   fontWeight: FontWeight.w800,
-                  color: blue,
+                  color: ink,
+                  letterSpacing: -.7,
                 ),
               ),
-              const SizedBox(height: 18),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        Pane(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
               Wrap(
-                spacing: 8,
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 12,
+                runSpacing: 4,
                 children: [
-                  ChoiceChip(
-                    label: const Text('꺾은선'),
-                    selected: !bars,
-                    onSelected: (_) => setState(() => bars = false),
+                  const Text(
+                    '공부시간 추이',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
                   ),
-                  ChoiceChip(
-                    label: const Text('막대'),
-                    selected: bars,
-                    onSelected: (_) => setState(() => bars = true),
+                  Wrap(
+                    spacing: 8,
+                    children: [
+                      ChoiceChip(
+                        label: const Text('꺾은선'),
+                        selected: !bars,
+                        onSelected: (_) => setState(() {
+                          bars = false;
+                          _subjectFilter = null;
+                        }),
+                      ),
+                      ChoiceChip(
+                        label: const Text('막대'),
+                        selected: bars,
+                        onSelected: (_) => setState(() => bars = true),
+                      ),
+                    ],
                   ),
                 ],
               ),
-              const SizedBox(height: 18),
+              const SizedBox(height: 12),
               Text(range, style: const TextStyle(fontWeight: FontWeight.w700)),
               const Text(
                 '가로: 일 · 세로: 분',
@@ -86,7 +160,7 @@ class _StudyChartState extends State<StudyChart> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   SizedBox(
-                    height: 170,
+                    height: _plotHeight,
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.end,
@@ -132,7 +206,7 @@ class _StudyChartState extends State<StudyChart> {
                           children: [
                             Semantics(
                               label:
-                                  '일별 실제 공부시간 ${bars ? '막대' : '꺾은선'} 그래프. 아래 날짜 이동 또는 일별 공부시간에서 확인할 수 있어요.',
+                                  '${filter?.name ?? '전체 과목'} 일별 실제 공부시간 ${bars ? '막대' : '꺾은선'} 그래프. 아래에서 날짜를 이동할 수 있어요.',
                               child: ExcludeSemantics(
                                 child: GestureDetector(
                                   onTapDown: (event) {
@@ -146,15 +220,16 @@ class _StudyChartState extends State<StudyChart> {
                                     setState(() => selected = index);
                                   },
                                   child: SizedBox(
-                                    height: 170,
+                                    height: _plotHeight,
                                     width: double.infinity,
                                     child: CustomPaint(
                                       key: const ValueKey('study-plot'),
                                       painter: _StudyPainter(
-                                        days,
+                                        chartMinutes,
                                         ceiling,
                                         selected,
                                         bars,
+                                        chartSegments,
                                       ),
                                     ),
                                   ),
@@ -182,6 +257,16 @@ class _StudyChartState extends State<StudyChart> {
                   ),
                 ],
               ),
+              if (legend.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                _SubjectLegend(
+                  legend,
+                  selected: filter,
+                  onSelect: (entry) => setState(() {
+                    _subjectFilter = filter == entry ? null : entry;
+                  }),
+                ),
+              ],
               const SizedBox(height: 16),
               const Divider(),
               Row(
@@ -204,7 +289,9 @@ class _StudyChartState extends State<StudyChart> {
                             style: const TextStyle(color: muted, fontSize: 13),
                           ),
                           Text(
-                            durationLabel(day.minutes),
+                            selectedMinutes == null
+                                ? '—'
+                                : durationLabel(selectedMinutes),
                             key: const ValueKey('study-selected-day'),
                             style: const TextStyle(
                               fontSize: 18,
@@ -224,11 +311,21 @@ class _StudyChartState extends State<StudyChart> {
                   ),
                 ],
               ),
+              if (selectedSubjects != null && selectedSubjects.isNotEmpty)
+                _SelectedSubjects(selectedSubjects)
+              else if (selectedSubjects == null &&
+                  day.minutes > 0 &&
+                  widget.subjectsByDay != null)
+                const HelpText('이 날짜의 과목별 시간을 확인할 수 없어요. 새로고침해 주세요.'),
               if (stats.totalMinutes == 0)
                 const HelpText('이 기간에 기록한 공부시간이 없어요.'),
             ],
           ),
         ),
+        if (widget.breakdown case final breakdown?) ...[
+          const SizedBox(height: 20),
+          breakdown,
+        ],
         const SizedBox(height: 12),
         Row(
           children: [
@@ -318,7 +415,38 @@ class _StudyChartState extends State<StudyChart> {
                                 widthFactor: peak == 0
                                     ? 0
                                     : days[i].minutes / peak,
-                                child: const ColoredBox(color: blue),
+                                child: switch (segments[i]) {
+                                  final subjects? => Row(
+                                    key: ValueKey(
+                                      'study-day-segments-${isoDay(days[i].date)}',
+                                    ),
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: [
+                                      for (final (index, subject)
+                                          in subjects.indexed)
+                                        Expanded(
+                                          flex: subject.minutes,
+                                          child: ColoredBox(
+                                            color: subject.color ?? muted,
+                                            child: index == 0
+                                                ? null
+                                                : const DecoratedBox(
+                                                    decoration: BoxDecoration(
+                                                      border: Border(
+                                                        left: BorderSide(
+                                                          color: Colors.white,
+                                                          width: .75,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                  null => const ColoredBox(color: muted),
+                                },
                               ),
                             ),
                           ),
@@ -335,11 +463,108 @@ class _StudyChartState extends State<StudyChart> {
   }
 }
 
+class _SubjectLegend extends StatelessWidget {
+  final Set<_LegendEntry> entries;
+  final _LegendEntry? selected;
+  final ValueChanged<_LegendEntry> onSelect;
+  const _SubjectLegend(
+    this.entries, {
+    required this.selected,
+    required this.onSelect,
+  });
+
+  @override
+  Widget build(BuildContext context) => Column(
+    key: const ValueKey('study-chart-legend'),
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Semantics(
+        header: true,
+        child: const Text(
+          '과목 범례',
+          style: TextStyle(
+            fontSize: 12,
+            color: muted,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
+      const SizedBox(height: 6),
+      Wrap(
+        spacing: 8,
+        runSpacing: 4,
+        children: [
+          for (final entry in entries)
+            FilterChip(
+              selected: selected == entry,
+              onSelected: (_) => onSelect(entry),
+              label: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SubjectColorDot(entry.color),
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: Text(
+                      entry.name,
+                      style: const TextStyle(fontSize: 13),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    ],
+  );
+}
+
+class _SelectedSubjects extends StatelessWidget {
+  final List<StudySubjectSlice> subjects;
+  const _SelectedSubjects(this.subjects);
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    liveRegion: true,
+    child: Column(
+      key: const ValueKey('study-selected-subjects'),
+      children: [
+        for (final subject in subjects)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 5),
+            child: Row(
+              children: [
+                SubjectColorDot(subject.color ?? muted),
+                const SizedBox(width: 8),
+                Expanded(flex: 3, child: Text(subject.name)),
+                const SizedBox(width: 12),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    durationLabel(subject.minutes),
+                    textAlign: TextAlign.end,
+                    style: const TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
+    ),
+  );
+}
+
 class _StudyPainter extends CustomPainter {
-  final List<StudyDay> days;
+  final List<int?> minutes;
   final int ceiling, selected;
   final bool bars;
-  _StudyPainter(this.days, this.ceiling, this.selected, this.bars);
+  final List<List<StudySubjectSlice>?> segments;
+  _StudyPainter(
+    this.minutes,
+    this.ceiling,
+    this.selected,
+    this.bars,
+    this.segments,
+  );
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -354,8 +579,9 @@ class _StudyPainter extends CustomPainter {
       canvas.drawLine(Offset(inset, y), Offset(size.width - inset, y), grid);
     }
     Offset point(int i) => Offset(
-      inset + (days.length == 1 ? width / 2 : width * i / (days.length - 1)),
-      inset + height * (1 - days[i].minutes / ceiling),
+      inset +
+          (minutes.length == 1 ? width / 2 : width * i / (minutes.length - 1)),
+      inset + height * (1 - (minutes[i] ?? 0) / ceiling),
     );
     final path = Path();
     final stroke = Paint()
@@ -363,19 +589,60 @@ class _StudyPainter extends CustomPainter {
       ..strokeWidth = 2.5
       ..style = PaintingStyle.stroke
       ..strokeJoin = StrokeJoin.round;
-    for (var i = 0; i < days.length; i++) {
+    final selectedPoint = point(selected);
+    final bottom = inset + height;
+    canvas.drawLine(
+      Offset(selectedPoint.dx, inset),
+      Offset(selectedPoint.dx, bottom),
+      Paint()
+        ..color = muted
+        ..strokeWidth = 1,
+    );
+    final barWidth = math.min(16.0, width / minutes.length * .65);
+    final fill = Paint();
+    final divider = Paint()
+      ..color = Colors.white
+      ..strokeWidth = .75;
+    for (var i = 0; i < minutes.length; i++) {
       final p = point(i);
       if (bars) {
-        final barWidth = math.min(16.0, width / days.length * .65);
-        canvas.drawRect(
-          Rect.fromLTRB(
-            p.dx - barWidth / 2,
-            p.dy,
-            p.dx + barWidth / 2,
-            inset + height,
-          ),
-          Paint()..color = blue,
+        if ((minutes[i] ?? 0) == 0) continue;
+        final center = p.dx.clamp(barWidth / 2, size.width - barWidth / 2);
+        final bar = Rect.fromLTRB(
+          center - barWidth / 2,
+          p.dy,
+          center + barWidth / 2,
+          bottom,
         );
+        canvas.save();
+        canvas.clipRRect(
+          RRect.fromRectAndCorners(
+            bar,
+            topLeft: const Radius.circular(4),
+            topRight: const Radius.circular(4),
+          ),
+        );
+        if (segments[i] case final subjects?) {
+          var offset = bottom;
+          for (final subject in subjects) {
+            final top = offset - height * subject.minutes / ceiling;
+            canvas.drawRect(
+              Rect.fromLTRB(bar.left, top, bar.right, offset),
+              fill..color = subject.color ?? muted,
+            );
+            if (offset != bottom) {
+              canvas.drawLine(
+                Offset(bar.left, offset),
+                Offset(bar.right, offset),
+                divider,
+              );
+            }
+            offset = top;
+          }
+        } else {
+          canvas.drawRect(bar, fill..color = muted);
+        }
+        canvas.restore();
       } else {
         if (i == 0) {
           path.moveTo(p.dx, p.dy);
@@ -384,22 +651,17 @@ class _StudyPainter extends CustomPainter {
         }
       }
     }
-    if (!bars) canvas.drawPath(path, stroke);
-    final p = point(selected);
-    canvas.drawLine(
-      Offset(p.dx, inset),
-      Offset(p.dx, inset + height),
-      Paint()
-        ..color = muted
-        ..strokeWidth = 1,
-    );
-    canvas.drawCircle(p, 5, Paint()..color = Colors.white);
-    canvas.drawCircle(p, 3.5, Paint()..color = blue);
+    if (!bars) {
+      canvas.drawPath(path, stroke);
+      canvas.drawCircle(selectedPoint, 5, fill..color = Colors.white);
+      canvas.drawCircle(selectedPoint, 3.5, fill..color = blue);
+    }
   }
 
   @override
   bool shouldRepaint(_StudyPainter old) =>
-      !identical(old.days, days) ||
+      !identical(old.minutes, minutes) ||
+      !identical(old.segments, segments) ||
       old.selected != selected ||
       old.bars != bars;
 }

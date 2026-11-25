@@ -32,7 +32,7 @@
             </intent-filter>
         </activity>
         <service android:name=".StudyTimerService" android:exported="false" android:foregroundServiceType="specialUse">
-            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="User-started study stopwatch showing elapsed study time while the app is in the background; stops on pause or completion." />
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="User-started study stopwatch showing elapsed time with pause and resume controls while the app is in the background; ends when saved, reset, or at the end of the study day." />
         </service>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->

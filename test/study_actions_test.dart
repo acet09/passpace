@@ -5,7 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 
-import 'study_records_test.dart' show openStudy, tapStudy;
+import 'study_records_test.dart'
+    show openStudy, openStudyDay, selectStudyRecordAction, tapStudy;
 import 'support/study_fixture.dart';
 
 void main() {
@@ -13,12 +14,12 @@ void main() {
     final fixture = StudyFixture();
     addTearDown(fixture.dispose);
     await openStudy(t, fixture);
-    final remove = find.byKey(const ValueKey('study-delete-2'));
-    await tapStudy(t, remove);
+    await openStudyDay(t, fixture.today.subtract(const Duration(days: 1)));
+    await selectStudyRecordAction(t, 2, 'delete');
     expect(find.text('학습기록 삭제'), findsOneWidget);
     await tapStudy(t, find.widgetWithText(TextButton, '취소'));
     expect(fixture.requests.where((r) => r.method == 'DELETE'), isEmpty);
-    await tapStudy(t, remove);
+    await selectStudyRecordAction(t, 2, 'delete');
     await tapStudy(t, find.widgetWithText(FilledButton, '삭제'));
     expect(fixture.history.length, 1);
     final request = fixture.requests.singleWhere((r) => r.method == 'DELETE');
@@ -36,7 +37,7 @@ void main() {
     final fixture = StudyFixture();
     addTearDown(fixture.dispose);
     await openStudy(t, fixture);
-    await tapStudy(t, find.text('공부시간 추가'));
+    await tapStudy(t, find.byKey(const ValueKey('history-add')));
     await t.enterText(find.byKey(const ValueKey('study-minutes')), '25');
     await tapStudy(t, find.byKey(const ValueKey('study-task-picker')));
     await tapStudy(t, find.text('SAMPLE 데이터베이스'));
@@ -62,7 +63,8 @@ void main() {
     final fixture = StudyFixture();
     addTearDown(fixture.dispose);
     await openStudy(t, fixture);
-    await tapStudy(t, find.byKey(const ValueKey('study-edit-2')));
+    await openStudyDay(t, fixture.today.subtract(const Duration(days: 1)));
+    await selectStudyRecordAction(t, 2, 'edit');
     await tapStudy(t, find.byKey(const ValueKey('study-task-picker')));
     await tapStudy(t, find.text('SAMPLE 데이터베이스'));
     await tapStudy(t, find.text('수정 내용 저장'));
@@ -89,7 +91,8 @@ void main() {
     );
     addTearDown(fixture.dispose);
     await openStudy(t, fixture);
-    await tapStudy(t, find.byKey(const ValueKey('study-delete-2')));
+    await openStudyDay(t, fixture.today.subtract(const Duration(days: 1)));
+    await selectStudyRecordAction(t, 2, 'delete');
     await tapStudy(t, find.widgetWithText(FilledButton, '삭제'));
     expect(find.text('SAMPLE 변경된 기록'), findsOneWidget);
     await tapStudy(t, find.text('기록 목록 확인'));
@@ -105,7 +108,8 @@ void main() {
     );
     addTearDown(fixture.dispose);
     await openStudy(t, fixture);
-    await tapStudy(t, find.byKey(const ValueKey('study-delete-2')));
+    await openStudyDay(t, fixture.today.subtract(const Duration(days: 1)));
+    await selectStudyRecordAction(t, 2, 'delete');
     final button = find.widgetWithText(FilledButton, '삭제');
     await t.tap(button);
     await t.tap(button);
@@ -133,7 +137,8 @@ void main() {
     );
     addTearDown(fixture.dispose);
     await openStudy(t, fixture);
-    await tapStudy(t, find.byKey(const ValueKey('study-delete-2')));
+    await openStudyDay(t, fixture.today.subtract(const Duration(days: 1)));
+    await selectStudyRecordAction(t, 2, 'delete');
     await tapStudy(t, find.widgetWithText(FilledButton, '삭제'));
     expect(find.textContaining('삭제 결과를 확인하지 못했어요'), findsOneWidget);
     await tapStudy(t, find.text('기록 목록 확인'));
@@ -147,7 +152,8 @@ void main() {
     final fixture = StudyFixture();
     addTearDown(fixture.dispose);
     await openStudy(t, fixture);
-    await tapStudy(t, find.byKey(const ValueKey('study-edit-1')));
+    await openStudyDay(t, fixture.today);
+    await selectStudyRecordAction(t, 1, 'edit');
     await tapStudy(t, find.byKey(const ValueKey('study-task-picker')));
     await tapStudy(t, find.text('과목 연결 없음'));
     await tapStudy(t, find.text('수정 내용 저장'));
@@ -170,7 +176,7 @@ void main() {
     fixture.planTasks.clear();
     addTearDown(fixture.dispose);
     await openStudy(t, fixture);
-    await tapStudy(t, find.text('공부시간 추가'));
+    await tapStudy(t, find.byKey(const ValueKey('history-add')));
     await t.enterText(find.byKey(const ValueKey('study-minutes')), '17');
     await tapStudy(t, find.byKey(const ValueKey('study-task-picker')));
     expect(find.text('연결할 학습계획이 없어요'), findsOneWidget);
@@ -198,9 +204,10 @@ void main() {
         final fixture = StudyFixture();
         addTearDown(fixture.dispose);
         await openStudy(t, fixture);
-        await tapStudy(t, find.byKey(const ValueKey('study-delete-2')));
+        await openStudyDay(t, fixture.today.subtract(const Duration(days: 1)));
+        await selectStudyRecordAction(t, 2, 'delete');
         await tapStudy(t, find.widgetWithText(TextButton, '취소'));
-        await tapStudy(t, find.byKey(const ValueKey('study-edit-2')));
+        await selectStudyRecordAction(t, 2, 'edit');
         await tapStudy(t, find.byKey(const ValueKey('study-task-picker')));
         await tapStudy(t, find.text('SAMPLE 데이터베이스'));
         expect(

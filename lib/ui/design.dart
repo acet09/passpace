@@ -10,7 +10,7 @@ const muted = Color(0xff52617a);
 const blue = Color(0xff3155c7);
 const pale = Color(0xffedf2ff);
 const paper = Color(0xfff7f9fc);
-const line = Color(0xffe0e6ef);
+const line = Color(0xffe7e5e1);
 const acid = Color(0xffc4dcff);
 const green = Color(0xff136c53);
 const amber = Color(0xff865114);
@@ -31,11 +31,11 @@ ThemeData paceTheme() {
   );
   final shape = RoundedRectangleBorder(borderRadius: BorderRadius.circular(14));
   return base.copyWith(
-    scaffoldBackgroundColor: paper,
+    scaffoldBackgroundColor: Colors.white,
     visualDensity: VisualDensity.standard,
     textTheme: base.textTheme.apply(bodyColor: ink, displayColor: ink),
     appBarTheme: const AppBarTheme(
-      backgroundColor: paper,
+      backgroundColor: Colors.white,
       foregroundColor: ink,
       surfaceTintColor: Colors.transparent,
       centerTitle: false,
@@ -140,7 +140,7 @@ ThemeData paceTheme() {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
     ),
     bottomSheetTheme: const BottomSheetThemeData(
-      backgroundColor: paper,
+      backgroundColor: Colors.white,
       surfaceTintColor: Colors.transparent,
       showDragHandle: true,
     ),
@@ -149,7 +149,8 @@ ThemeData paceTheme() {
 
 class Brand extends StatelessWidget {
   final bool light;
-  const Brand({super.key, this.light = false});
+  final bool useLauncherIcon;
+  const Brand({super.key, this.light = false, this.useLauncherIcon = false});
   @override
   Widget build(BuildContext context) => Semantics(
     label: '패스페이스',
@@ -157,17 +158,20 @@ class Brand extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            width: 28,
-            height: 28,
-            decoration: BoxDecoration(
-              color: light ? Colors.white : blue,
-              borderRadius: BorderRadius.circular(9),
+          if (useLauncherIcon)
+            Image.asset('assets/passpace_launcher.png', width: 28, height: 28)
+          else
+            Container(
+              width: 28,
+              height: 28,
+              decoration: BoxDecoration(
+                color: light ? Colors.white : blue,
+                borderRadius: BorderRadius.circular(9),
+              ),
+              child: CustomPaint(
+                painter: MarkPainter(light ? blue : Colors.white),
+              ),
             ),
-            child: CustomPaint(
-              painter: MarkPainter(light ? blue : Colors.white),
-            ),
-          ),
           const SizedBox(width: 8),
           Flexible(
             child: FittedBox(
@@ -460,14 +464,58 @@ class Heading extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.only(top: 24, bottom: 12),
-    child: Text(
-      text,
-      style: const TextStyle(
-        fontSize: 18,
-        fontWeight: FontWeight.w800,
-        letterSpacing: -.5,
+    child: Semantics(
+      header: true,
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w800,
+          letterSpacing: -.5,
+        ),
       ),
     ),
+  );
+}
+
+class PageTitle extends StatelessWidget {
+  final String title;
+  final String? eyebrow, description;
+
+  const PageTitle(this.title, {super.key, this.eyebrow, this.description});
+
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      if (eyebrow != null) ...[
+        Text(
+          eyebrow!,
+          style: const TextStyle(
+            color: blue,
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 6),
+      ],
+      Semantics(
+        header: true,
+        child: Text(
+          title,
+          style: const TextStyle(
+            fontSize: 26,
+            fontWeight: FontWeight.w800,
+            height: 1.3,
+            letterSpacing: -.7,
+          ),
+        ),
+      ),
+      if (description != null) ...[
+        const SizedBox(height: 8),
+        HelpText(description!),
+      ],
+    ],
   );
 }
 

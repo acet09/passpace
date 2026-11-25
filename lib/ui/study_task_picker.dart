@@ -4,6 +4,7 @@ import '../data/api.dart';
 import '../data/session.dart';
 import '../data/study_models.dart';
 import 'design.dart';
+import 'subject_color_picker.dart';
 
 class StudyTaskSelection {
   final StudyTaskChoice? task;
@@ -15,12 +16,14 @@ class StudyTaskPicker extends StatefulWidget {
   final DateTime date;
   final int? selectedId;
   final VoidCallback onForbidden;
+  final StudySubjectColor? colorForSubject;
   const StudyTaskPicker(
     this.session, {
     super.key,
     required this.date,
     required this.selectedId,
     required this.onForbidden,
+    this.colorForSubject,
   });
   @override
   State<StudyTaskPicker> createState() => _StudyTaskPickerState();
@@ -164,6 +167,7 @@ class _StudyTaskPickerState extends State<StudyTaskPicker> {
                   }
                   if (index <= items.length) {
                     final item = items[index - 1];
+                    final color = widget.colorForSubject?.call(item);
                     return Column(
                       children: [
                         ListTile(
@@ -173,9 +177,26 @@ class _StudyTaskPickerState extends State<StudyTaskPicker> {
                           ),
                           selected: widget.selectedId == item.id,
                           onTap: () => select(item),
-                          title: Text(
-                            item.name,
-                            style: const TextStyle(fontWeight: FontWeight.w700),
+                          title: Row(
+                            children: [
+                              if (color != null) ...[
+                                SubjectColorDot(
+                                  color,
+                                  markerKey: ValueKey(
+                                    'study-task-color-${item.id}',
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                              ],
+                              Expanded(
+                                child: Text(
+                                  item.name,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                           subtitle: Text(
                             [

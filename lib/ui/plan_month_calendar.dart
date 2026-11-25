@@ -9,12 +9,16 @@ class PlanMonthCalendar extends StatefulWidget {
   final SavedPlan plan;
   final DateTime selected, today;
   final ValueChanged<DateTime> onSelect;
+  final Color? Function(StudyTask)? subjectColor;
+  final bool showMonthSummary;
   const PlanMonthCalendar({
     super.key,
     required this.plan,
     required this.selected,
     required this.today,
     required this.onSelect,
+    this.subjectColor,
+    this.showMonthSummary = true,
   });
 
   static DateTime dateInPlan(SavedPlan plan, DateTime date) =>
@@ -51,6 +55,7 @@ class _PlanMonthCalendarState extends State<PlanMonthCalendar> {
   Widget build(BuildContext context) {
     final plan = widget.plan;
     final selected = PlanMonthCalendar.dateInPlan(plan, widget.selected);
+    final subjectColor = widget.subjectColor;
     final first = DateTime(selected.year, selected.month);
     final days = DateTime(first.year, first.month + 1, 0).day;
     final leading = first.weekday - 1;
@@ -90,13 +95,6 @@ class _PlanMonthCalendarState extends State<PlanMonthCalendar> {
           : () => move(1),
       icon: const Icon(Icons.chevron_right_rounded),
     );
-    final now = TextButton(
-      onPressed:
-          widget.today.isBefore(plan.start) || widget.today.isAfter(plan.end)
-          ? null
-          : () => widget.onSelect(widget.today),
-      child: const Text('오늘'),
-    );
     final title = Tooltip(
       message: '다른 날짜로 이동',
       child: TextButton(
@@ -120,38 +118,19 @@ class _PlanMonthCalendarState extends State<PlanMonthCalendar> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        LayoutBuilder(
-          builder: (context, box) =>
-              box.maxWidth < 360 ||
-                  MediaQuery.textScalerOf(context).scale(14) > 20
-              ? Column(
-                  children: [
-                    title,
-                    Row(
-                      children: [
-                        previous,
-                        const Spacer(),
-                        now,
-                        const Spacer(),
-                        next,
-                      ],
-                    ),
-                  ],
-                )
-              : Row(
-                  children: [
-                    previous,
-                    Expanded(child: title),
-                    now,
-                    next,
-                  ],
-                ),
+        Row(
+          children: [
+            previous,
+            Expanded(child: title),
+            next,
+          ],
         ),
         const SizedBox(height: 8),
-        Text(
-          '${monthTasks.length}일 배정 · 계획 ${durationLabel(minutes)}',
-          style: const TextStyle(color: muted, fontSize: 13, height: 1.5),
-        ),
+        if (widget.showMonthSummary)
+          Text(
+            '${monthTasks.length}일 배정 · 계획 ${durationLabel(minutes)}',
+            style: const TextStyle(color: muted, fontSize: 13, height: 1.5),
+          ),
         const SizedBox(height: 12),
         LayoutBuilder(
           builder: (context, box) {
@@ -160,10 +139,7 @@ class _PlanMonthCalendarState extends State<PlanMonthCalendar> {
                 .max(box.maxWidth, 7 * math.max(48.0, scaler.scale(14) * 2 + 8))
                 .toDouble();
             final cellWidth = width / 7;
-            final cellHeight = math.max(
-              70.0,
-              scaler.scale(14) * 1.4 + scaler.scale(10) * 1.4 + 20,
-            );
+            final cellHeight = math.max(52.0, scaler.scale(14) * 1.4 + 17);
             if (previousWidth != box.maxWidth ||
                 previousCellWidth != cellWidth) {
               previousWidth = box.maxWidth;
@@ -242,7 +218,16 @@ class _PlanMonthCalendarState extends State<PlanMonthCalendar> {
                                 !date.isAfter(plan.end);
                             final on = date == selected,
                                 isToday = date == widget.today;
+                            final filled =
+                                on && subjectColor == null && !isToday;
+                            final radius = BorderRadius.circular(12);
                             final tasks = plan.on(date);
+                            final colors = {
+                              if (enabled && subjectColor != null)
+                                for (final task in tasks)
+                                  (task.exam, task.subject):
+                                      subjectColor(task) ?? blue,
+                            };
                             final total = tasks.fold(
                               0,
                               (n, t) => n + t.minutes,
@@ -258,15 +243,20 @@ class _PlanMonthCalendarState extends State<PlanMonthCalendar> {
                                   '${isoDay(date)}, ${weekdays[date.weekday - 1]}요일${isToday ? ', 오늘' : ''}, ${tasks.isEmpty ? '계획된 학습 없음' : '계획 ${durationLabel(total)}'}${enabled ? '' : ', 계획 기간 밖'}',
                               child: ExcludeSemantics(
                                 child: Material(
-                                  color: on
+                                  color: filled
                                       ? blue
-                                      : tasks.isNotEmpty && enabled
+                                      : on
                                       ? pale
                                       : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(12),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: radius,
+                                    side: isToday
+                                        ? const BorderSide(color: blue)
+                                        : BorderSide.none,
+                                  ),
                                   child: InkWell(
                                     onTap: enabled ? select : null,
-                                    borderRadius: BorderRadius.circular(12),
+                                    borderRadius: radius,
                                     child: Center(
                                       child: Column(
                                         mainAxisSize: MainAxisSize.min,
@@ -278,36 +268,55 @@ class _PlanMonthCalendarState extends State<PlanMonthCalendar> {
                                               fontWeight: on || isToday
                                                   ? FontWeight.w800
                                                   : FontWeight.w600,
-                                              color: on
+                                              color: filled
                                                   ? Colors.white
+                                                  : on
+                                                  ? blue
                                                   : enabled
-                                                  ? ink
+                                                  ? (isToday ? blue : ink)
                                                   : muted.withValues(
                                                       alpha: .55,
                                                     ),
                                             ),
                                           ),
                                           const SizedBox(height: 5),
-                                          Text(
-                                            !enabled
-                                                ? '—'
-                                                : tasks.isNotEmpty
-                                                ? '배정'
-                                                : isToday
-                                                ? '오늘'
-                                                : '—',
-                                            style: TextStyle(
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.w600,
-                                              color: on
-                                                  ? Colors.white
-                                                  : enabled
-                                                  ? muted
-                                                  : muted.withValues(
-                                                      alpha: .55,
+                                          if (subjectColor == null)
+                                            DecoratedBox(
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                color: tasks.isEmpty || !enabled
+                                                    ? Colors.transparent
+                                                    : (filled
+                                                          ? Colors.white
+                                                          : blue),
+                                              ),
+                                              child: const SizedBox.square(
+                                                dimension: 4,
+                                              ),
+                                            )
+                                          else
+                                            SizedBox(
+                                              height: 6,
+                                              child: Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                spacing: 3,
+                                                children: [
+                                                  for (final color
+                                                      in colors.values.take(3))
+                                                    DecoratedBox(
+                                                      decoration: BoxDecoration(
+                                                        color: color,
+                                                        shape: BoxShape.circle,
+                                                      ),
+                                                      child:
+                                                          const SizedBox.square(
+                                                            dimension: 6,
+                                                          ),
                                                     ),
+                                                ],
+                                              ),
                                             ),
-                                          ),
                                         ],
                                       ),
                                     ),

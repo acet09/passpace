@@ -26,6 +26,24 @@ Future<void> tapStudy(WidgetTester t, Finder finder) async {
   await t.pumpAndSettle();
 }
 
+Future<void> selectStudyRecordAction(
+  WidgetTester t,
+  int id,
+  String action,
+) async {
+  await tapStudy(t, find.byKey(ValueKey('study-actions-$id')));
+  await tapStudy(t, find.byKey(ValueKey('study-$action-$id')));
+}
+
+Future<void> openStudyDay(WidgetTester t, DateTime day) async {
+  final header = find.byKey(ValueKey('history-day-${isoDay(day)}'));
+  final closed = find.descendant(
+    of: header,
+    matching: find.byIcon(Icons.expand_more),
+  );
+  if (closed.evaluate().isNotEmpty) await tapStudy(t, header);
+}
+
 Future<void> openStudy(WidgetTester t, StudyFixture fixture) async {
   await fixture.session.restore();
   await t.pumpWidget(PassPaceApp(fixture.session));
@@ -54,13 +72,49 @@ void main() {
     await t.tap(entry);
     await t.pumpAndSettle();
     await tapStudy(t, find.byKey(const ValueKey('open-study-history')));
-    expect(find.text('공부시간 추가'), findsOneWidget);
+    expect(find.byKey(const ValueKey('history-add')), findsOneWidget);
+    expect(find.text('총 1시간'), findsOneWidget);
+    expect(find.text('총 30분'), findsOneWidget);
+    final latest = find.byKey(ValueKey('history-day-${isoDay(fixture.today)}'));
+    expect(find.text('SAMPLE 정보처리기사의 긴 과목 이름'), findsOneWidget);
+    await tapStudy(t, latest);
+    expect(find.text('SAMPLE 정보처리기사의 긴 과목 이름'), findsNothing);
+    await tapStudy(t, find.byKey(const ValueKey('history-period')));
+    await tapStudy(t, find.byKey(const ValueKey('history-days-30')));
     expect(find.text('SAMPLE 정보처리기사의 긴 과목 이름'), findsOneWidget);
     expect(
       fixture.requests.where((r) => r.url.path == '/study/sessions'),
       isNotEmpty,
     );
     expect(t.takeException(), isNull);
+  });
+
+  testWidgets('오늘 기록이 없으면 최신 기록일을 펼치고 같은 기간 새로고침은 선택을 보존한다', (t) async {
+    final fixture = StudyFixture();
+    addTearDown(fixture.dispose);
+    final latest = isoDay(plusDays(fixture.today, -2));
+    final older = isoDay(plusDays(fixture.today, -3));
+    fixture.history.first['studyDate'] = latest;
+    fixture.history.last['studyDate'] = older;
+    await openStudy(t, fixture);
+    final firstEntry = find.byKey(const ValueKey('study-record-1'));
+    final secondEntry = find.byKey(const ValueKey('study-record-2'));
+    expect(firstEntry, findsOneWidget);
+    expect(secondEntry, findsNothing);
+    await tapStudy(t, find.byKey(ValueKey('history-day-$latest')));
+    await tapStudy(t, find.byKey(ValueKey('history-day-$older')));
+    final refresh = find.ancestor(
+      of: find.byKey(const ValueKey('study-view-0')),
+      matching: find.byType(RefreshIndicator),
+    );
+    await t.widget<RefreshIndicator>(refresh).onRefresh();
+    await t.pumpAndSettle();
+    expect(firstEntry, findsNothing);
+    expect(secondEntry, findsOneWidget);
+    await tapStudy(t, find.byKey(const ValueKey('history-period')));
+    await tapStudy(t, find.byKey(const ValueKey('history-days-30')));
+    expect(firstEntry, findsOneWidget);
+    expect(secondEntry, findsNothing);
   });
 
   testWidgets('공부시간을 한 번만 저장하고 목록과 서버 통계를 갱신한다', (t) async {
@@ -71,7 +125,7 @@ void main() {
     );
     addTearDown(fixture.dispose);
     await openStudy(t, fixture);
-    await tapStudy(t, find.text('공부시간 추가'));
+    await tapStudy(t, find.byKey(const ValueKey('history-add')));
     await t.enterText(find.byKey(const ValueKey('study-minutes')), '45');
     final save = find.text('공부시간 저장');
     await t.ensureVisible(save);
@@ -113,7 +167,7 @@ void main() {
       );
       addTearDown(fixture.dispose);
       await openStudy(t, fixture);
-      await tapStudy(t, find.text('공부시간 추가'));
+      await tapStudy(t, find.byKey(const ValueKey('history-add')));
       await t.enterText(find.byKey(const ValueKey('study-minutes')), '90');
       await tapStudy(t, find.text('공부시간 저장'));
       expect(find.text('SAMPLE 하루 공부시간 한도 확인'), findsOneWidget);
@@ -141,7 +195,7 @@ void main() {
     );
     addTearDown(fixture.dispose);
     await openStudy(t, fixture);
-    await tapStudy(t, find.text('공부시간 추가'));
+    await tapStudy(t, find.byKey(const ValueKey('history-add')));
     await t.enterText(find.byKey(const ValueKey('study-minutes')), '45');
     await tapStudy(t, find.text('공부시간 저장'));
     expect(find.textContaining('이미 저장되었을 수'), findsOneWidget);
@@ -149,21 +203,13 @@ void main() {
     await tapStudy(t, find.text('기록 목록 확인'));
     expect(find.text('45분'), findsOneWidget);
     expect(
-      t
-          .widget<OutlinedButton>(
-            find.widgetWithText(OutlinedButton, '공부시간 추가'),
-          )
-          .onPressed,
+      t.widget<TextButton>(find.byKey(const ValueKey('history-add'))).onPressed,
       isNull,
     );
     expect(fixture.requests.where((r) => r.method == 'POST'), hasLength(1));
     await tapStudy(t, find.text('기록 확인 완료'));
     expect(
-      t
-          .widget<OutlinedButton>(
-            find.widgetWithText(OutlinedButton, '공부시간 추가'),
-          )
-          .onPressed,
+      t.widget<TextButton>(find.byKey(const ValueKey('history-add'))).onPressed,
       isNotNull,
     );
     expect(t.takeException(), isNull);
@@ -181,6 +227,7 @@ void main() {
       });
     }
     await openStudy(t, fixture);
+    expect(find.text('총 25분'), findsOneWidget);
     await t.scrollUntilVisible(
       find.text('이전 기록 더 보기'),
       400,
@@ -194,6 +241,7 @@ void main() {
       fixture.requests.where((r) => r.url.queryParameters['page'] == '1'),
       hasLength(1),
     );
+    await openStudyDay(t, fixture.today);
     await t.scrollUntilVisible(
       find.text('SAMPLE 과목 1'),
       250,
@@ -209,7 +257,8 @@ void main() {
       10000,
     );
     await t.pumpAndSettle();
-    await tapStudy(t, find.text('최근 30일'));
+    await tapStudy(t, find.byKey(const ValueKey('history-period')));
+    await tapStudy(t, find.byKey(const ValueKey('history-days-30')));
     final req = fixture.requests.lastWhere(
       (r) => r.url.path == '/study/sessions',
     );
@@ -297,7 +346,7 @@ void main() {
         );
         await t.pumpAndSettle();
         await tapStudy(t, find.byKey(const ValueKey('open-study-history')));
-        await tapStudy(t, find.text('공부시간 추가'));
+        await tapStudy(t, find.byKey(const ValueKey('history-add')));
         t.view.viewInsets = const FakeViewPadding(bottom: 300);
         await t.pumpAndSettle();
         await t.enterText(find.byKey(const ValueKey('study-minutes')), '0');
@@ -364,6 +413,162 @@ void main() {
     expect(t.takeException(), isNull);
   });
 
+  testWidgets('학습기록에서는 선택한 기간만 표시하고 직접 선택한 날짜를 유지한다', (t) async {
+    final fixture = StudyFixture();
+    addTearDown(fixture.dispose);
+    await openStudy(t, fixture);
+    final menu = find.byKey(const ValueKey('history-period'));
+    final day = isoDay(fixture.today);
+    expect(find.text('최근 30일'), findsNothing);
+    await tapStudy(t, menu);
+    await tapStudy(t, find.byKey(const ValueKey('history-days-0')));
+    final selected = find.byKey(ValueKey('study-range-day-$day'));
+    await tapStudy(t, selected);
+    await tapStudy(t, selected);
+    await tapStudy(t, find.widgetWithText(FilledButton, '조회'));
+    expect(
+      find.descendant(
+        of: menu,
+        matching: find.text(day.substring(5).replaceAll('-', '.')),
+      ),
+      findsOneWidget,
+    );
+    final request = fixture.requests.lastWhere(
+      (r) => r.url.path == '/study/sessions',
+    );
+    expect(
+      request.url.queryParameters,
+      allOf(containsPair('startDate', day), containsPair('endDate', day)),
+    );
+    await tapStudy(t, menu);
+    await tapStudy(t, find.byKey(const ValueKey('history-days-7')));
+    expect(find.text('최근 7일'), findsOneWidget);
+    expect(find.text('직접 선택'), findsNothing);
+  });
+
+  testWidgets('기간 선택 시트는 날짜를 차례로 고르고 조회를 눌러야 적용한다', (t) async {
+    final fixture = StudyFixture();
+    addTearDown(fixture.dispose);
+    await openStudy(t, fixture);
+    await tapStudy(t, find.byKey(const ValueKey('open-study-statistics')));
+    final end = isoDay(fixture.today);
+    final date = find.byKey(ValueKey('study-range-day-$end'));
+    final apply = find.widgetWithText(FilledButton, '조회');
+    final total = find.byKey(const ValueKey('study-total'));
+    int reads() => fixture.requests
+        .where((r) => r.url.path == '/dashboard/study-stats')
+        .length;
+    final before = reads();
+
+    await tapStudy(t, find.text('기간 선택'));
+    expect(find.byType(BottomSheet), findsOneWidget);
+    await tapStudy(t, date);
+    expect(t.widget<FilledButton>(apply).onPressed, isNull);
+    expect(reads(), before);
+    await tapStudy(t, find.text('취소'));
+    expect(reads(), before);
+    expect(t.widget<Text>(total).data, '1시간 30분');
+
+    await tapStudy(t, find.text('기간 선택'));
+    await tapStudy(t, date);
+    await tapStudy(t, date);
+    expect(find.text('1일'), findsOneWidget);
+    expect(reads(), before);
+    await tapStudy(t, apply);
+    expect(t.widget<Text>(total).data, '1시간');
+    expect(
+      fixture.requests
+          .lastWhere((r) => r.url.path == '/dashboard/study-stats')
+          .url
+          .queryParameters,
+      allOf(containsPair('startDate', end), containsPair('endDate', end)),
+    );
+  });
+
+  testWidgets('좁은 화면에서도 기간 선택과 최대 366일 안내를 사용할 수 있다', (t) async {
+    t.view.devicePixelRatio = 1;
+    t.view.physicalSize = const Size(320, 640);
+    t.platformDispatcher.textScaleFactorTestValue = 2;
+    addTearDown(t.view.resetDevicePixelRatio);
+    addTearDown(t.view.resetPhysicalSize);
+    addTearDown(t.platformDispatcher.clearTextScaleFactorTestValue);
+    final fixture = StudyFixture();
+    addTearDown(fixture.dispose);
+    final today = fixture.today;
+    final older = DateTime(today.year - 2, today.month);
+    await openStudy(t, fixture);
+    await tapStudy(t, find.byKey(const ValueKey('history-period')));
+    await tapStudy(t, find.byKey(const ValueKey('history-days-0')));
+    final sheet = find.byType(BottomSheet);
+    Finder within(Finder child) => find.descendant(of: sheet, matching: child);
+    Finder month(DateTime date) =>
+        within(find.text('${date.year}년 ${date.month}월'));
+    Finder day(DateTime date) =>
+        within(find.byKey(ValueKey('study-range-day-${isoDay(date)}')));
+    Future<void> chooseYear(DateTime date, double delta) async {
+      final picker = within(
+        find.byKey(const ValueKey('study-range-year-picker')),
+      );
+      final label = MaterialLocalizations.of(t.element(picker))
+          .formatYear(date);
+      final choice = within(find.text(label));
+      if (choice.evaluate().isEmpty) {
+        await t.scrollUntilVisible(
+          choice,
+          delta,
+          scrollable: find.descendant(
+            of: picker,
+            matching: find.byType(Scrollable),
+          ),
+        );
+      }
+      await tapStudy(t, choice);
+    }
+
+    await tapStudy(t, month(today));
+    await chooseYear(older, 80);
+    await tapStudy(t, day(older));
+    await tapStudy(t, month(older));
+    await chooseYear(today, -80);
+    await tapStudy(t, day(today));
+    expect(within(find.textContaining('366일 이내')), findsOneWidget);
+    expect(
+      t
+          .widget<FilledButton>(within(find.widgetWithText(FilledButton, '조회')))
+          .onPressed,
+      isNull,
+    );
+    expect(t.takeException(), isNull);
+    await tapStudy(t, within(find.text('취소')));
+  });
+
+  testWidgets('총 공부 시간은 최근 7일과 30일의 선택에 따라 달라진다', (t) async {
+    final fixture = StudyFixture();
+    addTearDown(fixture.dispose);
+    fixture.history.add({
+      ...fixture.history.first,
+      'sessionId': 3,
+      'studyDate': isoDay(plusDays(fixture.today, -12)),
+      'durationMinutes': 45,
+    });
+    await openStudy(t, fixture);
+    await tapStudy(t, find.byKey(const ValueKey('open-study-statistics')));
+    final total = find.byKey(const ValueKey('study-total'));
+    expect(find.text('총 공부 시간'), findsOneWidget);
+    expect(t.widget<Text>(total).data, '1시간 30분');
+    await tapStudy(t, find.text('최근 30일'));
+    expect(t.widget<Text>(total).data, '2시간 15분');
+    expect(
+      fixture.requests
+          .lastWhere((r) => r.url.path == '/dashboard/study-stats')
+          .url
+          .queryParameters,
+      containsPair('startDate', isoDay(plusDays(fixture.today, -29))),
+    );
+    await tapStudy(t, find.text('최근 7일'));
+    expect(t.widget<Text>(total).data, '1시간 30분');
+  });
+
   testWidgets('기간을 바꾼 뒤 이전 기간 응답이 도착해도 새 기록을 덮지 않는다', (t) async {
     final oldHistory = Completer<http.Response>(),
         oldStats = Completer<http.Response>();
@@ -392,8 +597,12 @@ void main() {
     await t.pump(const Duration(milliseconds: 300));
     await t.tap(find.byKey(const ValueKey('open-study-history')));
     await t.pump(const Duration(milliseconds: 300));
-    await t.tap(find.text('최근 30일'));
+    await t.tap(find.byKey(const ValueKey('history-period')));
+    await t.pump();
+    await t.pump(const Duration(milliseconds: 350));
+    await t.tap(find.byKey(const ValueKey('history-days-30')));
     await t.pumpAndSettle();
+    await openStudyDay(t, fixture.today);
     expect(find.text('SAMPLE 정보처리기사의 긴 과목 이름'), findsOneWidget);
     oldHistory.complete(
       studyEnvelope({'items': [], 'page': 0, 'pageSize': 20, 'hasNext': false}),
@@ -447,6 +656,7 @@ void main() {
       'MAJOR',
     );
     await t.pumpAndSettle();
+    await openStudyDay(t, fixture.today);
     expect(find.text('SAMPLE 정보처리기사의 긴 과목 이름'), findsOneWidget);
     oldHistory.complete(
       studyEnvelope({'items': [], 'page': 0, 'pageSize': 20, 'hasNext': false}),
@@ -470,7 +680,7 @@ void main() {
     );
     addTearDown(fixture.dispose);
     await openStudy(t, fixture);
-    await tapStudy(t, find.text('공부시간 추가'));
+    await tapStudy(t, find.byKey(const ValueKey('history-add')));
     await t.enterText(find.byKey(const ValueKey('study-minutes')), '90');
     await fixture.session.updateProfile(
       'SAMPLE 갱신',
@@ -482,7 +692,7 @@ void main() {
     expect(find.text('기록으로 돌아가기'), findsOneWidget);
     expect(fixture.requests.where((r) => r.method == 'POST'), isEmpty);
     await tapStudy(t, find.text('기록으로 돌아가기'));
-    expect(find.text('공부시간 추가'), findsOneWidget);
+    expect(find.byKey(const ValueKey('history-add')), findsOneWidget);
     expect(t.takeException(), isNull);
   });
 
@@ -490,7 +700,7 @@ void main() {
     final fixture = StudyFixture();
     addTearDown(fixture.dispose);
     await openStudy(t, fixture);
-    await tapStudy(t, find.text('공부시간 추가'));
+    await tapStudy(t, find.byKey(const ValueKey('history-add')));
     for (final raw in ['1.5', '10000', '-10', 'abc', '1441']) {
       await t.enterText(find.byKey(const ValueKey('study-minutes')), raw);
       await tapStudy(t, find.text('공부시간 저장'));
@@ -525,7 +735,8 @@ void main() {
           .isNotEmpty) {
         await tapStudy(t, find.byKey(const ValueKey('open-study-history')));
       }
-      await tapStudy(t, find.text('최근 $n일'));
+      await tapStudy(t, find.byKey(const ValueKey('history-period')));
+      await tapStudy(t, find.byKey(ValueKey('history-days-$n')));
       now = plusDays(now, 1);
       t.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
       t.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
@@ -564,8 +775,8 @@ void main() {
     );
     await t.pumpAndSettle();
     await tapStudy(t, find.byKey(const ValueKey('open-study-history')));
-    expect(find.text('2026년 12월 31일'), findsOneWidget);
-    expect(find.text('2027년 1월 1일'), findsOneWidget);
+    expect(find.text('2026년 12월 31일 · 목'), findsOneWidget);
+    expect(find.text('2027년 1월 1일 · 금'), findsOneWidget);
     expect(t.takeException(), isNull);
   });
 }

@@ -9,6 +9,7 @@ import '../data/study_timer.dart';
 import '../data/study_models.dart';
 import 'design.dart';
 import 'study_task_picker.dart';
+import 'subject_color_picker.dart';
 import 'study_timer_progress.dart';
 
 String studyTimerStatus(StudyTimer timer) => switch (timer.phase) {
@@ -50,6 +51,7 @@ class StudyTimerScreen extends StatefulWidget {
   final VoidCallback? onNotificationSettings;
   final bool active;
   final bool Function()? canSave;
+  final StudySubjectColor? colorForSubject;
   const StudyTimerScreen(
     this.session,
     this.timer, {
@@ -63,6 +65,7 @@ class StudyTimerScreen extends StatefulWidget {
     this.onNotificationSettings,
     this.active = true,
     this.canSave,
+    this.colorForSubject,
   });
   @override
   State<StudyTimerScreen> createState() => _StudyTimerScreenState();
@@ -73,6 +76,11 @@ class _StudyTimerScreenState extends State<StudyTimerScreen> {
   bool blocked = false;
   String? error;
   StudyTimer get timer => widget.timer;
+  Color? get taskColor {
+    final task = timer.task;
+    return task == null ? null : widget.colorForSubject?.call(task);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -111,6 +119,7 @@ class _StudyTimerScreenState extends State<StudyTimerScreen> {
           widget.session,
           date: timer.date ?? dayInSeoul(),
           selectedId: timer.task?.id,
+          colorForSubject: widget.colorForSubject,
           onForbidden: () {
             widget.onForbidden();
             if (mounted) setState(() => blocked = true);
@@ -209,6 +218,78 @@ class _StudyTimerScreenState extends State<StudyTimerScreen> {
     if (current) await timer.reset();
   }
 
+  Future<void> toggleMeasurement() async {
+    setState(() => error = null);
+    if (timer.phase == StudyTimerPhase.running) {
+      await timer.pause();
+    } else {
+      await timer.start();
+    }
+  }
+
+  List<Widget> measurementActions() {
+    final phase = timer.phase;
+    final paused = phase == StudyTimerPhase.paused;
+    final saving = phase == StudyTimerPhase.saving;
+    final readyToSave = paused && timer.available && timer.minutes > 0;
+    final showMeasurementAction = !readyToSave && !saving && !timer.dayEnded;
+    final remainingSeconds = timer.elapsed.inSeconds % 60;
+
+    return [
+      if (showMeasurementAction)
+        PrimaryAction(switch (phase) {
+          StudyTimerPhase.running => '일시정지',
+          StudyTimerPhase.idle => '측정 시작',
+          _ => '계속 측정',
+        }, timer.available ? toggleMeasurement : null),
+      if (paused || saving) ...[
+        if (showMeasurementAction) const SizedBox(height: 8),
+        OutlinedButton(
+          onPressed: readyToSave ? save : null,
+          style: readyToSave
+              ? OutlinedButton.styleFrom(
+                  backgroundColor: blue,
+                  foregroundColor: Colors.white,
+                  side: const BorderSide(color: blue),
+                  textStyle: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
+                )
+              : null,
+          child: Text(saving ? '저장 중…' : '기록 저장'),
+        ),
+        if (paused && (timer.minutes == 0 || remainingSeconds != 0)) ...[
+          const SizedBox(height: 8),
+          HelpText(
+            timer.minutes == 0
+                ? '1분 이상 측정하면 기록을 저장할 수 있어요.'
+                : '${durationLabel(timer.minutes)}을 저장해요. 남은 $remainingSeconds초는 제외돼요.',
+          ),
+        ],
+      ],
+      if (!saving)
+        Wrap(
+          alignment: WrapAlignment.center,
+          spacing: 8,
+          children: [
+            if (readyToSave && !timer.dayEnded)
+              TextButton(
+                onPressed: toggleMeasurement,
+                child: const Text('계속 측정'),
+              ),
+            if (phase != StudyTimerPhase.idle || timer.task != null)
+              TextButton(
+                onPressed: timer.available ? reset : null,
+                child: Text(
+                  phase == StudyTimerPhase.idle ? '과목 연결 해제' : '측정 초기화',
+                ),
+              ),
+          ],
+        ),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) => ListenableBuilder(
     listenable: timer,
@@ -228,30 +309,57 @@ class _StudyTimerScreenState extends State<StudyTimerScreen> {
                   )
                 : ScrollBody(
                     children: [
-                      Text(
-                        widget.embedded ? '집중 타이머' : '지금 하는 공부에 집중해요',
-                        style: const TextStyle(
-                          fontSize: 23,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      OutlinedButton(
+                      TextButton(
                         onPressed: timer.available && !timer.locked
                             ? choose
                             : null,
+                        style: TextButton.styleFrom(
+                          alignment: AlignmentDirectional.centerStart,
+                          foregroundColor: ink,
+                          backgroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            side: const BorderSide(color: line),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 10,
+                          ),
+                        ),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 4),
                           child: Row(
                             children: [
-                              const Icon(Icons.menu_book_outlined),
+                              const Icon(Icons.menu_book_outlined, color: blue),
                               const SizedBox(width: 12),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text('과목 선택'),
-                                    Text(timer.task?.name ?? '과목 연결 없음'),
+                                    const Text(
+                                      '과목 선택',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: muted,
+                                      ),
+                                    ),
+                                    Row(
+                                      children: [
+                                        if (taskColor case final color?) ...[
+                                          SubjectColorDot(color),
+                                          const SizedBox(width: 8),
+                                        ],
+                                        Expanded(
+                                          child: Text(
+                                            timer.task?.name ?? '과목 연결 없음',
+                                            style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ],
                                 ),
                               ),
@@ -261,22 +369,36 @@ class _StudyTimerScreenState extends State<StudyTimerScreen> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      Text(
-                        studyTimerStatus(timer),
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(color: muted),
-                      ),
-                      const SizedBox(height: 12),
+                      if (timer.phase == StudyTimerPhase.running ||
+                          timer.phase == StudyTimerPhase.paused)
+                        Semantics(
+                          liveRegion: true,
+                          child: Text(
+                            studyTimerStatus(timer),
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(color: muted),
+                          ),
+                        ),
+                      if (timer.phase == StudyTimerPhase.saved) ...[
+                        const HelpText('학습기록을 저장했어요.'),
+                        const SizedBox(height: 8),
+                        PrimaryAction(
+                          '새 측정 준비',
+                          timer.storing ? null : prepareNext,
+                        ),
+                        const SizedBox(height: 14),
+                      ],
                       StudyTimerProgress(
                         api: account,
                         task: timer.task,
+                        subjectColor: taskColor,
                         date: timer.date ?? dayInSeoul(),
                         elapsed: timer.elapsed,
                         label: timer.label,
                         active: widget.active,
                         maxDiameter: (constraints.maxHeight * .43).clamp(
-                          220.0,
-                          300.0,
+                          200.0,
+                          288.0,
                         ),
                         phase: timer.phase,
                         canRead: () =>
@@ -293,13 +415,6 @@ class _StudyTimerScreenState extends State<StudyTimerScreen> {
                       if (timer.error != null) AlertText(timer.error!),
                       if (error != null) AlertText(error!),
                       if (timer.notice != null) AlertText(timer.notice!),
-                      if (widget.notificationNotice != null) ...[
-                        AlertText(widget.notificationNotice!),
-                        TextButton(
-                          onPressed: widget.onNotificationSettings,
-                          child: const Text('알림 설정'),
-                        ),
-                      ],
                       if (timer.dayEnded)
                         const AlertText(
                           '날짜가 바뀌어 측정을 멈췄어요. 저장하거나 초기화한 뒤 새로 시작해 주세요.',
@@ -324,68 +439,20 @@ class _StudyTimerScreenState extends State<StudyTimerScreen> {
                           '기록 목록에서 확인',
                           widget.onHistory ?? () => Navigator.pop(context),
                         ),
-                      ] else if (timer.phase == StudyTimerPhase.saved) ...[
-                        const HelpText(
-                          '학습기록은 저장됐어요. 기기의 측정 상태를 정리한 뒤 새로 시작할 수 있어요.',
-                        ),
-                        PrimaryAction(
-                          '새 측정 준비',
-                          timer.storing ? null : prepareNext,
-                        ),
-                      ] else ...[
-                        PrimaryAction(
-                          timer.phase == StudyTimerPhase.running
-                              ? '일시정지'
-                              : timer.phase == StudyTimerPhase.idle
-                              ? '측정 시작'
-                              : '계속 측정',
-                          !timer.available ||
-                                  timer.phase == StudyTimerPhase.saving ||
-                                  timer.dayEnded
-                              ? null
-                              : () async {
-                                  setState(() => error = null);
-                                  if (timer.phase == StudyTimerPhase.running) {
-                                    await timer.pause();
-                                  } else {
-                                    await timer.start();
-                                  }
-                                },
-                        ),
-                        const SizedBox(height: 10),
-                        OutlinedButton(
-                          onPressed:
-                              timer.available &&
-                                  timer.phase == StudyTimerPhase.paused &&
-                                  timer.minutes > 0
-                              ? save
-                              : null,
-                          child: Text(
-                            timer.phase == StudyTimerPhase.saving
-                                ? '저장 중…'
-                                : '기록 저장',
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        HelpText(
-                          timer.minutes > 0
-                              ? '${durationLabel(timer.minutes)}을 저장해요.${timer.elapsed.inSeconds % 60 == 0 ? '' : ' 남은 ${timer.elapsed.inSeconds % 60}초는 제외돼요.'}'
-                              : '1분 이상 측정하면 기록을 저장할 수 있어요.',
-                        ),
-                        const SizedBox(height: 12),
+                      ] else if (timer.phase != StudyTimerPhase.saved)
+                        ...measurementActions(),
+                      if (widget.notificationNotice != null) ...[
+                        AlertText(widget.notificationNotice!),
                         TextButton(
-                          onPressed:
-                              !timer.available ||
-                                  timer.phase == StudyTimerPhase.saving
-                              ? null
-                              : reset,
-                          child: const Text('측정 초기화'),
+                          onPressed: widget.onNotificationSettings,
+                          child: const Text('알림 설정'),
                         ),
                       ],
-                      const SizedBox(height: 16),
-                      if (!timer.locked)
+                      if (timer.phase == StudyTimerPhase.idle &&
+                          timer.available &&
+                          !timer.locked)
                         const HelpText(
-                          '일시정지한 시간은 제외해요. 다른 화면이나 앱으로 이동해도 측정이 이어지며, 날짜가 바뀌면 그날의 측정이 멈춰요.',
+                          '다른 앱을 열어도 측정이 이어지며 자정에 멈춰요. 일시정지 시간은 공부시간에서 빼요.',
                         ),
                     ],
                   ),

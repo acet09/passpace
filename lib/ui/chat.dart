@@ -239,82 +239,42 @@ class ChatScreenState extends State<ChatScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const SizedBox(height: 8),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Container(
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            color: pale,
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          child: const Icon(
-                            Icons.forum_outlined,
-                            color: blue,
-                            size: 23,
-                          ),
-                        ),
+                      const PageTitle(
+                        '무엇이 궁금한가요?',
+                        description: '자격증 공부 순서나 과목별 학습 방법을 물어보세요.',
                       ),
-                      const SizedBox(height: 21),
-                      const Text(
-                        '자격증 준비,\n무엇이 궁금한가요?',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w800,
-                          height: 1.35,
-                          letterSpacing: -1,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      const HelpText('공부 순서부터 과목별 학습 방법까지\n지금 고민하는 내용을 물어보세요.'),
-                      const Heading('이렇게 질문해 보세요'),
-                      for (final (i, q) in [
+                      const SizedBox(height: 12),
+                      for (final q in [
                         'SQLD는 어떤 과목부터 공부할까요?',
                         '하루 2시간이면 정보처리기사 필기를 어떻게 준비할까요?',
                         '기출문제와 이론 공부는 어떻게 병행할까요?',
-                      ].indexed)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 9),
-                          child: Material(
-                            color: Colors.transparent,
-                            shape: const Border(
-                              bottom: BorderSide(color: line),
-                            ),
-                            child: InkWell(
-                              onTap: () => send(q),
-                              child: Padding(
-                                padding: const EdgeInsets.all(16),
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      [
-                                        Icons.route_outlined,
-                                        Icons.schedule_rounded,
-                                        Icons.auto_stories_outlined,
-                                      ][i],
-                                      color: blue,
-                                      size: 20,
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Text(
-                                        q,
-                                        style: const TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w500,
-                                          height: 1.5,
-                                        ),
+                      ])
+                        Material(
+                          color: Colors.transparent,
+                          shape: const Border(bottom: BorderSide(color: line)),
+                          child: InkWell(
+                            onTap: () => send(q),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      q,
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                        height: 1.5,
                                       ),
                                     ),
-                                    const SizedBox(width: 8),
-                                    const Icon(
-                                      Icons.arrow_outward_rounded,
-                                      size: 17,
-                                      color: muted,
-                                    ),
-                                  ],
-                                ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  const Icon(
+                                    Icons.arrow_outward_rounded,
+                                    size: 17,
+                                    color: muted,
+                                  ),
+                                ],
                               ),
                             ),
                           ),

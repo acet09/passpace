@@ -33,6 +33,37 @@ void main() {
     expect(find.widgetWithText(FilledButton, '로그인'), findsOneWidget);
     expect(find.widgetWithText(OutlinedButton, '회원가입'), findsOneWidget);
   });
+
+  testWidgets('작은 화면의 가입 입력 오류는 첫 빈 필드로 이동한다', (t) async {
+    t.view.devicePixelRatio = 1;
+    t.view.physicalSize = const Size(320, 620);
+    t.platformDispatcher.textScaleFactorTestValue = 1.5;
+    addTearDown(t.view.resetDevicePixelRatio);
+    addTearDown(t.view.resetPhysicalSize);
+    addTearDown(t.platformDispatcher.clearTextScaleFactorTestValue);
+    final client = MockClient(
+      (_) async => throw StateError('Unexpected write'),
+    );
+    addTearDown(client.close);
+    final session = Session(_Store(), client);
+    addTearDown(session.dispose);
+    await session.restore();
+    await t.pumpWidget(PassPaceApp(session));
+    await t.pumpAndSettle();
+
+    final signup = find.widgetWithText(OutlinedButton, '회원가입');
+    await t.ensureVisible(signup);
+    await t.tap(signup);
+    await t.pumpAndSettle();
+    await t.ensureVisible(find.byType(TextFormField).last);
+    await t.pumpAndSettle();
+    await t.tap(find.widgetWithText(FilledButton, '가입 완료'));
+    await t.pumpAndSettle();
+
+    expect(find.byType(TextFormField).first.hitTestable(), findsOneWidget);
+    expect(find.text('입력해 주세요.').first.hitTestable(), findsOneWidget);
+    expect(t.takeException(), isNull);
+  });
   for (final width in [320.0, 360.0, 412.0]) {
     for (final scale in [1.5, 2.0]) {
       testWidgets('로그인 입력·오류·회원가입 복귀: 너비 $width 글자 $scale', (t) async {

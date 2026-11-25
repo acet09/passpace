@@ -75,8 +75,9 @@ void main() {
         matching: find.text('기록'),
       ),
     );
+    await tap(find.byKey(const ValueKey('open-study-history')));
     await capture('live-study-history-before');
-    await tap(find.text('공부시간 추가'));
+    await tap(find.byKey(const ValueKey('history-add')));
     await t.enterText(find.byKey(const ValueKey('study-minutes')), '45');
     FocusManager.instance.primaryFocus?.unfocus();
     await t.pumpAndSettle();
