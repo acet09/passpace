@@ -1,0 +1,925 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "PASS PACE 1122jhg 확장 API",
+    "version": "2026-11-22"
+  },
+  "paths": {
+    "/users/me": {
+      "delete": {
+        "tags": [
+          "회원탈퇴"
+        ],
+        "summary": "본인 회원탈퇴 및 자료 영구 삭제",
+        "description": "명시적 동의 후 계정·본인 목표/계획/기록/대화/AI제안을 실제 삭제한다. 실패 시 전체 rollback, 타회원·공용 자료 유지.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "password",
+                  "confirmation",
+                  "deletePersonalData"
+                ],
+                "properties": {
+                  "password": {
+                    "type": "string",
+                    "writeOnly": true,
+                    "description": "현재 비밀번호. 최대72 UTF-8바이트. 로그/예시에 값을 남기지 않는다."
+                  },
+                  "confirmation": {
+                    "type": "string",
+                    "description": "정확히 현재 로그인아이디 뒤에 회원탈퇴를 붙인 문구"
+                  },
+                  "deletePersonalData": {
+                    "type": "boolean",
+                    "enum": [
+                      true
+                    ],
+                    "description": "계정과 본인 자료 영구 삭제 확인. 구 앱의 누락 요청은 거부한다."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "탈퇴 완료",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "status",
+                    "code",
+                    "data"
+                  ],
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "SUCCESS"
+                      ]
+                    },
+                    "code": {
+                      "type": "integer",
+                      "enum": [
+                        200
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "required": [
+                        "withdrawn",
+                        "personalDataDeleted"
+                      ],
+                      "properties": {
+                        "withdrawn": {
+                          "type": "boolean",
+                          "enum": [
+                            true
+                          ]
+                        },
+                        "personalDataDeleted": {
+                          "type": "boolean",
+                          "enum": [
+                            true
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "입력/비밀번호/확인 문구 오류"
+          },
+          "401": {
+            "description": "인증/계정 식별 오류"
+          },
+          "403": {
+            "description": "전공 구분 변경"
+          },
+          "409": {
+            "description": "변경 경합"
+          },
+          "503": {
+            "description": "DB 처리 실패"
+          }
+        }
+      }
+    },
+    "/api/chat/planner/review-based/plans/{planId}/tasks/{taskId}": {
+      "patch": {
+        "summary": "저장된 계획의 학습 날짜 또는 배정시간 수정",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "planId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "taskId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "expectedPlanVersion": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "scheduledDate": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "estimatedMinutes": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 960
+                  }
+                },
+                "required": [
+                  "expectedPlanVersion"
+                ],
+                "anyOf": [
+                  {
+                    "required": [
+                      "scheduledDate"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "estimatedMinutes"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "계획 수정 완료",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "status",
+                    "code",
+                    "data"
+                  ],
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "SUCCESS"
+                      ]
+                    },
+                    "code": {
+                      "type": "integer",
+                      "enum": [
+                        200
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "required": [
+                        "planId",
+                        "taskId",
+                        "planVersion",
+                        "scheduledDate",
+                        "estimatedMinutes"
+                      ],
+                      "properties": {
+                        "planId": {
+                          "type": "integer",
+                          "format": "int64",
+                          "minimum": 1
+                        },
+                        "taskId": {
+                          "type": "integer",
+                          "format": "int64",
+                          "minimum": 1
+                        },
+                        "planVersion": {
+                          "type": "integer",
+                          "minimum": 1
+                        },
+                        "scheduledDate": {
+                          "type": "string",
+                          "format": "date"
+                        },
+                        "estimatedMinutes": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 960
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "입력 값 또는 일정 범위 오류"
+          },
+          "401": {
+            "description": "인증 필요"
+          },
+          "403": {
+            "description": "세션의 전공 정보가 변경됨"
+          },
+          "404": {
+            "description": "본인의 계획이나 과목을 찾을 수 없음"
+          },
+          "409": {
+            "description": "계획 충돌 또는 보호된 일정"
+          }
+        }
+      }
+    },
+    "/api/chat/planner/review-based/plans/{planId}/period": {
+      "patch": {
+        "summary": "저장된 계획의 시작일과 종료일 수정",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "planId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "expectedPlanVersion": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "startDate": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "endDate": {
+                    "type": "string",
+                    "format": "date"
+                  }
+                },
+                "required": [
+                  "expectedPlanVersion",
+                  "startDate",
+                  "endDate"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "계획 수정 완료",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "status",
+                    "code",
+                    "data"
+                  ],
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "SUCCESS"
+                      ]
+                    },
+                    "code": {
+                      "type": "integer",
+                      "enum": [
+                        200
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "required": [
+                        "planId",
+                        "planVersion",
+                        "startDate",
+                        "endDate"
+                      ],
+                      "properties": {
+                        "planId": {
+                          "type": "integer",
+                          "format": "int64",
+                          "minimum": 1
+                        },
+                        "planVersion": {
+                          "type": "integer",
+                          "minimum": 1
+                        },
+                        "startDate": {
+                          "type": "string",
+                          "format": "date"
+                        },
+                        "endDate": {
+                          "type": "string",
+                          "format": "date"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "입력 값 또는 일정 범위 오류"
+          },
+          "401": {
+            "description": "인증 필요"
+          },
+          "403": {
+            "description": "세션의 전공 정보가 변경됨"
+          },
+          "404": {
+            "description": "본인의 계획이나 과목을 찾을 수 없음"
+          },
+          "409": {
+            "description": "계획 충돌 또는 보호된 일정"
+          }
+        }
+      }
+    },
+    "/api/chat/planner/review-based/plans/{planId}/schedule": {
+      "get": {
+        "summary": "전체 수정 입력 조회",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "planId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "계획 수정 완료",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "status",
+                    "code",
+                    "data"
+                  ],
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "SUCCESS"
+                      ]
+                    },
+                    "code": {
+                      "type": "integer",
+                      "enum": [
+                        200
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "required": [
+                        "planId",
+                        "planVersion",
+                        "startDate",
+                        "endDate",
+                        "planName",
+                        "today",
+                        "weekdayMinutes",
+                        "subjects",
+                        "protectedTasks"
+                      ],
+                      "properties": {
+                        "planId": {
+                          "type": "integer",
+                          "format": "int64",
+                          "minimum": 1
+                        },
+                        "planVersion": {
+                          "type": "integer",
+                          "minimum": 1
+                        },
+                        "startDate": {
+                          "type": "string",
+                          "format": "date"
+                        },
+                        "endDate": {
+                          "type": "string",
+                          "format": "date"
+                        },
+                        "planName": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "today": {
+                          "type": "string",
+                          "format": "date"
+                        },
+                        "weekdayMinutes": {
+                          "type": "object",
+                          "maxProperties": 7,
+                          "additionalProperties": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 960
+                          }
+                        },
+                        "subjects": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "key": {
+                                "type": "integer",
+                                "format": "int64",
+                                "minimum": 1
+                              },
+                              "exam": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "minutes": {
+                                "type": "integer",
+                                "minimum": 0
+                              }
+                            }
+                          }
+                        },
+                        "protectedTasks": {
+                          "type": "integer",
+                          "minimum": 0
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "입력 값 또는 일정 범위 오류"
+          },
+          "401": {
+            "description": "인증 필요"
+          },
+          "403": {
+            "description": "세션의 전공 정보가 변경됨"
+          },
+          "404": {
+            "description": "본인의 계획이나 과목을 찾을 수 없음"
+          },
+          "409": {
+            "description": "계획 충돌 또는 보호된 일정"
+          }
+        }
+      },
+      "patch": {
+        "summary": "확인한 변경을 같은 계획에 저장",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "planId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "expectedPlanVersion": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "startDate": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "endDate": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "weekdayMinutes": {
+                    "type": "object",
+                    "minProperties": 1,
+                    "maxProperties": 7,
+                    "additionalProperties": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 960
+                    }
+                  },
+                  "subjects": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "key",
+                        "minutes"
+                      ],
+                      "properties": {
+                        "key": {
+                          "type": "integer",
+                          "format": "int64",
+                          "minimum": 1
+                        },
+                        "minutes": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 519360
+                        }
+                      }
+                    }
+                  },
+                  "approval": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  }
+                },
+                "required": [
+                  "expectedPlanVersion",
+                  "startDate",
+                  "endDate",
+                  "weekdayMinutes",
+                  "subjects",
+                  "approval"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "계획 수정 완료",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "status",
+                    "code",
+                    "data"
+                  ],
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "SUCCESS"
+                      ]
+                    },
+                    "code": {
+                      "type": "integer",
+                      "enum": [
+                        200
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "required": [
+                        "planId",
+                        "planVersion",
+                        "startDate",
+                        "endDate"
+                      ],
+                      "properties": {
+                        "planId": {
+                          "type": "integer",
+                          "format": "int64",
+                          "minimum": 1
+                        },
+                        "planVersion": {
+                          "type": "integer",
+                          "minimum": 1
+                        },
+                        "startDate": {
+                          "type": "string",
+                          "format": "date"
+                        },
+                        "endDate": {
+                          "type": "string",
+                          "format": "date"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "입력 값 또는 일정 범위 오류"
+          },
+          "401": {
+            "description": "인증 필요"
+          },
+          "403": {
+            "description": "세션의 전공 정보가 변경됨"
+          },
+          "404": {
+            "description": "본인의 계획이나 과목을 찾을 수 없음"
+          },
+          "409": {
+            "description": "계획 충돌 또는 보호된 일정"
+          }
+        }
+      }
+    },
+    "/api/chat/planner/review-based/plans/{planId}/schedule/preview": {
+      "post": {
+        "summary": "전체 수정 미리보기",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "planId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "expectedPlanVersion": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "startDate": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "endDate": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "weekdayMinutes": {
+                    "type": "object",
+                    "minProperties": 1,
+                    "maxProperties": 7,
+                    "additionalProperties": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 960
+                    }
+                  },
+                  "subjects": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "key",
+                        "minutes"
+                      ],
+                      "properties": {
+                        "key": {
+                          "type": "integer",
+                          "format": "int64",
+                          "minimum": 1
+                        },
+                        "minutes": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 519360
+                        }
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "expectedPlanVersion",
+                  "startDate",
+                  "endDate",
+                  "weekdayMinutes",
+                  "subjects"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "계획 수정 완료",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "status",
+                    "code",
+                    "data"
+                  ],
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "SUCCESS"
+                      ]
+                    },
+                    "code": {
+                      "type": "integer",
+                      "enum": [
+                        200
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "required": [
+                        "approval",
+                        "changed",
+                        "protectedTasks",
+                        "removed",
+                        "added"
+                      ],
+                      "properties": {
+                        "approval": {
+                          "type": "string",
+                          "pattern": "^[0-9a-f]{64}$"
+                        },
+                        "changed": {
+                          "type": "boolean"
+                        },
+                        "protectedTasks": {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        "removed": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "date": {
+                                "type": "string",
+                                "format": "date"
+                              },
+                              "exam": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "subject": {
+                                "type": "string"
+                              },
+                              "minutes": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "maximum": 960
+                              }
+                            }
+                          }
+                        },
+                        "added": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "date": {
+                                "type": "string",
+                                "format": "date"
+                              },
+                              "exam": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "subject": {
+                                "type": "string"
+                              },
+                              "minutes": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "maximum": 960
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "입력 값 또는 일정 범위 오류"
+          },
+          "401": {
+            "description": "인증 필요"
+          },
+          "403": {
+            "description": "세션의 전공 정보가 변경됨"
+          },
+          "404": {
+            "description": "본인의 계획이나 과목을 찾을 수 없음"
+          },
+          "409": {
+            "description": "계획 충돌 또는 보호된 일정"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}

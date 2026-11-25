@@ -1,0 +1,181 @@
+{
+  "info": {
+    "name": "PASS PACE 1122jhg SAMPLE 계획·계정 검증",
+    "description": "격리된 SAMPLE 계정과 DB에서만 실행합니다. 회원탈퇴는 마지막에 수행됩니다.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:0"
+    }
+  ],
+  "item": [
+    {
+      "name": "오늘 항목 날짜 이동",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/chat/planner/review-based/plans/{{planId}}/tasks/{{taskId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"expectedPlanVersion\": {{planVersion}},\n  \"scheduledDate\": \"{{destinationDate}}\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"plan write succeeds\", () => pm.response.to.have.status(200));",
+              "const data = pm.response.json().data;",
+              "pm.test(\"updated value\", () => pm.expect(String(data.scheduledDate)).to.eql(String(pm.variables.get(\"destinationDate\"))));",
+              "if (pm.response.code === 200) pm.environment.set(\"planVersion\", data.planVersion);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "항목 배정시간 수정",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/chat/planner/review-based/plans/{{planId}}/tasks/{{taskId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"expectedPlanVersion\": {{planVersion}},\n  \"estimatedMinutes\": {{scheduledMinutes}}\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"plan write succeeds\", () => pm.response.to.have.status(200));",
+              "const data = pm.response.json().data;",
+              "pm.test(\"updated value\", () => pm.expect(String(data.estimatedMinutes)).to.eql(String(pm.variables.get(\"scheduledMinutes\"))));",
+              "if (pm.response.code === 200) pm.environment.set(\"planVersion\", data.planVersion);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "계획 기간 수정",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/chat/planner/review-based/plans/{{planId}}/period",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"expectedPlanVersion\": {{planVersion}},\n  \"startDate\": \"{{planStartDate}}\",\n  \"endDate\": \"{{planEndDate}}\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"plan write succeeds\", () => pm.response.to.have.status(200));",
+              "const data = pm.response.json().data;",
+              "pm.test(\"updated value\", () => pm.expect(String(data.endDate)).to.eql(String(pm.variables.get(\"planEndDate\"))));",
+              "if (pm.response.code === 200) pm.environment.set(\"planVersion\", data.planVersion);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SAMPLE account withdrawal",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/users/me",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"password\": \"{{withdrawalPassword}}\",\n  \"confirmation\": \"{{withdrawalConfirmation}}\",\n  \"deletePersonalData\": true\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"withdrawal200\",()=>pm.response.to.have.status(200));",
+              "const data=pm.response.json();",
+              "pm.test(\"existing envelope\",()=>{pm.expect(data.status).to.eql(\"SUCCESS\");pm.expect(data.code).to.eql(200);});",
+              "pm.test(\"confirmed withdrawal\",()=>pm.expect(data.data.withdrawn).to.eql(true));",
+              "pm.test(\"personal data deleted\",()=>pm.expect(data.data.personalDataDeleted).to.eql(true));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Old token cannot read profile",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/user-info"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"old token rejected\",()=>pm.response.to.have.status(401));",
+              "pm.test(\"JSON error without redirect\",()=>{pm.expect(pm.response.json().status).to.eql(\"ERROR\");pm.expect(pm.response.headers.has(\"Location\")).to.eql(false);});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

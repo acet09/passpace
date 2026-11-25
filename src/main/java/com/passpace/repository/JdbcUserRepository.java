@@ -102,6 +102,7 @@ public class JdbcUserRepository implements UserRepository {
                 SELECT user_id, login_id, password_hash, nickname, major_type, role
                 FROM USERS
                 WHERE login_id = ?
+                  AND login_id NOT LIKE '~withdrawn:%'
                 """;
 
         List<UserAccount> accounts = jdbc.query(
@@ -127,6 +128,7 @@ public class JdbcUserRepository implements UserRepository {
                 SELECT user_id, login_id, password_hash, nickname, major_type, role
                 FROM USERS
                 WHERE user_id = ?
+                  AND (login_id IS NULL OR login_id NOT LIKE '~withdrawn:%')
                 """;
 
         return jdbc.query(sql, (rs, rowNum) -> new UserAccount(
@@ -145,6 +147,7 @@ public class JdbcUserRepository implements UserRepository {
                 SELECT user_id, login_id, nickname, email, major_type, created_at
                 FROM USERS
                 WHERE user_id = ?
+                  AND (login_id IS NULL OR login_id NOT LIKE '~withdrawn:%')
                 """;
 
         List<UserProfile> profiles = jdbc.query(
@@ -172,6 +175,7 @@ public class JdbcUserRepository implements UserRepository {
                     email = ?,
                     major_type = ?
                 WHERE user_id = ?
+                  AND (login_id IS NULL OR login_id NOT LIKE '~withdrawn:%')
                 """;
 
         jdbc.update(

@@ -11,7 +11,7 @@ spring:
   datasource:
     url: jdbc:mariadb://localhost:3306/passpace_merged
     username: passpace
-    password: passpace
+    password: ${SPRING_DATASOURCE_PASSWORD:}
   sql:
     init:
       mode: never            # 테이블은 db/ 폴더의 SQL을 DBeaver로 직접 실행
@@ -19,7 +19,7 @@ spring:
     cache: false             # 화면 수정 후 새로고침만으로 반영
 
 server:
-  port: 8080
+  port: 8082
   servlet:
     encoding:
       charset: UTF-8
@@ -70,7 +70,7 @@ jwt:
   #  - 개발용 기본값만 여기 둔다. 실제 값은 환경변수 JWT_SECRET 또는 application-local.yml 에 (저장소에 올리지 않음)
   #  - 새 값 만들기: jshell 에서 var b = new byte[32]; new java.security.SecureRandom().nextBytes(b); java.util.Base64.getEncoder().encodeToString(b)
   #  - 바꾸면 그동안 발급된 토큰은 전부 무효 → 모두 다시 로그인
-  secret: ${JWT_SECRET:cGFzc3BhY2UtZGV2LW9ubHktand0LXNlY3JldC1rZXktMjAyNi0xMQ==}
+  secret: ${JWT_SECRET}
   access-token-validity-in-seconds: 86400   # 토큰 유효 시간: 24시간
 
 logging:

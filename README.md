@@ -72,7 +72,7 @@ db/  01_schema(= passpace_erd.sql) → 02_schema_ext → 03_seed (04 는 더미 
 - 응답은 항상 `{"status":"SUCCESS|ERROR","code":200,"data":...}`. 실패 이유는 `error/ErrorCode` 한 곳에 모여 있다
 - 권한 규칙은 `config/SecurityConfig` 한 곳, 토큰 없이 열리는 주소는 `jwt/SecurityPaths` 한 곳에서만 고친다
 - 로그아웃 = 브라우저에 저장된 토큰 지우기 (서버 API 없음). 토큰 유효시간 24시간
-- Swagger: http://localhost:8080/swagger-ui.html → `/auth/login` 실행 → 받은 토큰을 오른쪽 위 **Authorize** 에 넣기
+- Swagger: http://localhost:8082/swagger-ui.html → `/auth/login` 실행 → 받은 토큰을 오른쪽 위 **Authorize** 에 넣기
 - 서명 열쇠 `jwt.secret` 은 개발용 기본값만 `application.yml` 에 있다. 실제 값은 환경변수 `JWT_SECRET` (저장소에 올리지 않음)
 - IntelliJ: Lombok 을 쓰므로 `Settings > Annotation Processors > Enable annotation processing` 체크
 
@@ -98,7 +98,7 @@ GRANT ALL ON passpace_merged.* TO 'passpace'@'localhost';
 - 공공데이터 인증키가 없으면 시험일정은 **샘플(실제 일정 아님)** 로 저장된다
 
 ### 3-4. 실행
-IntelliJ 에서 `PasspaceApplication` 실행 → http://localhost:8080
+IntelliJ 에서 `PasspaceApplication` 실행 → http://localhost:8082
 1. `/admin/collect` → **시험일정 수집 실행** (메인 화면에 일정 카드가 생김)
 2. `/signup` 회원가입 → `/mypage` 에서 목표 회차·하루 시간·과목별 이해도 저장
 3. 오른쪽 아래 💬 → "비전공자가 정보처리기사 필기 준비중이다. 시험날은 3월 20일, 하루 2.5시간. 학습계획 세워줄 수 있는지?"
@@ -163,3 +163,8 @@ IntelliJ 실행 설정 → Active profiles 에 `fake` → 용성의 후기 SQL �
 - **키가 없거나 호출이 실패하면** 예전 Ollama 가 꺼졌을 때와 같이 Java 기본 안내로 답한다. 숫자는 여전히 Java·SQL 이 계산하고 LLM 은 문장만 쓴다.
 - **모델**: 기본 `claude-sonnet-5-5`, `effort: low`. 더 줄이려면 `passpace.claude.model: claude-haiku-5-5`.
 - **테스트**: `gradlew test` 133개 통과. 실제 Claude API 호출(claude-sonnet-5-5)로 상담 답변 생성 확인.
+
+
+## 한결 브랜치 로컬 실행
+
+IntelliJ 실행 설정에 팀원 PC의 MariaDB 비밀번호를 `SPRING_DATASOURCE_PASSWORD`로, 개발용 서명 키를 `JWT_SECRET`으로 지정하세요. 서명 키는 충분히 긴 무작위 값(최소 64바이트)을 사용하고 Git에 올리지 마세요. DB 사용자와 주소가 다르면 `SPRING_DATASOURCE_USERNAME`과 `SPRING_DATASOURCE_URL`도 지정하세요. 개인 설정은 `src/main/resources/application-local.yml`에서도 지정할 수 있습니다.
