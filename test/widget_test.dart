@@ -74,9 +74,20 @@ void main() {
       'https://host/path',
       'ftp://host',
       'https://host?q=a',
+      'http://100.63.255.255:8102',
+      'http://100.128.0.1:8102',
+      'http://100.95.33:8102',
     ]) {
       expect(() => validOrigin(bad), throwsA(isA<ApiError>()));
     }
+    expect(
+      validOrigin('http://100.95.33.60:8102'),
+      'http://100.95.33.60:8102',
+    );
+    expect(
+      validOrigin('http://100.112.211.106:8102/'),
+      'http://100.112.211.106:8102',
+    );
     expect(
       validOrigin('https://study.example.org/'),
       'https://study.example.org',

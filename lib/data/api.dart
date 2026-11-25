@@ -27,13 +27,26 @@ String validOrigin(String raw) {
     throw const ApiError('서버 주소를 포트까지 입력해 주세요. 예: https://study.example.com');
   }
   const local = {'10.0.2.2', '127.0.0.1', 'localhost'};
-  if (u.scheme != 'https' &&
-      !(kDebugMode && u.scheme == 'http' && local.contains(u.host))) {
+  final httpAllowed =
+      u.scheme == 'http' &&
+      (isTailscaleHost(u.host) || (kDebugMode && local.contains(u.host)));
+  if (u.scheme != 'https' && !httpAllowed) {
     throw const ApiError(
-      'HTTPS 주소를 입력해 주세요. 개발 중에는 에뮬레이터 또는 USB 주소도 사용할 수 있어요.',
+      'HTTPS 주소를 입력해 주세요. 배포 서버(Tailscale 100.x 주소)와 개발 중 에뮬레이터·USB 주소는 http 도 사용할 수 있어요.',
     );
   }
   return u.origin;
+}
+
+/// Tailscale 주소(100.64.0.0/10, 예: 배포 서버 100.95.33.60)인지.
+/// Tailscale 연결은 자체 암호화(WireGuard)되므로 이 대역에서는 http 를 허용한다.
+/// 안드로이드는 res/xml/network_security_config.xml 에 같은 서버 IP 가 있어야 실제로 연결된다.
+bool isTailscaleHost(String host) {
+  final parts = host.split('.');
+  if (parts.length != 4) return false;
+  final n = parts.map(int.tryParse).toList();
+  if (n.any((v) => v == null || v < 0 || v > 255)) return false;
+  return n[0] == 100 && n[1]! >= 64 && n[1]! <= 127;
 }
 
 class ApiError implements Exception {
