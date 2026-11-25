@@ -72,7 +72,7 @@ db/  01_schema(= passpace_erd.sql) → 02_schema_ext → 03_seed (04 는 더미 
 - 응답은 항상 `{"status":"SUCCESS|ERROR","code":200,"data":...}`. 실패 이유는 `error/ErrorCode` 한 곳에 모여 있다
 - 권한 규칙은 `config/SecurityConfig` 한 곳, 토큰 없이 열리는 주소는 `jwt/SecurityPaths` 한 곳에서만 고친다
 - 로그아웃 = 브라우저에 저장된 토큰 지우기 (서버 API 없음). 토큰 유효시간 24시간
-- Swagger: http://localhost:8082/swagger-ui.html → `/auth/login` 실행 → 받은 토큰을 오른쪽 위 **Authorize** 에 넣기
+- Swagger: http://localhost:8080/swagger-ui.html → `/auth/login` 실행 → 받은 토큰을 오른쪽 위 **Authorize** 에 넣기
 - 서명 열쇠 `jwt.secret` 은 개발용 기본값만 `application.yml` 에 있다. 실제 값은 환경변수 `JWT_SECRET` (저장소에 올리지 않음)
 - IntelliJ: Lombok 을 쓰므로 `Settings > Annotation Processors > Enable annotation processing` 체크
 
@@ -98,7 +98,7 @@ GRANT ALL ON passpace_merged.* TO 'passpace'@'localhost';
 - 공공데이터 인증키가 없으면 시험일정은 **샘플(실제 일정 아님)** 로 저장된다
 
 ### 3-4. 실행
-IntelliJ 에서 `PasspaceApplication` 실행 → http://localhost:8082
+IntelliJ 에서 `PasspaceApplication` 실행 → http://localhost:8080
 1. `/admin/collect` → **시험일정 수집 실행** (메인 화면에 일정 카드가 생김)
 2. `/signup` 회원가입 → `/mypage` 에서 목표 회차·하루 시간·과목별 이해도 저장
 3. 오른쪽 아래 💬 → "비전공자가 정보처리기사 필기 준비중이다. 시험날은 3월 20일, 하루 2.5시간. 학습계획 세워줄 수 있는지?"

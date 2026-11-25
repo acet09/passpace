@@ -19,7 +19,7 @@ spring:
     cache: false             # 화면 수정 후 새로고침만으로 반영
 
 server:
-  port: 8082
+  port: 8080
   servlet:
     encoding:
       charset: UTF-8
