@@ -88,7 +88,7 @@ class StudyApiContractTest {
             String raw = System.getenv("STUDY_TEST_DB_PORT");
             if (raw == null) throw new IllegalStateException("isolated DB port required");
             int port = Integer.parseInt(raw);
-            if (List.of(3306, 3308, 8080, 18080).contains(port))
+            if (List.of(3306, 3308, 8080, 8082, 18080).contains(port))
                 throw new IllegalStateException("production port forbidden");
             var ds = new DriverManagerDataSource(
                     "jdbc:mariadb://127.0.0.1:" + port + "/study_api_test", "root", "");

@@ -1,5 +1,5 @@
 ﻿param(
-    [ValidateRange(1, 65535)][int]$Port = 8080,
+    [ValidateRange(1, 65535)][int]$Port = 8082,
     [string]$ProjectDir = ''
 )
 
@@ -9,6 +9,8 @@ if (-not $ProjectDir) {
     $appParent = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
     $ProjectDir = @(
         $env:PASSPACE_SERVER_DIR
+        (Join-Path $appParent 'backend')
+        (Join-Path $appParent 'passpace-backend-hangyeol')
         (Join-Path $appParent 'passpace-develop')
         (Join-Path $appParent 'passpacehg')
         (Join-Path $appParent 'passpace')
@@ -69,7 +71,6 @@ function Find-Java21 {
 }
 
 function Connect-UsbPhone {
-    if ($Port -ne 8080) { return }
     $adb = Get-Command adb.exe -ErrorAction SilentlyContinue | Select-Object -First 1 -ExpandProperty Source
     if (-not $adb) {
         foreach ($sdk in @($env:ANDROID_HOME, $env:ANDROID_SDK_ROOT, "$env:LOCALAPPDATA\Android\Sdk")) {
@@ -84,8 +85,8 @@ function Connect-UsbPhone {
     $ErrorActionPreference = 'Continue'
     $state = & $adb -d get-state 2>$null
     if ($LASTEXITCODE -ne 0 -or $state -ne 'device') { return }
-    & $adb -d reverse tcp:8080 tcp:8080 2>$null | Out-Null
-    if ($LASTEXITCODE -eq 0) { Write-Host 'USB 휴대폰이 연결됐습니다. 앱의 서버 설정에서 [USB 연결]을 선택하세요.' }
+    & $adb -d reverse "tcp:$Port" "tcp:$Port" 2>$null | Out-Null
+    if ($LASTEXITCODE -eq 0) { Write-Host "USB 휴대폰이 연결됐습니다. 앱 서버 주소: $baseUrl" }
     else { Write-Host 'USB 포트 연결을 설정하지 못했습니다. 휴대폰 연결 후 다시 눌러 주세요.' }
 }
 

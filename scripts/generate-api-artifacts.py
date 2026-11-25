@@ -100,7 +100,7 @@ def main():
             query('startDate',date),query('endDate',date)])},
     }
     spec={'openapi':'3.0.3','info':{'title':'PASS PACE team study API','version':'1.2.0'},
-          'servers':[{'url':'http://127.0.0.1:8080'}], 'paths':paths,
+          'servers':[{'url':'http://127.0.0.1:8082'}], 'paths':paths,
           'components':{'securitySchemes':{'BearerAuth':{'type':'http','scheme':'bearer','bearerFormat':'JWT'}},
                         'schemas':schemas}}
     (ROOT/'docs/study-api.openapi.json').write_text(json.dumps(spec,ensure_ascii=False,indent=2),encoding='utf-8')

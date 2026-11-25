@@ -27,7 +27,7 @@ void main() {
     if (!isolated ||
         uri?.host != '10.0.2.2' ||
         uri?.scheme != 'http' ||
-        [8080, 18080, 3306, 3308].contains(uri?.port) ||
+        [8080, 8082, 18080, 3306, 3308].contains(uri?.port) ||
         !id.startsWith('app_verify_') ||
         password.isEmpty) {
       throw StateError('합성 계정이 있는 격리 API만 사용할 수 있습니다.');

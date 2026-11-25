@@ -24,7 +24,7 @@ def free_port():
     with socket.socket() as sock:
         sock.bind(('127.0.0.1', 0))
         port = sock.getsockname()[1]
-    assert port not in (3306, 3308, 8080, 18080)
+    assert port not in (3306, 3308, 8080, 8082, 18080)
     return port
 
 

@@ -1,17 +1,17 @@
 # PASS PACE Android
 
-팀 웹 프로젝트 `passpace11144`의 Spring Boot API를 사용하는 Flutter/Dart 안드로이드 앱입니다. 웹과 같은 서버에 로그인하면 같은 회원 정보, 학습 목표, 저장된 계획을 읽고 수정합니다. 이 폴더만 Android Studio에서 열 수 있습니다.
+팀 백엔드 브랜치 `feature/passpace-backend-hangyeol`의 Spring Boot API를 사용하는 Flutter/Dart 안드로이드 앱입니다. 웹과 같은 서버에 로그인하면 같은 회원 정보, 학습 목표, 저장된 계획을 읽고 수정합니다. 이 폴더만 Android Studio에서 열 수 있습니다.
 
 ## Android Studio에서 실행
 
-1. 바탕화면의 **PASS PACE 서버 켜기** 또는 이 폴더의 **서버 켜기.cmd**를 더블클릭합니다. 이 PC의 `C:\Users\std66\passpace11144`에서 Java 21로 서버를 실행합니다. 처음 켰다면 **서버 준비 완료**가 뜬 창을 사용하는 동안 열어 두세요. 이미 켜져 있다면 안내 창은 자동으로 닫힙니다. MariaDB 시작 권한을 묻는 Windows 창이 뜨면 **예**를 누릅니다.
-2. Android Studio에서 **File → Open**으로 `passpace_mobile` 폴더를 엽니다. 이 폴더에 `pubspec.yaml`이 있습니다. Flutter 및 Dart 플러그인이 필요합니다.
-3. Pixel 에뮬레이터를 선택하고 **main.dart → ▶ Run**을 누릅니다. 앱의 기본 개발 서버는 `http://10.0.2.2:8080`입니다.
+1. IntelliJ에서 백엔드 브랜치의 README에 따라 Spring Boot를 실행합니다. 기본 포트는 `8082`입니다. `서버 켜기.cmd`를 사용하는 경우 앱 폴더 옆에 백엔드를 `backend` 폴더로 두거나 `PASSPACE_SERVER_DIR`에 백엔드 경로를 지정하세요.
+2. Android Studio에서 **File → Open**으로 앱 저장소의 루트 폴더를 엽니다. 이 폴더에 `pubspec.yaml`이 있습니다. Flutter 및 Dart 플러그인이 필요합니다.
+3. Pixel 에뮬레이터를 선택하고 **main.dart → ▶ Run**을 누릅니다. 앱의 기본 개발 서버는 `http://10.0.2.2:8082`입니다. 기존 설치에 8080 주소가 저장돼 있다면 **서버 연결 설정 → 에뮬레이터 → 연결 주소 저장**을 한 번 선택하세요.
 4. 로그인 화면에서 웹 계정의 **아이디**와 비밀번호를 입력합니다.
 
 ## 개인 휴대폰에서 사용
 
-- **USB 개발** 기기에서 USB 디버깅과 이 PC의 연결을 허용한 뒤 **PASS PACE 서버 켜기**를 누릅니다. 실행 파일이 연결된 USB 휴대폰 한 대에 8080 포트를 연결합니다. 앱 로그인 화면 오른쪽 위에서 **USB 연결 → 연결 주소 저장**을 한 번 선택하세요. 케이블을 다시 연결했을 때도 같은 바로가기를 누르면 됩니다.
+- **USB 개발** 휴대폰에서 USB 디버깅을 허용한 뒤 PC에서 `adb -d reverse tcp:8082 tcp:8082`를 실행합니다. `서버 켜기.cmd`는 연결된 USB 휴대폰 한 대에 이 설정을 적용합니다. 앱의 **서버 연결 설정 → USB 연결 → 연결 주소 저장**을 선택하면 `http://127.0.0.1:8082`로 연결됩니다. 케이블 재연결 후에는 포트 연결을 다시 적용하세요.
 - **케이블 없이 사용** 휴대폰에서 접근 가능한 HTTPS 팀 서버를 준비하고 로그인 화면의 연결 설정에 그 주소를 저장합니다. 서버 연결이 필요한 기능은 서버와 DB가 실행 중일 때 사용할 수 있습니다.
 - **APK 만들기** 이 폴더에서 `flutter build apk --debug`를 실행합니다. 결과 파일은 `build/app/outputs/flutter-apk/app-debug.apk`입니다. 배포용 기본 서버는 빌드 시 `--dart-define=PASS_PACE_API_URL=https://서비스주소`로 지정합니다. 스토어 배포 시 팀의 정식 서명 설정이 필요합니다.
 

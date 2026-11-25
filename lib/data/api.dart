@@ -10,8 +10,8 @@ import 'study_models.dart';
 import 'study_timer.dart';
 import 'whole_plan.dart';
 
-const emulatorOrigin = 'http://10.0.2.2:8080';
-const usbOrigin = 'http://127.0.0.1:8080';
+const emulatorOrigin = 'http://10.0.2.2:8082';
+const usbOrigin = 'http://127.0.0.1:8082';
 const configuredOrigin = String.fromEnvironment(
   'PASS_PACE_API_URL',
   defaultValue: kDebugMode ? emulatorOrigin : '',
