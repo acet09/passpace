@@ -1,5 +1,5 @@
 ﻿param(
-    [ValidateRange(1, 65535)][int]$Port = 8082,
+    [ValidateRange(1, 65535)][int]$Port = 8080,
     [string]$ProjectDir = ''
 )
 
