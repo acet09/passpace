@@ -191,6 +191,13 @@ public class SqldScheduleCollectService {
         return items;
     }
 
+    /** [11-26] 최신 데이터 파일 원본 JSON (자격증 정보 수집에서 빅데이터분석기사 일정을 고를 때 사용). 키 없으면 null */
+    String latestRawData() {
+        if (serviceKey.isEmpty()) return null;
+        return get(API_BASE + latestFilePath() + "?page=1&perPage=1000&returnType=JSON&serviceKey="
+                + URLEncoder.encode(serviceKey, StandardCharsets.UTF_8));
+    }
+
     /** API 문서에서 summary 날짜(_YYYYMMDD)가 가장 늦은 데이터 파일 경로 */
     String latestFilePath() {
         JsonNode docs = readJson(get(DOCS_URL));

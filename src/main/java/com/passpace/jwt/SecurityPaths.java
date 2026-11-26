@@ -36,6 +36,10 @@ public final class SecurityPaths {
             "/js/**",
             "/favicon.ico",
 
+            // ── [11-26] 지원 자격증 정보 (앱 목록·상세, 개인 정보 없음) ──
+            "/api/certifications",
+            "/api/certifications/*",
+
             // ── 오류 화면 (Spring 이 오류를 보여 줄 때 내부적으로 /error 로 다시 보낸다) ──
             "/error",
     };
