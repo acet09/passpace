@@ -101,7 +101,7 @@ void main() {
     await t.pumpAndSettle();
     await tap(find.widgetWithText(FilledButton, '로그인'));
     await until(
-      () => find.text('모바일검증님의 학습').evaluate().isNotEmpty,
+      () => find.text('오늘 할 학습').evaluate().isNotEmpty,
       why: '로그인 후 대시보드',
     );
     final api = session.account!;
@@ -119,20 +119,25 @@ void main() {
       'familiarity': knowledge,
     });
     expect((await api.goal()).minutes, 125);
-    await tap(find.text('내 정보'));
-    await t.pumpAndSettle();
-    await tap(find.text('학습계획 관리'));
-    await until(() => find.text('목표와 기본 설정').evaluate().isNotEmpty);
+    await tap(
+      find.descendant(
+        of: find.byType(NavigationBar),
+        matching: find.text('학습계획'),
+      ),
+    );
     await capture('learning-plan');
-    await tap(find.text('설정 수정'));
+    expect(find.text('새 계획 기본값'), findsNothing);
+    await tap(find.byTooltip('새 계획 만들기'));
+    await tap(find.text('새 계획 기본값'));
+    await tap(find.text('기본값 수정'));
     await until(() => find.byType(TextField).evaluate().isNotEmpty);
     await capture('goal');
     expect(
       (t.widget<TextField>(find.byType(TextField).first)).controller!.text,
       '125',
     );
-    await tap(find.text('목표 저장'));
-    await until(() => find.text('목표를 저장했어요').evaluate().isNotEmpty);
+    await tap(find.text('기본값 저장'));
+    await tap(find.text('기본값 적용'));
     await capture('goal-saved');
     expect(await api.saved(), isNull);
     final cat = await api.catalog();
@@ -141,7 +146,6 @@ void main() {
           e.subjects.isNotEmpty &&
           e.subjects.every((s) => s['baseHours'] != null),
     );
-    await tap(find.text('이 설정으로 계획 만들기'));
     await until(() => find.text('하루 최대 학습 시간').evaluate().isNotEmpty);
     await capture('plan-time');
     await input(find.byType(TextField).first, '125');
@@ -237,8 +241,8 @@ void main() {
       ),
     );
     await t.pumpAndSettle();
-    await tap(find.text('새 계획 미리보기'));
-    await until(() => find.text('기존 값 불러오기').evaluate().isNotEmpty);
+    await tap(find.byTooltip('새 계획 만들기'));
+    await until(() => find.text('새 계획 기본값').evaluate().isNotEmpty);
     expect(
       t.widget<TextField>(find.byType(TextField).first).controller!.text,
       '125',

@@ -15,6 +15,7 @@ class StudyTimer extends ChangeNotifier {
   final PlanDraftStorage storage;
   final String key;
   final DateTime Function() now;
+  final bool Function()? isPlanChanging;
   final Stopwatch _watch = Stopwatch()..start();
   late final int Function() ticks;
   StudyTimer(
@@ -23,9 +24,9 @@ class StudyTimer extends ChangeNotifier {
     String userId, {
     DateTime Function()? now,
     int Function()? ticks,
+    this.isPlanChanging,
   }) : now = now ?? DateTime.now,
-       key =
-           'passpace.study-timer.v1.${base64Url.encode(utf8.encode('${Uri.parse(origin).origin}\n$userId'))}' {
+       key = accountStorageKey('study-timer', origin, userId) {
     this.ticks = ticks ?? () => _watch.elapsedMilliseconds;
   }
 
@@ -44,6 +45,11 @@ class StudyTimer extends ChangeNotifier {
       phase == StudyTimerPhase.uncertain ||
       phase == StudyTimerPhase.saved;
   bool get available => _alive && !restoring && !loadFailed && !storing;
+  bool get blocksPlanChanges =>
+      !available ||
+      locked ||
+      phase == StudyTimerPhase.running ||
+      elapsed > Duration.zero;
   DateTime _day(DateTime instant) {
     final seoul = instant.toUtc().add(const Duration(hours: 9));
     return DateTime(seoul.year, seoul.month, seoul.day);
@@ -211,6 +217,11 @@ class StudyTimer extends ChangeNotifier {
     if (!available || locked || phase == StudyTimerPhase.running || dayEnded) {
       return false;
     }
+    if (isPlanChanging?.call() == true) {
+      notice = '지금 진행 중인 처리가 끝난 뒤 측정을 시작해 주세요.';
+      _notify();
+      return false;
+    }
     final current = now().toUtc();
     if (date != null && date != _day(current)) {
       dayEnded = true;
@@ -255,7 +266,12 @@ class StudyTimer extends ChangeNotifier {
   }
 
   Future<bool> choose(StudyTaskChoice? value) async {
-    if (!available || locked || phase == StudyTimerPhase.running) return false;
+    if (!available ||
+        locked ||
+        phase == StudyTimerPhase.running ||
+        value != null && isPlanChanging?.call() == true) {
+      return false;
+    }
     task = value;
     return _write();
   }

@@ -64,6 +64,21 @@ void main() {
           ],
         });
       }
+      if (r.url.path == '$plannerPath/catalog') {
+        return _ok({
+          'profileDailyMinutes': minutes,
+          'goals': [
+            {
+              'key': 'sqld',
+              'certificationName': 'SQLD',
+              'suggestedExamDate': isoDay(plusDays(today, 35)),
+              'subjects': [
+                {'subjectId': 11, 'name': 'SQL 활용', 'baseHours': 10},
+              ],
+            },
+          ],
+        });
+      }
       if (r.url.path == '$plannerPath/saved') {
         return _ok({
           'plan': {
@@ -125,23 +140,20 @@ void main() {
         matching: find.text('학습계획'),
       ),
     );
-    await capture('plan-expanded');
-    await tap(find.byTooltip('목표와 기본 설정 접기'));
-    await tap(
-      find.descendant(
-        of: find.byType(NavigationBar),
-        matching: find.text('학습계획'),
-      ),
-    );
-    await capture('plan-collapsed');
-    expect(find.text('설정 수정'), findsNothing);
-    await tap(find.byTooltip('목표와 기본 설정'));
+    await capture('plan');
+    expect(find.text('새 계획 기본값'), findsNothing);
+    await tap(find.byTooltip('새 계획 만들기'));
+    await tap(find.text('새 계획 기본값'));
+    await tap(find.text('기본값 수정'));
     await t.enterText(find.byType(TextField).first, '180');
     FocusManager.instance.primaryFocus?.unfocus();
-    await tap(find.text('목표 저장'));
+    await tap(find.text('기본값 저장'));
     expect(goalWrites, 1);
-    expect(find.byTooltip('목표와 기본 설정 접기'), findsOneWidget);
-    expect(find.text('목표를 저장했어요'), findsOneWidget);
+    await tap(find.text('기본값 적용'));
+    expect(
+      t.widget<TextField>(find.byType(TextField).first).controller!.text,
+      '180',
+    );
     await capture('goal-saved');
     expect(t.takeException(), isNull);
   });

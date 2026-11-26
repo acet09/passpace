@@ -165,6 +165,33 @@ Future<void> toPreview(WidgetTester t) async {
 }
 
 void main() {
+  testWidgets('요일별 공부시간을 초안에서 복원하고 미리보기에 전달한다', (t) async {
+    final f = Fixture();
+    await open(t, f);
+    await tap(t, find.text('요일마다 시간 다르게'));
+    for (final label in ['화', '수', '목', '금', '일']) {
+      await tap(t, find.widgetWithText(FilterChip, label));
+    }
+    final mon = find.byKey(const ValueKey('weekday-minutes-1'));
+    final sat = find.byKey(const ValueKey('weekday-minutes-6'));
+    expect(t.getTopLeft(mon).dy, t.getTopLeft(sat).dy);
+    expect(t.getSize(mon).height, greaterThanOrEqualTo(48));
+    await t.ensureVisible(mon);
+    await t.enterText(mon, '60');
+    await t.ensureVisible(sat);
+    await t.enterText(sat, '240');
+    await t.testTextInput.receiveAction(TextInputAction.done);
+    await t.pump(const Duration(milliseconds: 400));
+    await tap(t, find.byType(BackButton));
+    await tap(t, find.text('계획 열기'));
+    await tap(t, find.text('이어서 작성'));
+    expect(find.text('240'), findsOneWidget);
+    await toPreview(t);
+    expect(f.request!['weekdayMinutes'], {'1': 60, '6': 240});
+    expect(f.request!['dailyMinutes'], 240);
+    expect(f.request!['studyWeekdays'], [1, 6]);
+  });
+
   testWidgets('이전 초안의 기학습 값은 제거하고 시간·요일·이해도만 계산에 보낸다', (t) async {
     final f = Fixture();
     await f.repository.save(
@@ -270,6 +297,7 @@ void main() {
     final f = Fixture();
     await open(t, f);
     await t.enterText(find.byType(TextField).first, '120');
+    await tap(t, find.text('새 계획 기본값'));
     await tap(t, find.text('기존 값 불러오기'));
     await tap(t, find.text('불러오기'));
     expect(
@@ -304,7 +332,10 @@ void main() {
     await tap(t, find.text('바로 사용'));
     expect(find.textContaining('사용 중인 계획이 바뀌었어요'), findsOneWidget);
     expect(f.saves, 0);
-    expect(find.text('버전 2 → 새 계획'), findsOneWidget);
+    await tap(t, find.text('변경 상세 1건 보기'));
+    expect(find.text('현재 45분'), findsOneWidget);
+    expect(find.textContaining('버전 2'), findsNothing);
+    await tap(t, find.byType(BackButton));
     await tap(t, find.text('이 계획 저장'));
     await tap(t, find.text('바로 사용'));
     expect(f.saves, 1);

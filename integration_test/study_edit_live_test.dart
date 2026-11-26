@@ -29,7 +29,7 @@ void main() {
     if (!isolated ||
         uri?.host != '10.0.2.2' ||
         uri?.scheme != 'http' ||
-        [8080, 18080, 3306, 3308].contains(uri?.port) ||
+        [8080, 8082, 18080, 3306, 3308].contains(uri?.port) ||
         !id.startsWith('app_verify_') ||
         password.isEmpty) {
       throw StateError('합성 계정이 있는 격리 API만 사용할 수 있습니다.');
@@ -72,8 +72,17 @@ void main() {
 
     final nav = find.byType(NavigationBar);
     await tap(find.descendant(of: nav, matching: find.text('기록')));
+    await tap(find.byKey(const ValueKey('open-study-history')));
+    final day = find.byKey(ValueKey('history-day-${isoDay(original.date)}'));
+    if (find
+        .descendant(of: day, matching: find.byIcon(Icons.expand_more))
+        .evaluate()
+        .isNotEmpty) {
+      await tap(day);
+    }
     await capture('live-edit-before');
     final edit = find.byKey(ValueKey('study-edit-${original.id}'));
+    await tap(find.byKey(ValueKey('study-actions-${original.id}')));
     await tap(edit);
     expect(
       t
@@ -90,6 +99,7 @@ void main() {
       (await session.account!.studySessions(today, today)).items.single.minutes,
       60,
     );
+    await tap(find.byKey(ValueKey('study-actions-${original.id}')));
     await tap(edit);
     await tap(find.text('공부한 날짜'));
     if (today.month != target.month) {

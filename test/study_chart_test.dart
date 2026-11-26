@@ -21,7 +21,16 @@ void main() {
     await t.pumpWidget(
       MaterialApp(
         theme: paceTheme(),
-        home: Scaffold(body: SingleChildScrollView(child: StudyChart(stats))),
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: StudyChart(
+              stats,
+              subjectsByDay: {
+                end: [(name: 'SAMPLE 과목', minutes: 30, color: blue)],
+              },
+            ),
+          ),
+        ),
       ),
     );
     await t.pumpAndSettle();
@@ -29,9 +38,13 @@ void main() {
     expect(find.text('일별 공부시간'), findsOneWidget);
     expect(find.byKey(const ValueKey('study-day-2026-11-16')), findsOneWidget);
     expect(find.textContaining('1시간 25분'), findsWidgets);
+    expect(find.textContaining('이 날짜의 과목별 시간을 확인할 수 없어요'), findsOneWidget);
+    expect(find.text('SAMPLE 과목'), findsNothing);
     final ink = find.descendant(
       of: find.byKey(const ValueKey('study-day-2026-11-16')),
-      matching: find.byWidgetPredicate((w) => w is ColoredBox && w.color == blue),
+      matching: find.byWidgetPredicate(
+        (w) => w is ColoredBox && w.color == muted,
+      ),
     );
     expect(t.getSize(ink).height, 5);
     expect(t.getSize(ink).width, greaterThan(0));

@@ -10,6 +10,11 @@ import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
     private var studyTimer: StudyTimerBridge? = null
+    override fun cleanUpFlutterEngine(flutterEngine: FlutterEngine) {
+        studyTimer?.close()
+        studyTimer = null
+        super.cleanUpFlutterEngine(flutterEngine)
+    }
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)

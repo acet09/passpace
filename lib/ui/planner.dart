@@ -7,6 +7,7 @@ import '../data/api.dart';
 import '../data/models.dart';
 import '../data/plan_draft.dart';
 import '../data/plan_comparison.dart';
+import 'goal.dart';
 import 'plan_comparison.dart';
 import 'plan_list.dart';
 import 'design.dart';
@@ -14,7 +15,13 @@ import 'design.dart';
 class PlannerScreen extends StatelessWidget {
   final PassApi api;
   final PlanDraftRepository draftRepository;
-  const PlannerScreen(this.api, {super.key, required this.draftRepository});
+  final ValueChanged<Future<GoalData>>? onDefaultsChanged;
+  const PlannerScreen(
+    this.api, {
+    super.key,
+    required this.draftRepository,
+    this.onDefaultsChanged,
+  });
   Future<_PlannerSetup> _load() async {
     String? goalError, draftError;
     Future<GoalData?> readGoal() async {
@@ -55,7 +62,7 @@ class PlannerScreen extends StatelessWidget {
     body: SafeArea(
       child: LoadBox<_PlannerSetup>(
         load: _load,
-        content: (c) => _PlanForm(api, c, draftRepository),
+        content: (c) => _PlanForm(api, c, draftRepository, onDefaultsChanged),
       ),
     ),
   );
@@ -77,23 +84,34 @@ class _PlannerSetup {
 
 class PlanSaveResult {
   final bool draftCleared;
-  const PlanSaveResult(this.draftCleared);
+  final bool activated;
+  const PlanSaveResult(this.draftCleared, {required this.activated});
 }
 
 class _PlanForm extends StatefulWidget {
   final PassApi api;
   final _PlannerSetup setup;
   final PlanDraftRepository repository;
+  final ValueChanged<Future<GoalData>>? onDefaultsChanged;
   Catalog get catalog => setup.catalog;
-  const _PlanForm(this.api, this.setup, this.repository);
+  const _PlanForm(
+    this.api,
+    this.setup,
+    this.repository,
+    this.onDefaultsChanged,
+  );
   @override
   State<_PlanForm> createState() => _PlanFormState();
 }
+
+enum _DefaultsAction { load, edit }
 
 class _PlanFormState extends State<_PlanForm> with WidgetsBindingObserver {
   final today = dayInSeoul();
   late final endLimit = plusDays(today, 540);
   final days = {1, 2, 3, 4, 5, 6, 7};
+  bool byWeekday = false;
+  final weekdayInputs = <int, String>{};
   late final minutes = TextEditingController(
     text:
         (widget.setup.goal?.minutes ?? widget.catalog.minutes)?.toString() ??
@@ -112,6 +130,7 @@ class _PlanFormState extends State<_PlanForm> with WidgetsBindingObserver {
   final scroll = ScrollController();
   int step = 0;
   bool busy = false;
+  bool defaultsBusy = false;
   String? error;
   late GoalData? profile = widget.setup.goal;
   late PlannerDraft? pendingDraft = widget.setup.draft;
@@ -127,7 +146,7 @@ class _PlanFormState extends State<_PlanForm> with WidgetsBindingObserver {
     _tracking = pendingDraft == null && draftProblem == null;
     if (widget.setup.goal?.minutes != null ||
         drafts.values.any((d) => d.familiarity.isNotEmpty)) {
-      restoreNote = '저장한 목표 값을 미리 채웠어요.';
+      restoreNote = '저장한 기본값을 미리 채웠어요.';
     }
     minutes.addListener(_changed);
     WidgetsBinding.instance.addObserver(this);
@@ -153,6 +172,7 @@ class _PlanFormState extends State<_PlanForm> with WidgetsBindingObserver {
   PlannerDraft _snapshot() => PlannerDraft(
     minutes: minutes.text,
     weekdays: Set.of(days),
+    weekdayInputs: byWeekday ? Map.of(weekdayInputs) : null,
     exams: Map.of(drafts),
     step: step,
     updatedAt: DateTime.now().toUtc(),
@@ -190,7 +210,7 @@ class _PlanFormState extends State<_PlanForm> with WidgetsBindingObserver {
   }
 
   Future<void> _back() async {
-    if (busy || _leaving) return;
+    if (busy || defaultsBusy || _leaving) return;
     if (pendingDraft != null || draftProblem != null) {
       Navigator.pop(context);
       return;
@@ -278,6 +298,10 @@ class _PlanFormState extends State<_PlanForm> with WidgetsBindingObserver {
     }
     setState(() {
       step = draft.step;
+      byWeekday = draft.weekdayInputs != null;
+      weekdayInputs
+        ..clear()
+        ..addAll(draft.weekdayInputs ?? {});
       pendingDraft = null;
       _tracking = true;
       restoreNote = ['기기에 저장한 초안을 복원했어요.', ...notes.toSet()].join(' ');
@@ -285,23 +309,76 @@ class _PlanFormState extends State<_PlanForm> with WidgetsBindingObserver {
     _changed();
   }
 
-  Future<void> _reloadProfile() async {
+  Future<void> _openDefaults() async {
+    if (busy || defaultsBusy || _leaving) return;
+    FocusScope.of(context).unfocus();
+    final action = await showModalBottomSheet<_DefaultsAction>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (sheet) => SafeArea(
+        top: false,
+        child: ListView(
+          primary: false,
+          shrinkWrap: true,
+          padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
+          children: [
+            const Heading('새 계획에 사용할 기본값'),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.download_outlined),
+              title: const Text('기존 값 불러오기'),
+              onTap: () => Navigator.pop(sheet, _DefaultsAction.load),
+            ),
+            const Divider(),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.edit_outlined),
+              title: const Text('기본값 수정'),
+              onTap: () => Navigator.pop(sheet, _DefaultsAction.edit),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (!mounted || action == null) return;
+    setState(() => defaultsBusy = true);
     try {
-      final goal = await widget.api.goal();
+      final editing = action == _DefaultsAction.edit;
+      if (editing) {
+        final saved = await Navigator.push<bool>(
+          context,
+          MaterialPageRoute(builder: (_) => GoalScreen(widget.api)),
+        );
+        if (!mounted || saved != true) return;
+        setState(() => restoreNote = '기본값을 저장했어요. 현재 입력은 그대로예요.');
+      }
+      await _reloadProfile(afterEditing: editing);
+    } finally {
+      if (mounted) setState(() => defaultsBusy = false);
+    }
+  }
+
+  Future<void> _reloadProfile({required bool afterEditing}) async {
+    try {
+      final request = widget.api.goal();
+      if (afterEditing) widget.onDefaultsChanged?.call(request);
+      final goal = await request;
       if (!mounted) return;
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (c) => AlertDialog(
-          title: const Text('저장한 값을 불러올까요?'),
-          content: const Text('하루 가용 시간과 과목 ID가 일치하는 이해도를 입력란에 적용해요.'),
+          scrollable: true,
+          title: Text(afterEditing ? '새 기본값을 적용할까요?' : '저장한 값을 불러올까요?'),
+          content: const Text('하루 학습 시간과 일치하는 과목의 이해도를 현재 입력에 적용해요.'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(c, false),
-              child: const Text('취소'),
+              child: Text(afterEditing ? '현재 입력 유지' : '취소'),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(c, true),
-              child: const Text('불러오기'),
+              child: Text(afterEditing ? '기본값 적용' : '불러오기'),
             ),
           ],
         ),
@@ -315,7 +392,7 @@ class _PlanFormState extends State<_PlanForm> with WidgetsBindingObserver {
       setState(() {
         profile = goal;
         profileNote = null;
-        restoreNote = '저장한 목표를 불러왔어요.';
+        restoreNote = '저장한 기본값을 적용했어요.';
         _tracking = true;
       });
       _changed();
@@ -355,12 +432,27 @@ class _PlanFormState extends State<_PlanForm> with WidgetsBindingObserver {
   }
 
   int validatedMinutes() {
+    if (days.isEmpty) throw const ApiError('공부할 요일을 하나 이상 선택해 주세요.');
+    if (byWeekday) {
+      return weekdayMinutes().values.reduce((a, b) => a > b ? a : b);
+    }
     final n = int.tryParse(minutes.text.trim());
     if (n == null || n < 30 || n > 960) {
       throw const ApiError('하루 공부할 시간은 30~960분으로 입력해 주세요.');
     }
-    if (days.isEmpty) throw const ApiError('공부할 요일을 하나 이상 선택해 주세요.');
     return n;
+  }
+
+  Map<int, int> weekdayMinutes() {
+    final result = <int, int>{};
+    for (final day in days.toList()..sort()) {
+      final n = int.tryParse(weekdayInputs[day] ?? minutes.text);
+      if (n == null || n < 30 || n > 960) {
+        throw ApiError('${weekdays[day - 1]}요일 시간은 30~960분으로 입력해 주세요.');
+      }
+      result[day] = n;
+    }
+    return result;
   }
 
   void validateExams() {
@@ -412,6 +504,8 @@ class _PlanFormState extends State<_PlanForm> with WidgetsBindingObserver {
     return {
       'dailyMinutes': n,
       'studyWeekdays': days.toList()..sort(),
+      if (byWeekday)
+        'weekdayMinutes': weekdayMinutes().map((day, n) => MapEntry('$day', n)),
       'goals': goals,
     };
   }
@@ -426,7 +520,7 @@ class _PlanFormState extends State<_PlanForm> with WidgetsBindingObserver {
   }
 
   Future<void> next() async {
-    if (busy) return;
+    if (busy || defaultsBusy) return;
     try {
       if (step == 0) {
         validatedMinutes();
@@ -494,7 +588,7 @@ class _PlanFormState extends State<_PlanForm> with WidgetsBindingObserver {
     children: [
       const SizedBox(height: 22),
       const Text(
-        '학습할 시간을 정해요',
+        '공부 시간을 정해요',
         style: TextStyle(
           fontSize: 24,
           fontWeight: FontWeight.w800,
@@ -504,33 +598,62 @@ class _PlanFormState extends State<_PlanForm> with WidgetsBindingObserver {
       ),
       const SizedBox(height: 10),
       const HelpText('선택한 요일에 공부할 수 있는 최대 시간을 정해 주세요.'),
-      const SizedBox(height: 22),
-      TextField(
-        controller: minutes,
-        keyboardType: TextInputType.number,
-        inputFormatters: [
-          FilteringTextInputFormatter.digitsOnly,
-          LengthLimitingTextInputFormatter(3),
-        ],
-        decoration: const InputDecoration(
-          labelText: '하루 최대 학습 시간',
-          suffixText: '분',
-          helperText: '30분부터 16시간까지 입력할 수 있어요.',
+      ListTile(
+        contentPadding: EdgeInsets.zero,
+        onTap: busy || defaultsBusy ? null : _openDefaults,
+        title: Text(
+          defaultsBusy ? '기본값을 확인하는 중…' : '새 계획 기본값',
+          style: const TextStyle(color: blue, fontWeight: FontWeight.w600),
         ),
-        onChanged: (_) => setState(() {}),
+        trailing: const Icon(Icons.chevron_right_rounded),
       ),
-      const SizedBox(height: 8),
-      Wrap(
-        spacing: 8,
-        children: [
-          for (final n in [60, 90, 120, 180])
-            ChoiceChip(
-              label: Text(durationLabel(n)),
-              selected: minutes.text == n.toString(),
-              onSelected: (_) => setState(() => minutes.text = n.toString()),
-            ),
-        ],
+      const Divider(),
+      SwitchListTile(
+        contentPadding: EdgeInsets.zero,
+        title: const Text('요일마다 시간 다르게'),
+        value: byWeekday,
+        onChanged: (value) {
+          FocusScope.of(context).unfocus();
+          _edit(() {
+            byWeekday = value;
+            if (value) {
+              for (var day = 1; day <= 7; day++) {
+                weekdayInputs.putIfAbsent(day, () => minutes.text);
+              }
+            }
+            error = null;
+          });
+        },
       ),
+      if (!byWeekday) ...[
+        const SizedBox(height: 10),
+        TextField(
+          controller: minutes,
+          keyboardType: TextInputType.number,
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly,
+            LengthLimitingTextInputFormatter(3),
+          ],
+          decoration: const InputDecoration(
+            labelText: '하루 최대 학습 시간',
+            suffixText: '분',
+            helperText: '30분부터 16시간까지 입력할 수 있어요.',
+          ),
+          onChanged: (_) => setState(() {}),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          children: [
+            for (final n in [60, 90, 120, 180])
+              ChoiceChip(
+                label: Text(durationLabel(n)),
+                selected: minutes.text == n.toString(),
+                onSelected: (_) => setState(() => minutes.text = n.toString()),
+              ),
+          ],
+        ),
+      ],
       const Heading('공부할 요일'),
       Wrap(
         spacing: 7,
@@ -551,6 +674,69 @@ class _PlanFormState extends State<_PlanForm> with WidgetsBindingObserver {
         ),
       ),
       const SizedBox(height: 12),
+      if (byWeekday && days.isNotEmpty) ...[
+        const HelpText('요일별 최대 학습 시간 · 30~960분'),
+        const SizedBox(height: 12),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            const gap = 10.0;
+            final columns =
+                constraints.maxWidth >= 270 &&
+                    MediaQuery.textScalerOf(context).scale(14) <= 19
+                ? 2
+                : 1;
+            final width =
+                (constraints.maxWidth - (columns - 1) * gap) / columns;
+            return Wrap(
+              spacing: gap,
+              runSpacing: gap,
+              children: [
+                for (final day in days.toList()..sort())
+                  SizedBox(
+                    key: ValueKey('weekday-field-$day'),
+                    width: width,
+                    child: Semantics(
+                      label: '${weekdays[day - 1]}요일 최대 학습 시간',
+                      child: TextFormField(
+                        key: ValueKey('weekday-minutes-$day'),
+                        initialValue: weekdayInputs[day] ?? minutes.text,
+                        keyboardType: TextInputType.number,
+                        textInputAction: TextInputAction.done,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          LengthLimitingTextInputFormatter(3),
+                        ],
+                        decoration: InputDecoration(
+                          constraints: const BoxConstraints(minHeight: 48),
+                          prefixIconConstraints: const BoxConstraints(),
+                          prefixIcon: ExcludeSemantics(
+                            child: Padding(
+                              padding: const EdgeInsetsDirectional.only(
+                                start: 12,
+                                end: 12,
+                              ),
+                              child: Text(weekdays[day - 1]),
+                            ),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 12,
+                          ),
+                          suffixText: '분',
+                        ),
+                        onChanged: (value) {
+                          weekdayInputs[day] = value;
+                          _changed();
+                        },
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
+        ),
+        const SizedBox(height: 12),
+      ],
       Pane(
         color: pale,
         child: Row(
@@ -765,41 +951,26 @@ class _PlanFormState extends State<_PlanForm> with WidgetsBindingObserver {
     child: pendingDraft != null || draftProblem != null
         ? _draftChoice()
         : AbsorbPointer(
-            absorbing: busy || _leaving,
+            absorbing: busy || defaultsBusy || _leaving,
             child: Column(
               children: [
                 Expanded(
                   child: ScrollBody(
                     controller: scroll,
                     children: [
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.edit_note_rounded,
-                            size: 17,
-                            color: muted,
-                          ),
-                          const SizedBox(width: 7),
-                          Expanded(
-                            child: Text(
-                              _dirty
-                                  ? _savedRevision < _revision
-                                        ? '초안 저장 중…'
-                                        : '이 기기에 초안 저장됨'
-                                  : '입력하면 이 기기에 초안이 자동 저장돼요.',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: muted,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
                       StepHeader(
                         current: step,
                         labels: const ['시간과 요일', '목표 시험', '과목 이해도'],
                       ),
+                      if (_dirty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 10),
+                          child: HelpText(
+                            _savedRevision < _revision
+                                ? '초안 저장 중…'
+                                : '이 기기에 초안 저장됨',
+                          ),
+                        ),
                       if (restoreNote != null)
                         Padding(
                           padding: const EdgeInsets.only(top: 12),
@@ -813,15 +984,6 @@ class _PlanFormState extends State<_PlanForm> with WidgetsBindingObserver {
                           child: const Text('초안 저장 다시 시도'),
                         ),
                       ],
-                      if (step == 0)
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: TextButton.icon(
-                            onPressed: busy ? null : _reloadProfile,
-                            icon: const Icon(Icons.download_rounded, size: 17),
-                            label: const Text('기존 값 불러오기'),
-                          ),
-                        ),
                       Entrance(
                         key: ValueKey(step),
                         child: step == 0
@@ -835,12 +997,13 @@ class _PlanFormState extends State<_PlanForm> with WidgetsBindingObserver {
                 ),
                 StickyActions(
                   step == 2 ? '계획 미리보기' : '다음',
-                  widget.catalog.exams.isEmpty ? null : next,
+                  widget.catalog.exams.isEmpty || defaultsBusy ? null : next,
                   onBack: step == 0 ? null : () => move(step - 1),
                   busy: busy || _leaving,
                   error: error,
                   summary: step == 2
-                      ? '${selected.length}개 시험 · 주 ${days.length}일 · 하루 ${minutes.text}분'
+                      ? '${selected.length}개 시험 · 주 ${days.length}일 · '
+                            '${byWeekday ? '요일별 시간 설정' : '하루 ${minutes.text}분'}'
                       : null,
                 ),
               ],
@@ -874,7 +1037,7 @@ class _PreviewScreenState extends State<_PreviewScreen> {
   late PlanComparison comparison = PlanComparison(previous, widget.result);
   Future<void> save() async {
     if (busy) return;
-    final activate = await askPlanSave(context);
+    final activate = await askPlanSave(context, widget.api);
     if (!mounted || activate == null) return;
     setState(() {
       busy = true;
@@ -896,7 +1059,9 @@ class _PreviewScreenState extends State<_PreviewScreen> {
       }
       await widget.api.save(widget.form, activate: activate);
       final cleared = await widget.onCommitted();
-      if (mounted) Navigator.pop(context, PlanSaveResult(cleared));
+      if (mounted) {
+        Navigator.pop(context, PlanSaveResult(cleared, activated: activate));
+      }
     } catch (e) {
       if (mounted) setState(() => error = friendly(e));
     } finally {

@@ -28,8 +28,10 @@ String durationLabel(int minutes) {
 
 class Profile {
   final String id, name, email, major;
+  final int? userId;
   Profile.from(Json j)
     : id = j['loginId'] as String,
+      userId = j['userId'] as int?,
       name = j['nickname'] as String,
       email = j['email'] as String? ?? '',
       major = j['majorTypeLabel'] as String? ?? majors[j['majorType']] ?? '미설정';
@@ -39,8 +41,10 @@ class StudyTask {
   final DateTime date;
   final String exam, subject;
   final int minutes;
+  final int? id;
   StudyTask.from(Json j)
     : date = DateTime.parse(j['date']),
+      id = j['taskId'] as int?,
       exam = j['certificationName'] as String? ?? '',
       subject = j['subjectName'] as String,
       minutes = j['minutes'] as int;
@@ -63,6 +67,9 @@ class SavedPlan {
     }
   }
   List<StudyTask> on(DateTime d) => byDay[isoDay(d)] ?? const [];
+  bool get canEditSchedule =>
+      id != null &&
+      byDay.values.expand((tasks) => tasks).any((task) => task.id != null);
   List<String> get exams => byDay.values
       .expand((v) => v)
       .map((t) => t.exam)

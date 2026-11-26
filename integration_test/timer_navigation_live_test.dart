@@ -5,6 +5,7 @@ import 'package:integration_test/integration_test.dart';
 import 'package:passpace_mobile/data/models.dart';
 import 'package:passpace_mobile/data/session.dart';
 import 'package:passpace_mobile/main.dart';
+import 'package:passpace_mobile/ui/plan_month_calendar.dart';
 import 'package:passpace_mobile/ui/study_timer_screen.dart';
 
 import '../test/support/draft_storage.dart';
@@ -41,7 +42,7 @@ void main() {
     if (!isolated ||
         uri?.host != '10.0.2.2' ||
         uri?.scheme != 'http' ||
-        [8080, 18080, 3306, 3308].contains(uri?.port) ||
+        [8080, 8082, 18080, 3306, 3308].contains(uri?.port) ||
         !id.startsWith('app_verify_') ||
         password.isEmpty) {
       throw StateError('합성 계정이 있는 격리 API만 사용할 수 있습니다.');
@@ -163,20 +164,15 @@ void main() {
     await tap(
       find.descendant(of: find.byType(NavigationBar), matching: find.text('홈')),
     );
-    await tap(find.byKey(const ValueKey('home-calendar-expand')));
-    expect(find.byKey(const ValueKey('home-month-calendar')), findsOneWidget);
-    await capture('live-navigation-home-month');
-    await tap(find.byTooltip('다음 달'));
-    await capture('live-navigation-home-next-month');
-    await tap(
-      find.descendant(
-        of: find.byType(NavigationBar),
-        matching: find.text('학습계획'),
-      ),
-    );
+    expect(find.byType(PlanMonthCalendar), findsNothing);
+    await capture('live-navigation-home-today');
+    await tap(find.text('학습 일정 보기'));
+    await tap(find.text('전체 일정'));
     await t.ensureVisible(find.byKey(const ValueKey('plan-month-calendar')));
     await t.pumpAndSettle();
     await capture('live-navigation-plan-month');
+    await tap(find.byTooltip('다음 달'));
+    await capture('live-navigation-plan-next-month');
     await tap(
       find.descendant(
         of: find.byType(NavigationBar),
@@ -195,9 +191,9 @@ void main() {
         'notification-tap-returns-from-home',
         'actual-one-minute-and-one-POST',
         'separate-history-and-statistics',
-        'home-expanded-month',
-        'home-next-month',
-        'plan-default-month',
+        'home-today-and-plan-link',
+        'plan-month',
+        'plan-next-month',
         'record-tab-reentry-direct-timer',
       ],
       'measuredMinutes': measured,

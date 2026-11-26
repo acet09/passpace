@@ -33,7 +33,7 @@ void main() {
     }
 
     await tap(fixture.tab('학습계획'));
-    await tap(find.byTooltip('목표와 기본 설정 접기'));
+    expect(find.text('새 계획 기본값'), findsNothing);
     await tap(find.text('전체 일정'));
     final calendar = find.byKey(const ValueKey('plan-month-calendar'));
     await t.ensureVisible(calendar);

@@ -29,7 +29,7 @@ void main() {
     if (!isolated ||
         uri?.host != '10.0.2.2' ||
         uri?.scheme != 'http' ||
-        [8080, 18080, 3306, 3308].contains(uri?.port) ||
+        [8080, 8082, 18080, 3306, 3308].contains(uri?.port) ||
         !id.startsWith('app_verify_') ||
         password.isEmpty) {
       throw StateError('합성 계정이 있는 격리 API만 사용할 수 있습니다.');
@@ -75,8 +75,9 @@ void main() {
         matching: find.text('기록'),
       ),
     );
+    await tap(find.byKey(const ValueKey('open-study-history')));
     await capture('live-study-history-before');
-    await tap(find.text('공부시간 추가'));
+    await tap(find.byKey(const ValueKey('history-add')));
     await t.enterText(find.byKey(const ValueKey('study-minutes')), '45');
     FocusManager.instance.primaryFocus?.unfocus();
     await t.pumpAndSettle();

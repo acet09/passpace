@@ -53,6 +53,7 @@ Future<void> showProgress(
   VoidCallback? forbidden,
   bool Function()? canRead,
   double? scale,
+  double maxDiameter = 320,
   StudyTimerPhase phase = StudyTimerPhase.paused,
   bool active = true,
 }) async {
@@ -74,6 +75,7 @@ Future<void> showProgress(
                 date: date ?? f.today,
                 elapsed: elapsed,
                 label: '00:15:00',
+                maxDiameter: maxDiameter,
                 phase: phase,
                 active: active,
                 canRead: canRead ?? () => true,
@@ -152,6 +154,7 @@ void main() {
     await showProgress(t, f);
     expect(progress(t), .5);
     expect(find.text('배정 30분'), findsOneWidget);
+    expect(find.textContaining('배정 기준'), findsNothing);
     expect(find.textContaining('50%'), findsOneWidget);
     expect(find.byKey(const ValueKey('study-timer-clock')), findsOneWidget);
     final readCount = f.requests.length;
@@ -294,13 +297,13 @@ void main() {
         late StudyFixture f;
         f = StudyFixture(
           override: (r) async => r.url.path == '$plannerPath/saved'
-              ? studyEnvelope({'plan': planFor(f)})
+              ? studyEnvelope({'plan': planFor(f, minutes: 100)})
               : null,
         );
         addTearDown(f.dispose);
-        await showProgress(t, f, scale: scale);
+        await showProgress(t, f, scale: scale, maxDiameter: 200);
         expect(t.takeException(), isNull);
-        expect(progress(t), .5);
+        expect(progress(t), .15);
       });
     }
   }

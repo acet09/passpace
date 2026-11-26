@@ -12,11 +12,15 @@ import io.flutter.plugin.common.MethodChannel
 
 class StudyTimerBridge(private val activity: Activity, messenger: BinaryMessenger) {
     private val channel = MethodChannel(messenger, "kr.passpace.mobile/study-timer")
+    private val onAction: (String, Boolean) -> Unit = { owner, running ->
+        channel.invokeMethod("timerAction", mapOf("owner" to owner, "running" to running))
+    }
     private var permission: MethodChannel.Result? = null
     private var pendingOpen = activity.intent?.getBooleanExtra("open_study_timer", false) == true
     companion object { const val PERMISSION = 17042 }
     init {
         StudyTimerService.attachClient()
+        StudyTimerService.actionHandler = onAction
         activity.intent?.removeExtra("open_study_timer")
         channel.setMethodCallHandler { call, result ->
             try {
@@ -36,6 +40,7 @@ class StudyTimerBridge(private val activity: Activity, messenger: BinaryMessenge
                             .putExtra("owner", owner).putExtra("subject", call.argument<String>("subject"))
                             .putExtra("elapsedMs", call.argument<Number>("elapsedMs")?.toLong() ?: -1L)
                             .putExtra("endUtcMs", call.argument<Number>("endUtcMs")?.toLong() ?: -1L)
+                            .putExtra("running", call.argument<Boolean>("running") ?: true)
                         if (Build.VERSION.SDK_INT >= 26) activity.startForegroundService(intent) else activity.startService(intent)
                         result.success(null)
                     }
@@ -63,5 +68,12 @@ class StudyTimerBridge(private val activity: Activity, messenger: BinaryMessenge
         if (!intent.getBooleanExtra("open_study_timer", false)) return
         intent.removeExtra("open_study_timer"); pendingOpen = true
         channel.invokeMethod("openTimer", null)
+    }
+    fun close() {
+        if (StudyTimerService.actionHandler === onAction) {
+            StudyTimerService.actionHandler = null
+            StudyTimerService.attachClient()
+        }
+        channel.setMethodCallHandler(null)
     }
 }
