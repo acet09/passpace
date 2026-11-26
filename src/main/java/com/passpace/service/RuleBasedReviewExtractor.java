@@ -76,6 +76,30 @@ public class RuleBasedReviewExtractor implements ReviewExtractor {
     private static final Pattern TOTAL_LOG = Pattern.compile(
             "(?:합계|(?<!(?:하루|매일|평균|평일|주말|일일|주당)(?:에|엔|에는)?\\s{0,2})공부\\s*시간)[\\s|*:은는]{0,12}(?:약|대략)?\\s*"
                     + "(\\d{1,4}(?:\\.\\d)?)\\s*(?:시간|[hH](?![A-Za-z]))(?:\\s*(\\d{1,2})\\s*(?:분|[mM](?![A-Za-z])))?(?!\\s*(?:씩|정도\\s*씩))");
+    // [11-23] "시간 정보 없음"으로 빠진 후기 표본(티스토리·velog 18건)에서 찾은 표현. 기존 규칙이 값을 못 찾았을 때만 쓴다
+    //  - 준비 기간: "약 3주의 기간", "기간은 1-2주로", "시험 7일 전부터 준비", "공부할 수 있는 날은 7일",
+    //              "4월 26일 ~ 5월 17일 공부", "시험 하루 전에 공부"·"전날 벼락치기"(= 1일)
+    //  - 총 공부시간: "1일 (10시간) 벼락치기", "10시간 벼락치기", "전날 14시간 정도 공부"
+    private static final Pattern PERIOD_OF = Pattern.compile("(?<![\\d.])(\\d{1,3})\\s*(일|주)\\s*(?:가량|정도)?\\s*의\\s*(?:준비\\s*|공부\\s*)?기간");
+    private static final Pattern PERIOD_RANGE = Pattern.compile(
+            "(?:(?<!(?:접수|원서|발표|시험)\\s?)기간|준비(?!물)|공부)[^.!?\\n\\d]{0,10}?(\\d{1,2})\\s*(?:~|-|∼|〜)\\s*(\\d{1,2})\\s*(일|주|개월|달)");
+    private static final Pattern DAYS_BEFORE_START = Pattern.compile(
+            "(?<![\\d.])(\\d{1,3})\\s*(일|주)\\s*전부터[^.!?\\n]{0,10}?(?:준비|공부)");
+    private static final Pattern AVAILABLE_DAYS = Pattern.compile(
+            "공부\\s*할\\s*수\\s*있는\\s*(?:날|기간)\\s*[은는이]?\\s*(?:약|총)?\\s*(\\d{1,3})\\s*일");
+    private static final Pattern DATE_SPAN = Pattern.compile(
+            "(\\d{1,2})\\s*월\\s*(\\d{1,2})\\s*일\\s*(부터)?\\s*([^.!?\\n]{0,30}?)(\\d{1,2})\\s*월\\s*(\\d{1,2})\\s*일\\s*(까지)?([^.!?\\n]{0,20})");
+    private static final Pattern STUDY_WORD = Pattern.compile("공부|준비(?!물)|학습");
+    /** 날짜 범위가 시험 일정(접수·발표 등)이면 준비 기간이 아니다 */
+    private static final Pattern SCHEDULE_WORD = Pattern.compile("접수|원서|발표|시행|응시료|일정|공고");
+    private static final Pattern EVE_STUDY = Pattern.compile(
+            "(?:하루\\s*전(?:날)?에?|전날(?:에)?)[^.!?\\n]{0,20}?(?:공부|벼락|훑|준비(?!물))");
+    private static final Pattern DAY_PAREN_HOURS = Pattern.compile("(?<![\\d.])(\\d{1,2})\\s*일\\s*\\(\\s*(\\d{1,3})\\s*시간\\s*\\)");
+    private static final Pattern CRAM_HOURS = Pattern.compile(
+            "(?<![\\d.])(\\d{1,3})\\s*시간\\s*(?:만에\\s*)?벼락\\s*치기(?!\\s*(?:특강|강의|영상|요약))");
+    private static final Pattern EVE_HOURS = Pattern.compile(
+            "(?:전날|하루\\s*전)[^.!?\\n\\d]{0,25}?(\\d{1,2})\\s*시간\\s*(?:정도|가량|쯤|넘게)?\\s*(?:공부|벼락)");
+
     // 응시 연도·회차: "2025년 2회", "2025 1회차"
     private static final Pattern ROUND = Pattern.compile("(20\\d{2})\\s*년?\\s*(?:정기\\s*)?(?:기사\\s*)?(\\d)\\s*회");
     private static final Pattern PROOF = Pattern.compile("최종\\s*합격|합격\\s*(?:증|화면|인증|확인|발표)|\\d{2,3}\\s*점");
@@ -214,7 +238,57 @@ public class RuleBasedReviewExtractor implements ReviewExtractor {
             default -> 15;          // 보름
         };
         if (HALF_YEAR.matcher(s).find()) return 180;
+        return morePrepDays(s);
+    }
+
+    /** [11-23] 기존 규칙이 못 찾은 준비 기간 표현 (표본 분석 결과). 못 찾으면 null */
+    static Integer morePrepDays(String s) {
+        Matcher m = PERIOD_OF.matcher(s);
+        if (m.find()) return Integer.parseInt(m.group(1)) * ("주".equals(m.group(2)) ? 7 : 1);
+        m = PERIOD_RANGE.matcher(s);
+        if (m.find()) {
+            double avg = (Integer.parseInt(m.group(1)) + Integer.parseInt(m.group(2))) / 2.0;
+            int unit = switch (m.group(3)) {
+                case "주" -> 7;
+                case "개월", "달" -> 30;
+                default -> 1;
+            };
+            return (int) Math.round(avg * unit);
+        }
+        m = DAYS_BEFORE_START.matcher(s);
+        if (m.find()) return Integer.parseInt(m.group(1)) * ("주".equals(m.group(2)) ? 7 : 1);
+        m = AVAILABLE_DAYS.matcher(s);
+        if (m.find()) return Integer.parseInt(m.group(1));
+        m = DATE_SPAN.matcher(s);
+        while (m.find()) {
+            Integer d = dateSpanDays(m);
+            if (d != null) return d;
+        }
+        m = DAY_PAREN_HOURS.matcher(s);
+        if (m.find()) return Integer.parseInt(m.group(1));
+        if (EVE_STUDY.matcher(s).find()) return 1;
         return null;
+    }
+
+    /**
+     * "4월 26일 ~ 5월 17일", "4월 26일부터 5월 17일까지 공부" → 날짜 차이(일).
+     * 두 날짜 사이가 물결·대시이거나 "부터 … 까지"로 이어지고, 같은 문장에 공부·준비·기간이 있을 때만.
+     */
+    private static Integer dateSpanDays(Matcher m) {
+        String between = m.group(4) == null ? "" : m.group(4);
+        boolean tilde = between.strip().matches("[~∼〜\\-–]?") || between.contains("~") || between.contains("∼");
+        boolean fromTo = m.group(3) != null && m.group(7) != null;
+        if (!tilde && !fromTo) return null;
+        if (!STUDY_WORD.matcher(m.group(0)).find() || SCHEDULE_WORD.matcher(m.group(0)).find()) return null;
+        try {
+            java.time.LocalDate a = java.time.LocalDate.of(2001, Integer.parseInt(m.group(1)), Integer.parseInt(m.group(2)));
+            java.time.LocalDate b = java.time.LocalDate.of(2001, Integer.parseInt(m.group(5)), Integer.parseInt(m.group(6)));
+            if (b.isBefore(a)) b = b.plusYears(1);
+            long days = java.time.temporal.ChronoUnit.DAYS.between(a, b);
+            return days >= 1 && days <= 365 ? (int) days : null;
+        } catch (java.time.DateTimeException e) {
+            return null;
+        }
     }
 
     Integer dailyMinutes(String s) {
@@ -280,6 +354,14 @@ public class RuleBasedReviewExtractor implements ReviewExtractor {
                     h = h.add(new BigDecimal(m.group(2)).divide(BigDecimal.valueOf(60), 4, RoundingMode.HALF_UP));
                 }
                 return h.setScale(2, RoundingMode.HALF_UP);
+            }
+        }
+        // [11-23] 벼락치기형: "1일 (10시간)", "10시간 벼락치기", "전날 14시간 정도 공부" → 그 시간이 곧 총 공부시간
+        for (Pattern p : new Pattern[]{DAY_PAREN_HOURS, CRAM_HOURS, EVE_HOURS}) {
+            Matcher m = p.matcher(s);
+            if (m.find()) {
+                String hours = p == DAY_PAREN_HOURS ? m.group(2) : m.group(1);
+                return new BigDecimal(hours).setScale(2, RoundingMode.HALF_UP);
             }
         }
         return null;
