@@ -5,7 +5,7 @@
 <network-security-config>
     <base-config cleartextTrafficPermitted="false" />
     <domain-config cleartextTrafficPermitted="true">
-        <domain>100.95.33.60</domain>      <!-- 학교 배포 서버 students -->
-        <domain>100.112.211.106</domain>   <!-- 모의 서버 A-PC (desktop-nj0tlhd) -->
+        <domain includeSubdomains="false">100.95.33.60</domain>      <!-- 학교 배포 서버 students -->
+        <domain includeSubdomains="false">100.112.211.106</domain>   <!-- 모의 서버 A-PC (desktop-nj0tlhd) -->
     </domain-config>
 </network-security-config>
