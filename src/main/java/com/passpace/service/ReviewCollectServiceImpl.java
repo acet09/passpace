@@ -883,16 +883,18 @@ public class ReviewCollectServiceImpl implements ReviewCollectService {
 
         Optional<String> code = CertificateDetector.detect(page.title(), page.text());
         if (code.isEmpty()) {
-            return Analysis.skip(url, null, postedAt, "대상 자격증(정보처리기사·SQLD·컴활 1급·ADsP) 판단 불가 또는 둘 이상 언급");
+            return Analysis.skip(url, null, postedAt, "대상 자격증(정보처리기사·SQLD·컴활 1·2급·ADsP·산업안전기사·빅분기·전산회계 1·2급) 판단 불가 또는 둘 이상 언급");
         }
         Optional<Long> certId = examRoundRepository.findCertificationId(code.get());
         if (certId.isEmpty()) {
-            return Analysis.skip(url, code.get(), postedAt, "CERTIFICATIONS 에 " + code.get() + " 없음 (db/03_seed.sql, 컴활·ADsP 는 db/09)");
+            return Analysis.skip(url, code.get(), postedAt, "CERTIFICATIONS 에 " + code.get() + " 없음 (db/03_seed.sql, 컴활 1급·ADsP 는 db/09, 산업안전기사·컴활 2급은 db/13, 빅분기·전산회계는 db/15)");
         }
 
-        ExtractedReview review = extractor.extract(page.title(), page.text());
-        if (("SQLD".equals(code.get()) || "ADSP".equals(code.get())) && review.examType() != ExamType.WRITTEN) {
-            review = RuleBasedReviewExtractor.withExamType(review, ExamType.WRITTEN);   // SQLD·ADsP 는 시험이 1종류
+        // [11-26] 빅분기·전산회계: 다른 자격증과 섞인 글이면 그 자격증 구간만 판정 (기존 4종은 본문 그대로)
+        String judgeText = CertificateDetector.textFor(code.get(), page.title(), page.text());
+        ExtractedReview review = extractor.extract(page.title(), judgeText);
+        if (CertificateDetector.writtenOnly(code.get()) && review.examType() != ExamType.WRITTEN) {
+            review = RuleBasedReviewExtractor.withExamType(review, ExamType.WRITTEN);   // SQLD·ADsP·전산회계는 시험이 1종류
         }
 
         LocalDate officialDate = null;
@@ -901,7 +903,7 @@ public class ReviewCollectServiceImpl implements ReviewCollectService {
                     .find(certId.get(), review.examYear(), review.roundNo(), review.examType().name())
                     .map(ExamRoundRepository.StoredRound::examStart).orElse(null);
         }
-        QualityResult quality = qualityChecker.check(review, page.text(),
+        QualityResult quality = qualityChecker.check(review, judgeText,
                 new PageContext(postedAt, LocalDate.now(), page.noReprint(), officialDate));
         if (page.noReprint()) {
             // 전재 금지 글은 값도 남기지 않는다 (같은 글을 다시 가져오지 않도록 URL·사유만 기록)
@@ -909,7 +911,7 @@ public class ReviewCollectServiceImpl implements ReviewCollectService {
         }
         // [11-16] 과목별 공부 정보 (본문은 메모리에서만 사용, 전재 금지 글은 뽑지 않음)
         List<SubjectStudyExtractor.Mention> subjects = page.noReprint() ? List.of()
-                : subjectExtractor.extract((page.title() == null ? "" : page.title()) + "\n" + page.text(), review.dailyMinutes(), review.totalHours());
+                : subjectExtractor.extract((page.title() == null ? "" : page.title()) + "\n" + judgeText, review.dailyMinutes(), review.totalHours());
         return new Analysis(url, sourceId, certId.get(), code.get(), postedAt, page.authorHash(), review, quality, null, subjects);
     }
 

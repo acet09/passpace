@@ -32,7 +32,17 @@ class CrawlRebuildTest {
     void 자격증_4종을_판별하고_비슷한_자격증은_제외한다() {
         assertThat(CertificateDetector.detect("컴활 1급 실기 합격 후기", "")).contains("CA1");
         assertThat(CertificateDetector.detect("컴퓨터활용능력 1급 필기 합격", "")).contains("CA1");
-        assertThat(CertificateDetector.detect("컴활 2급 합격", "컴활 2급 실기")).isEmpty();          // 2급은 대상 아님
+        assertThat(CertificateDetector.detect("컴활 2급 합격", "컴활 2급 실기")).contains("CA2");      // [11-26] 2급도 대상
+        assertThat(CertificateDetector.detect("산업안전기사 필기 합격 후기", "")).contains("SAFETY");
+        assertThat(CertificateDetector.detect("산업안전산업기사 합격", "산업안전산업기사 실기")).isEmpty(); // 산업기사는 대상 아님
+        assertThat(CertificateDetector.detect("건설안전기사 후기", "건설안전기사")).isEmpty();
+        assertThat(CertificateDetector.detect("빅분기 실기 합격 후기", "")).contains("BIGDATA");
+        assertThat(CertificateDetector.detect("전산회계 2급 합격", "1급도 준비 중")).contains("ACC2");
+        assertThat(CertificateDetector.detect("전산회계 1·2급 동시 합격", "")).isEmpty();          // 제목에 둘 → 보류
+        // 섞인 글은 그 자격증 구간만 판정 (기존 4종은 본문 그대로)
+        String mixed = "전산회계 2급은 2주 공부했어요. 하루 3시간.\n전산회계 1급은 한 달 걸렸어요. 하루 5시간.";
+        assertThat(CertificateDetector.textFor("ACC2", "전산회계 2급 합격", mixed)).contains("2주").doesNotContain("한 달");
+        assertThat(CertificateDetector.textFor("ADSP", "ADsP 합격", "ADsP 2주. 정처기는 한 달")).contains("한 달");
         assertThat(CertificateDetector.detect("ADsP 합격 후기", "")).contains("ADSP");
         assertThat(CertificateDetector.detect("데이터분석 준전문가 독학 합격", "")).contains("ADSP");
         assertThat(CertificateDetector.detect("ADP 필기 합격", "데이터분석 전문가")).isEmpty();     // ADP 는 대상 아님
@@ -52,7 +62,7 @@ class CrawlRebuildTest {
                 new ListingLink("https://velog.io/@c/com2", "컴활 2급 합격 후기", null),
                 new ListingLink("https://velog.io/@d/adp", "ADP 필기 후기", null)));
         assertThat(found).extracting(ReviewLinkFilter.Candidate::label)
-                .containsExactly("컴활 1급 실기 합격 후기", "ADsP 독학 합격");
+                .containsExactly("컴활 1급 실기 합격 후기", "ADsP 독학 합격", "컴활 2급 합격 후기");   // [11-26] 2급도 대상
     }
 
     @Test
@@ -65,10 +75,11 @@ class CrawlRebuildTest {
                 new ListingLink("https://d.tistory.com/4", "컴퓨터활용능력 1급 따기", null),
                 new ListingLink("https://e.tistory.com/5", "컴활 1급 공부기간 정리", null),
                 new ListingLink("https://f.tistory.com/6", "컴활 1급 엑셀 함수 정리", null),   // 후기 단어 없음 → 제외
-                new ListingLink("https://g.tistory.com/7", "컴활 2급 3일컷", null)));          // 2급 → 제외
+                new ListingLink("https://g.tistory.com/7", "컴활 2급 3일컷", null),            // [11-26] 2급도 대상
+                new ListingLink("https://h.tistory.com/8", "산업안전산업기사 합격 후기", null)));   // 산업기사 → 제외
         assertThat(found).extracting(ReviewLinkFilter.Candidate::label).containsExactly(
                 "컴활 1급 실기 3일컷", "컴활 1급 필기 독학 일주일", "컴활1급 취득 과정",
-                "컴퓨터활용능력 1급 따기", "컴활 1급 공부기간 정리");
+                "컴퓨터활용능력 1급 따기", "컴활 1급 공부기간 정리", "컴활 2급 3일컷");
     }
 
     // ---------------- 네이버 검색 API 응답 정리 ----------------

@@ -75,7 +75,7 @@ public class ReviewIngestService {
         }
 
         ExtractedReview review = extractor.extract(title, snippet);
-        if (("SQLD".equals(code.get()) || "ADSP".equals(code.get())) && review.examType() != ExamType.WRITTEN) {
+        if (CertificateDetector.writtenOnly(code.get()) && review.examType() != ExamType.WRITTEN) {   // [11-26] 전산회계 포함
             review = RuleBasedReviewExtractor.withExamType(review, ExamType.WRITTEN);
         }
         String text = (title == null ? "" : title) + " " + (snippet == null ? "" : snippet);

@@ -64,6 +64,12 @@ public class CollectAdminController {
     /** [11-16] 이미 저장한 후기의 과목 언급 채우기 */
     @Autowired
     private com.passpace.service.SubjectMentionBackfillService subjectBackfill;
+    /** [11-23] 이미 저장한 후기 본문 재판정 (네이버 블로그 요약문 → 본문, "시간 정보 없음" 재검사) */
+    @Autowired
+    private com.passpace.service.ReviewRejudgeService rejudgeService;
+    /** [11-24] 새 자격증 후보 데이터 확보 시험 실행 (DB 쓰기 없음) */
+    @Autowired
+    private com.passpace.service.CandidateProbeService probeService;
 
     public CollectAdminController(ExamCollectService examCollectService, ReviewCollectService reviewCollectService,
                                   StudyReferenceAggregator referenceAggregator,
@@ -167,6 +173,57 @@ public class CollectAdminController {
     }
 
     /** [11-14] 이번(또는 마지막) 실행 기준 자격증별 건수: 크롤링 영역 / 네이버 영역 */
+    /** [11-23] 재판정 대상 수 (네트워크 요청 없음) → {"NAVER_BLOG": n, "NO_TIME": n} */
+    @GetMapping("/admin/collect/rejudge/targets")
+    public ResponseEntity<?> rejudgeTargets() {
+        return ResponseUtil.SUCCESS(rejudgeService.targetCounts());
+    }
+
+    /** [11-23] 재판정 시작. mode = NAVER_BLOG(네이버 블로그 본문 읽기) / NO_TIME("시간 정보 없음" 다시 검사), limit = 이번에 처리할 최대 건수 */
+    @PostMapping("/admin/collect/rejudge/start")
+    public ResponseEntity<?> startRejudge(@RequestParam(value = "mode", defaultValue = "NAVER_BLOG") String mode,
+                                          @RequestParam(value = "limit", defaultValue = "20") int limit) {
+        return ResponseUtil.SUCCESS(rejudgeService.start(mode, limit));
+    }
+
+    @GetMapping("/admin/collect/rejudge/status")
+    public ResponseEntity<?> rejudgeStatus() {
+        return ResponseUtil.SUCCESS(rejudgeService.status());
+    }
+
+    @PostMapping("/admin/collect/rejudge/cancel")
+    public ResponseEntity<?> cancelRejudge() {
+        return ResponseUtil.SUCCESS(rejudgeService.cancel());
+    }
+
+    /**
+     * [11-24] 새 자격증 후보 시험 실행 시작 (DB 에 쓰지 않음, 결과는 collect-data/probe/ 리포트).
+     * certs = 쉼표로 구분한 자격증 이름 (예: 산업안전기사,전산회계 1급,빅데이터분석기사), sample = 자격증별 블로그 본문 표본 수, cafeSample = 카페 표본 수, more = 추가 검색어 사용
+     */
+    @PostMapping("/admin/collect/probe/start")
+    public ResponseEntity<?> startProbe(@RequestParam(value = "certs", defaultValue = "산업안전기사,전산회계 1급,빅데이터분석기사") String certs,
+                                        @RequestParam(value = "sample", defaultValue = "150") int sample,
+                                        @RequestParam(value = "cafeSample", defaultValue = "50") int cafeSample,
+                                        @RequestParam(value = "more", defaultValue = "false") boolean more) {
+        return ResponseUtil.SUCCESS(probeService.start(java.util.Arrays.asList(certs.split(",")), sample, cafeSample, more));
+    }
+
+    @GetMapping("/admin/collect/probe/status")
+    public ResponseEntity<?> probeStatus() {
+        return ResponseUtil.SUCCESS(probeService.status());
+    }
+
+    @PostMapping("/admin/collect/probe/cancel")
+    public ResponseEntity<?> cancelProbe() {
+        return ResponseUtil.SUCCESS(probeService.cancel());
+    }
+
+    /** [11-24] 마지막 시험 실행 결과 (실행 중이면 중간 결과) */
+    @GetMapping("/admin/collect/probe/report")
+    public ResponseEntity<?> probeReport() {
+        return ResponseUtil.SUCCESS(probeService.report());
+    }
+
     @GetMapping("/admin/collect/status/by-cert")
     public ResponseEntity<?> statusByCert() {
         Map<String, Object> m = new LinkedHashMap<>();
