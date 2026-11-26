@@ -4,6 +4,9 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'models.dart';
 
+String accountStorageKey(String kind, String origin, String loginId) =>
+    'passpace.$kind.v1.${base64Url.encode(utf8.encode('${Uri.parse(origin).origin}\n$loginId'))}';
+
 abstract interface class PlanDraftStorage {
   Future<String?> read(String key);
   Future<void> write(String key, String? value);
@@ -34,8 +37,7 @@ class PlanDraftRepository {
   final PlanDraftStorage storage;
   final String key;
   PlanDraftRepository(this.storage, String origin, String userId)
-    : key =
-          'passpace.plan-draft.v1.${base64Url.encode(utf8.encode('${Uri.parse(origin).origin}\n$userId'))}';
+    : key = accountStorageKey('plan-draft', origin, userId);
   Future<PlannerDraft?> read() async {
     final value = await storage.read(key);
     return value == null
@@ -84,12 +86,14 @@ class ExamDraft {
 class PlannerDraft {
   final String minutes;
   final Set<int> weekdays;
+  final Map<int, String>? weekdayInputs;
   final Map<String, ExamDraft> exams;
   final int step;
   final DateTime updatedAt;
   PlannerDraft({
     required this.minutes,
     required this.weekdays,
+    this.weekdayInputs,
     required this.exams,
     required this.step,
     required this.updatedAt,
@@ -104,6 +108,19 @@ class PlannerDraft {
     return PlannerDraft(
       minutes: j['minutes'] as String,
       weekdays: weekdays,
+      weekdayInputs: j['weekdayInputs'] == null
+          ? null
+          : object(j['weekdayInputs']).map((key, value) {
+              final day = int.tryParse(key);
+              if (day == null ||
+                  day < 1 ||
+                  day > 7 ||
+                  value is! String ||
+                  !RegExp(r'^\d{0,3}$').hasMatch(value)) {
+                throw const FormatException('Invalid weekday draft');
+              }
+              return MapEntry(day, value);
+            }),
       exams: object(
         j['exams'],
       ).map((key, value) => MapEntry(key, ExamDraft.fromJson(object(value)))),
@@ -115,6 +132,8 @@ class PlannerDraft {
     'schema': 1,
     'minutes': minutes,
     'weekdays': weekdays.toList()..sort(),
+    if (weekdayInputs case final inputs?)
+      'weekdayInputs': inputs.map((day, text) => MapEntry('$day', text)),
     'exams': exams.map((k, v) => MapEntry(k, v.toJson())),
     'step': step,
     'updatedAt': updatedAt.toUtc().toIso8601String(),

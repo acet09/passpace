@@ -199,12 +199,21 @@ void main() {
     await t.ensureVisible(login);
     await t.tap(login);
     await t.pumpAndSettle();
-    expect(find.text('민지님의 학습'), findsOneWidget);
+    expect(find.text('오늘 할 학습'), findsOneWidget);
     expect(find.text('D-35'), findsOneWidget);
+    final mark = find.descendant(
+      of: find.byType(AppBar),
+      matching: find.byType(Image),
+    );
+    expect(
+      (t.widget<Image>(mark).image as AssetImage).assetName,
+      'assets/passpace_launcher.png',
+    );
+    expect(find.text(shortDay(plusDays(today, 35))), findsNothing);
     expect(find.text('SQL 활용'), findsOneWidget);
     expect(
-      t.getTopLeft(find.text('SQL 활용')).dy,
-      lessThan(t.getTopLeft(find.text('D-35')).dy),
+      t.getTopLeft(find.text('D-35')).dy,
+      lessThan(t.getTopLeft(find.text('오늘 전체 진행률')).dy),
     );
     expect(
       t.getBottomLeft(find.text('SQL 활용')).dy,
@@ -212,11 +221,14 @@ void main() {
     );
     expect(
       t.getTopLeft(find.text('SQL 활용')).dy,
-      lessThan(t.getTopLeft(find.text('이번 주 학습')).dy),
+      lessThan(
+        t.getTopLeft(find.byKey(const ValueKey('home-open-schedule'))).dy,
+      ),
     );
-    await t.tap(find.byTooltip('다음 주'));
-    await t.pumpAndSettle();
-    expect(find.text('계획된 학습 없음'), findsOneWidget);
+    expect(find.text('학습 달력'), findsNothing);
+    expect(find.text('오늘 할 학습'), findsOneWidget);
+    expect(find.text('타이머 열기'), findsNothing);
+    expect(find.text('SQL 활용'), findsOneWidget);
     await t.tap(find.text('상담'));
     await t.pumpAndSettle();
     await t.tap(find.text('SQLD는 어떤 과목부터 공부할까요?'));
@@ -434,9 +446,11 @@ void main() {
     );
     await t.pumpAndSettle();
     expect(t.takeException(), isNull);
-    final task = find.text('SQL 활용');
+    final task = find.byTooltip('SQL 활용 메뉴');
     await t.ensureVisible(task);
     await t.tap(task);
+    await t.pumpAndSettle();
+    await t.tap(find.text('상세 보기'));
     await t.pumpAndSettle();
     await t.tap(find.text('이 과목 공부 방법 상담'));
     await t.pumpAndSettle();

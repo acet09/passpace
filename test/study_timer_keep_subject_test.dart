@@ -165,12 +165,12 @@ void main() {
     expect(f.requests.where((r) => r.method == 'POST'), hasLength(1));
   });
 
-  testWidgets('사용자가 명시적으로 측정을 초기화하면 기존대로 과목을 해제한다', (t) async {
+  testWidgets('기록 저장 후 과목 연결을 해제해도 저장한 시간은 유지된다', (t) async {
     final f = subjectFixture();
     addTearDown(f.dispose);
     await openSubject(t, f);
     await tapStudy(t, find.text('기록 저장'));
-    await tapStudy(t, find.text('측정 초기화'));
+    await tapStudy(t, find.text('과목 연결 해제'));
     expect(clockOf(t).task, isNull);
     expect(find.text('과목 연결 없음'), findsOneWidget);
     expect(f.history.single['durationMinutes'], 15);

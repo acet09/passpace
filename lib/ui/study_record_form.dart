@@ -6,18 +6,21 @@ import '../data/session.dart';
 import '../data/study_models.dart';
 import 'design.dart';
 import 'study_task_picker.dart';
+import 'subject_color_picker.dart';
 
 class StudyRecordForm extends StatefulWidget {
   final Session session;
   final void Function(DateTime date, int minutes) onUncertain;
   final VoidCallback onForbidden;
   final StudyRecord? record;
+  final StudySubjectColor? colorForSubject;
   const StudyRecordForm(
     this.session, {
     super.key,
     required this.onUncertain,
     required this.onForbidden,
     this.record,
+    this.colorForSubject,
   });
 
   @override
@@ -90,6 +93,7 @@ class _StudyRecordFormState extends State<StudyRecordForm> {
           date: date,
           selectedId: taskChanged ? selectedTask?.id : widget.record?.taskId,
           onForbidden: forbidden,
+          colorForSubject: widget.colorForSubject,
         ),
       ),
     );

@@ -8,7 +8,8 @@ import 'package:passpace_mobile/data/api.dart';
 import 'package:passpace_mobile/data/models.dart';
 import 'package:passpace_mobile/data/study_models.dart';
 
-import 'study_records_test.dart' show openStudy, tapStudy;
+import 'study_records_test.dart'
+    show openStudy, openStudyDay, selectStudyRecordAction, tapStudy;
 import 'support/study_fixture.dart';
 
 Future<void> studyEditDate(WidgetTester t, DateTime target) async {
@@ -27,7 +28,8 @@ void main() {
     final fixture = StudyFixture();
     addTearDown(fixture.dispose);
     await openStudy(t, fixture);
-    await tapStudy(t, find.byKey(const ValueKey('study-edit-1')));
+    await openStudyDay(t, fixture.today);
+    await selectStudyRecordAction(t, 1, 'edit');
     expect(find.text('공부시간 수정'), findsOneWidget);
     expect(
       t
@@ -49,7 +51,8 @@ void main() {
     final fixture = StudyFixture();
     addTearDown(fixture.dispose);
     await openStudy(t, fixture);
-    await tapStudy(t, find.byKey(const ValueKey('study-edit-1')));
+    await openStudyDay(t, fixture.today);
+    await selectStudyRecordAction(t, 1, 'edit');
     final target = plusDays(fixture.today, -2);
     await studyEditDate(t, target);
     await t.enterText(find.byKey(const ValueKey('study-minutes')), '45');
@@ -83,7 +86,8 @@ void main() {
       );
       addTearDown(fixture.dispose);
       await openStudy(t, fixture);
-      await tapStudy(t, find.byKey(const ValueKey('study-edit-1')));
+      await openStudyDay(t, fixture.today);
+      await selectStudyRecordAction(t, 1, 'edit');
       await t.enterText(find.byKey(const ValueKey('study-minutes')), '90');
       await tapStudy(t, find.text('수정 내용 저장'));
       expect(find.text('SAMPLE 수정 거부: 기록을 확인해 주세요'), findsOneWidget);
@@ -107,7 +111,8 @@ void main() {
     );
     addTearDown(fixture.dispose);
     await openStudy(t, fixture);
-    await tapStudy(t, find.byKey(const ValueKey('study-edit-1')));
+    await openStudyDay(t, fixture.today);
+    await selectStudyRecordAction(t, 1, 'edit');
     await t.enterText(find.byKey(const ValueKey('study-minutes')), '45');
     final save = find.text('수정 내용 저장');
     await t.ensureVisible(save);
@@ -134,12 +139,15 @@ void main() {
     addTearDown(fixture.dispose);
     fixture.history.first['inputMethod'] = 'TIMER';
     await openStudy(t, fixture);
+    await openStudyDay(t, fixture.today.subtract(const Duration(days: 1)));
+    await openStudyDay(t, fixture.today);
     await t.scrollUntilVisible(
       find.byKey(const ValueKey('study-record-2')),
       250,
       scrollable: find.byType(Scrollable).hitTestable().first,
     );
-    expect(find.byKey(const ValueKey('study-edit-1')), findsNothing);
+    expect(find.byKey(const ValueKey('study-actions-1')), findsNothing);
+    await tapStudy(t, find.byKey(const ValueKey('study-actions-2')));
     expect(find.byKey(const ValueKey('study-edit-2')), findsOneWidget);
     expect(t.takeException(), isNull);
   });
@@ -155,7 +163,8 @@ void main() {
     );
     addTearDown(fixture.dispose);
     await openStudy(t, fixture);
-    await tapStudy(t, find.byKey(const ValueKey('study-edit-1')));
+    await openStudyDay(t, fixture.today);
+    await selectStudyRecordAction(t, 1, 'edit');
     await studyEditDate(t, plusDays(fixture.today, -2));
     await t.enterText(find.byKey(const ValueKey('study-minutes')), '45');
     await tapStudy(t, find.text('수정 내용 저장'));
@@ -189,7 +198,8 @@ void main() {
     final fixture = StudyFixture();
     addTearDown(fixture.dispose);
     await openStudy(t, fixture);
-    await tapStudy(t, find.byKey(const ValueKey('study-edit-1')));
+    await openStudyDay(t, fixture.today);
+    await selectStudyRecordAction(t, 1, 'edit');
     final target = plusDays(fixture.today, -45);
     await studyEditDate(t, target);
     await t.enterText(find.byKey(const ValueKey('study-minutes')), '20');
@@ -215,7 +225,8 @@ void main() {
     );
     addTearDown(fixture.dispose);
     await openStudy(t, fixture);
-    await tapStudy(t, find.byKey(const ValueKey('study-edit-1')));
+    await openStudyDay(t, fixture.today);
+    await selectStudyRecordAction(t, 1, 'edit');
     await t.enterText(find.byKey(const ValueKey('study-minutes')), '45');
     await tapStudy(t, find.text('수정 내용 저장'));
     await tapStudy(t, find.text('기록으로 돌아가기'));
@@ -263,7 +274,8 @@ void main() {
         final fixture = StudyFixture();
         addTearDown(fixture.dispose);
         await openStudy(t, fixture);
-        await tapStudy(t, find.byKey(const ValueKey('study-edit-1')));
+        await openStudyDay(t, fixture.today);
+        await selectStudyRecordAction(t, 1, 'edit');
         t.view.viewInsets = const FakeViewPadding(bottom: 300);
         await t.pumpAndSettle();
         await t.enterText(find.byKey(const ValueKey('study-minutes')), '0');
@@ -298,6 +310,7 @@ void main() {
       });
     }
     await openStudy(t, fixture);
+    await openStudyDay(t, fixture.today);
     Future<void> more() async {
       await t.scrollUntilVisible(
         find.text('이전 기록 더 보기'),
@@ -311,7 +324,7 @@ void main() {
     }
 
     await more();
-    await tapStudy(t, find.byKey(const ValueKey('study-edit-1')));
+    await selectStudyRecordAction(t, 1, 'edit');
     await t.enterText(find.byKey(const ValueKey('study-minutes')), '2');
     await tapStudy(t, find.text('수정 내용 저장'));
     await tapStudy(t, find.text('기록 목록 확인'));

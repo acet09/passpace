@@ -13,6 +13,7 @@ class StudyTimerNotifications extends ChangeNotifier {
   bool enabled, _disposed = false, _asked = false;
   int _turn = 0;
   String? _owner, _signature, notice;
+  int? _taskId;
   StudyTimer? _timer;
   Future<void> _pending = Future.value();
   final _retired = <String>{};
@@ -39,6 +40,29 @@ class StudyTimerNotifications extends ChangeNotifier {
 
     channel.setMethodCallHandler((call) async {
       if (call.method == 'openTimer') await consume();
+      if (call.method == 'timerAction') {
+        final args = call.arguments;
+        final timer = _timer;
+        if (_disposed ||
+            handlerOwner != instance ||
+            args is! Map ||
+            _owner == null ||
+            args['owner'] != _owner ||
+            timer == null ||
+            !timer.available ||
+            timer.locked ||
+            timer.dayEnded) {
+          return;
+        }
+        if (args['running'] == false &&
+            timer.phase == StudyTimerPhase.running) {
+          await timer.pause();
+        } else if (args['running'] == true &&
+            timer.phase == StudyTimerPhase.paused) {
+          await timer.start();
+        }
+        if (identical(_timer, timer)) await sync(timer);
+      }
     });
     try {
       await channel.invokeMethod<void>('attach');
@@ -53,8 +77,8 @@ class StudyTimerNotifications extends ChangeNotifier {
   Future<void> _stops() async {
     while (_retired.isNotEmpty) {
       final owner = _retired.first;
-      _retired.remove(owner);
       await channel.invokeMethod<void>('stop', {'owner': owner});
+      _retired.remove(owner);
     }
   }
 
@@ -63,34 +87,42 @@ class StudyTimerNotifications extends ChangeNotifier {
       return Future.value();
     }
     final running = timer.phase == StudyTimerPhase.running && !timer.loadFailed;
+    final visible =
+        !timer.loadFailed &&
+        !timer.dayEnded &&
+        (running || timer.phase == StudyTimerPhase.paused && _owner != null);
     final signature =
         '${timer.phase.name}:${timer.task?.id}:${timer.task?.name}';
-    final changedOwner =
-        !identical(timer, _timer) ||
-        running && !(_signature?.startsWith('running:') ?? false);
-    if (!refresh && !changedOwner && signature == _signature) return _pending;
-    if (changedOwner) {
-      if (_owner != null) _retired.add(_owner!);
-      _owner = 'study-${DateTime.now().microsecondsSinceEpoch}-${++serial}';
+    final sameTimer = identical(timer, _timer);
+    final changedTask = sameTimer && timer.task?.id != _taskId;
+    if (!sameTimer || !visible || changedTask) {
+      if (_owner case final owner?) _retired.add(owner);
+      _owner = null;
+    }
+    if (!refresh && sameTimer && signature == _signature && _retired.isEmpty) {
+      return _pending;
+    }
+    if (visible && (running || sameTimer)) {
+      _owner ??= 'study-${DateTime.now().microsecondsSinceEpoch}-${++serial}';
     }
     _timer = timer;
+    _taskId = timer.task?.id;
     _signature = signature;
-    final turn = ++_turn, owner = _owner!;
+    final turn = ++_turn, owner = _owner;
     _pending = _pending
         .then((_) async {
           await _stops();
-          if (_disposed || turn != _turn) return;
-          if (!running) {
-            await channel.invokeMethod<void>('stop', {'owner': owner});
-            return;
-          }
+          if (_disposed || turn != _turn || owner == null) return;
           final allowed = !_asked
               ? await channel.invokeMethod<bool>('requestPermission')
               : await channel.invokeMethod<bool>('notificationAllowed');
           _asked = true;
           if (_disposed ||
               turn != _turn ||
-              timer.phase != StudyTimerPhase.running) {
+              timer.phase !=
+                  (running
+                      ? StudyTimerPhase.running
+                      : StudyTimerPhase.paused)) {
             return;
           }
           _notice(
@@ -103,6 +135,7 @@ class StudyTimerNotifications extends ChangeNotifier {
             'subject': timer.task?.name ?? '과목 연결 없음',
             'elapsedMs': timer.elapsed.inMilliseconds,
             'endUtcMs': timer.endOfDayUtc!.millisecondsSinceEpoch,
+            'running': running,
           });
         })
         .catchError((Object e) {
@@ -113,6 +146,36 @@ class StudyTimerNotifications extends ChangeNotifier {
           }
         });
     return _pending;
+  }
+
+  void _retireActive() {
+    _turn++;
+    if (_owner case final owner?) _retired.add(owner);
+    _owner = null;
+    _timer = null;
+    _taskId = null;
+    _signature = null;
+  }
+
+  void clear() {
+    _retireActive();
+    _pending = _pending.then((_) => _stops()).catchError((Object _) {});
+  }
+
+  Future<bool> stopForWithdrawal() async {
+    _retireActive();
+    if (!enabled) return true;
+    final turn = _turn;
+    final stopping = _pending.then((_) => _stops());
+    _pending = stopping.catchError((Object _) {});
+    try {
+      await stopping;
+      return !_disposed && turn == _turn;
+    } on MissingPluginException {
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 
   Future<int?> elapsed() async {
@@ -140,9 +203,7 @@ class StudyTimerNotifications extends ChangeNotifier {
   @override
   void dispose() {
     _disposed = true;
-    _turn++;
-    if (_owner != null) _retired.add(_owner!);
-    _pending = _pending.then((_) => _stops()).catchError((Object _) {});
+    clear();
     if (handlerOwner == instance) channel.setMethodCallHandler(null);
     super.dispose();
   }

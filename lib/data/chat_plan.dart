@@ -303,17 +303,46 @@ List<({String id, bool written, bool practical})> certsInMessage(
 }
 
 /// 질문 속 자격증별 하루 시간(자격증 id → 분): "SQLD 1시간, 정처기는 하루 2시간".
-/// 자격증 이름 바로 뒤(다음 자격증 이름 전)에 적힌 시간만 그 자격증의 것으로 본다.
+/// 자격증 이름 뒤(다음 자격증 이름 전, 같은 절 안)에 적힌 시간을 그 자격증의 것으로 본다.
+/// "정처기랑 SQLD 각각 1시간씩", "정처기 2시간, SQLD랑 ADsP는 1시간씩"처럼 이름을 이어 말하고
+/// 시간을 한 번만 적었으면 이어 말한 자격증도 같은 시간으로 읽는다. 다만 "정처기랑 SQLD 하루 2시간"은
+/// 둘이 나눠 쓰는 하루 총 시간일 수 있으므로 뒤 자격증에만 적는다 (하루 총 시간으로 읽게 된다).
 Map<String, int> examMinutesInMessage(String message) {
   final found = _mentions(message);
-  final time = RegExp(r'^\s*(?:1\s*급)?[^\d,.·/]{0,12}?' + _amount);
+  final time = RegExp(r'^\s*(?:1\s*급)?[^\d,.·/]{0,24}?' + _amount);
+  // 이름 뒤에 이음말만 있고 바로 다음 자격증 이름이 오는 경우.
+  final joined = RegExp(
+    r'^\s*(?:1\s*급)?\s*(?:필기|실기)?\s*(?:,|·|/|&|\+|이랑|랑|하고|과|와|및|그리고)?\s*$',
+  );
+  final eachWord = RegExp(r'각각|각자|따로|둘\s*다|셋\s*다');
   final minutes = <String, int>{};
+  // 시간을 적은 자리마다: 그 앞에 이어 말한 자격증들, 시간, "각각"이라고 했는가.
+  final groups = <({List<String> ids, int n, bool each})>[];
+  var waiting = <String>[];
   for (final (i, mention) in found.indexed) {
     final end = i + 1 < found.length ? found[i + 1].start : message.length;
-    final m = time.firstMatch(message.substring(mention.end, end));
-    if (m == null) continue;
-    final n = _minutesOf(m);
-    if (validDailyMinutes(n)) minutes.putIfAbsent(mention.cert.id, () => n);
+    final rest = message.substring(mention.end, end);
+    final m = time.firstMatch(rest);
+    final n = m == null ? null : _minutesOf(m);
+    if (m == null || !validDailyMinutes(n)) {
+      if (i + 1 < found.length && joined.hasMatch(rest)) {
+        waiting.add(mention.cert.id);
+      } else {
+        waiting = [];
+      }
+      continue;
+    }
+    minutes.putIfAbsent(mention.cert.id, () => n!);
+    final near = rest.substring(0, m.end + 8 > rest.length ? rest.length : m.end + 8);
+    groups.add((ids: waiting, n: n!, each: eachWord.hasMatch(near)));
+    waiting = [];
+  }
+  for (final group in groups) {
+    // "각각"이라고 했거나, 다른 자격증에도 따로 시간을 적어 자격증별 시간인 것이 분명할 때만 나눠 준다.
+    if (!group.each && groups.length < 2) continue;
+    for (final id in group.ids) {
+      minutes.putIfAbsent(id, () => group.n);
+    }
   }
   return minutes;
 }
@@ -407,24 +436,34 @@ class ChatPlanSetup {
     final each = examMinutesInMessage(message);
     final own = [for (final e in active) each[certOf(e)]];
     final ownTotal = own.fold(0, (sum, n) => sum + (n ?? 0));
-    final divided =
+    final oneEach =
         active.length >= 2 &&
         active.map(certOf).toSet().length == active.length &&
-        !own.contains(null) &&
         ownTotal <= 960;
+    final divided = oneEach && !own.contains(null);
+    // 둘 이상에는 시간을 적고 일부만 빠뜨렸으면, 적은 것은 넣어 두고 빠진 자격증만 카드에서 묻는다
+    // (첫 번째 시간을 하루 총 시간으로 잘못 읽지 않는다).
+    final partly =
+        oneEach && !divided && own.whereType<int>().length >= 2;
     // "평일 2시간, 주말 4시간"처럼 요일마다 다른 시간을 말했으면 요일별 시간으로 넣는다.
-    final perDay = divided ? null : weekdayMinutesInMessage(message);
+    final perDay = divided || partly ? null : weekdayMinutesInMessage(message);
     final daily = divided
         ? ownTotal
+        : partly
+        ? null
         : perDay != null
         ? perDay.values.reduce((a, b) => a > b ? a : b)
         : dailyMinutesInMessage(message);
-    if (divided) {
+    if (divided || partly) {
       inputs.update(() {
         inputs.split = true;
         inputs.byWeekday = false;
         for (final (i, e) in active.indexed) {
-          inputs.examMinutes[e.key] = own[i]!;
+          if (own[i] case final n?) {
+            inputs.examMinutes[e.key] = n;
+          } else {
+            inputs.examMinutes.remove(e.key);
+          }
         }
       });
     } else if (perDay != null) {
@@ -457,7 +496,7 @@ class ChatPlanSetup {
       asked.start != null || asked.end != null,
       budget == null ? null : int.parse(budget[1]!),
       daily,
-      divided,
+      divided || partly,
       days,
       perDay != null,
     );

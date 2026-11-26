@@ -54,7 +54,7 @@ Future<void> mountProfile(
   await t.pumpWidget(
     MaterialApp(
       theme: paceTheme(),
-      home: Scaffold(body: ProfileScreen(session, () {})),
+      home: Scaffold(body: ProfileScreen(session)),
     ),
   );
   await t.pumpAndSettle();

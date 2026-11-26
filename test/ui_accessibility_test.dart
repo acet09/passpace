@@ -14,6 +14,8 @@ import 'package:passpace_mobile/ui/planner.dart';
 import 'package:passpace_mobile/ui/plan_comparison.dart';
 import 'package:passpace_mobile/data/plan_comparison.dart';
 
+import 'support/draft_storage.dart';
+
 Json samplePlanData() => {
   'planId': 1,
   'planName': 'SAMPLE',
@@ -65,6 +67,37 @@ Future<void> screen(
 }
 
 void main() {
+  testWidgets('화면과 과목 상세의 배경은 흰색이며 파란 강조색을 유지한다', (t) async {
+    final task = samplePlan().byDay.values.single.single;
+    await t.pumpWidget(
+      MaterialApp(
+        theme: paceTheme(),
+        home: Scaffold(
+          appBar: AppBar(title: const Text('학습계획')),
+          body: Builder(
+            builder: (context) => TextButton(
+              onPressed: () => showTaskDetails(context, task, onAsk: (_) {}),
+              child: const Text('과목 상세 열기'),
+            ),
+          ),
+        ),
+      ),
+    );
+    final theme = Theme.of(t.element(find.byType(Scaffold)));
+    expect(theme.scaffoldBackgroundColor, Colors.white);
+    expect(theme.appBarTheme.backgroundColor, Colors.white);
+    expect(theme.bottomSheetTheme.backgroundColor, Colors.white);
+    expect(theme.colorScheme.primary, const Color(0xff3155c7));
+    expect(theme.navigationBarTheme.indicatorColor, const Color(0xffedf2ff));
+    await t.tap(find.text('과목 상세 열기'));
+    await t.pumpAndSettle();
+    final sheet = t.widget<BottomSheet>(find.byType(BottomSheet));
+    expect(
+      sheet.backgroundColor ?? theme.bottomSheetTheme.backgroundColor,
+      Colors.white,
+    );
+  });
+
   testWidgets('처리 중 표시도 비활성 버튼 배경에서 읽을 수 있다', (t) async {
     addTearDown(t.view.resetPhysicalSize);
     addTearDown(t.view.resetDevicePixelRatio);
@@ -91,7 +124,7 @@ void main() {
         )
         .color!;
     final foreground = progress.color ?? blue;
-    final background = Color.alphaBlend(fill, paper);
+    final background = Color.alphaBlend(fill, Colors.white);
     final a = foreground.computeLuminance(), b = background.computeLuminance();
     final ratio = (a > b ? (a + .05) / (b + .05) : (b + .05) / (a + .05));
     expect(ratio, greaterThanOrEqualTo(3));
@@ -123,6 +156,20 @@ void main() {
               'subjects': [],
               'examRounds': [],
             };
+          } else if (r.url.path == '$plannerPath/catalog') {
+            data = {
+              'profileDailyMinutes': 180,
+              'goals': [
+                {
+                  'key': 'sample',
+                  'certificationName': 'SAMPLE 시험',
+                  'suggestedExamDate': isoDay(plusDays(dayInSeoul(), 20)),
+                  'subjects': [
+                    {'subjectId': 1, 'name': 'SAMPLE 과목', 'baseHours': 10},
+                  ],
+                },
+              ],
+            };
           } else if (r.url.path == '$plannerPath/saved') {
             final p = samplePlanData();
             final today = dayInSeoul();
@@ -141,7 +188,7 @@ void main() {
           );
         });
         addTearDown(client.close);
-        final session = Session(_Store(), client);
+        final session = Session(_Store(), client, drafts: MemoryDraftStorage());
         await session.restore();
         await t.pumpWidget(
           MediaQuery(
@@ -167,19 +214,11 @@ void main() {
               matching: find.byType(Scrollable),
             )
             .first;
-        await t.ensureVisible(find.text('전체 일정'));
-        await t.pumpAndSettle();
-        await t.tap(find.text('전체 일정'));
-        await t.pumpAndSettle();
         expect(
           find.byKey(const ValueKey('plan-month-calendar')),
           findsOneWidget,
         );
         expect(t.takeException(), isNull);
-        await t.ensureVisible(find.text('이번 주'));
-        await t.pumpAndSettle();
-        await t.tap(find.text('이번 주'));
-        await t.pumpAndSettle();
         await t.scrollUntilVisible(
           find.textContaining('오늘 ·'),
           260,
@@ -189,13 +228,26 @@ void main() {
         await t.tap(find.text('내 정보').last);
         await t.pumpAndSettle();
         expect(t.takeException(), isNull);
-        await t.ensureVisible(find.text('학습계획 관리'));
-        await t.tap(find.text('학습계획 관리'));
+        expect(find.text('학습계획 관리'), findsNothing);
+        final planTab = find.descendant(
+          of: find.byType(NavigationBar),
+          matching: find.text('학습계획'),
+        );
+        await t.tap(planTab);
         await t.pumpAndSettle();
-        await t.ensureVisible(find.text('설정 수정'));
-        await t.tap(find.text('설정 수정'));
+        await t.tap(planTab);
         await t.pumpAndSettle();
-        expect(find.text('목표 저장'), findsOneWidget);
+        final create = find.byTooltip('새 계획 만들기');
+        await t.tap(create);
+        await t.pumpAndSettle();
+        final defaults = find.text('새 계획 기본값');
+        await t.ensureVisible(defaults);
+        await t.pumpAndSettle();
+        await t.tap(defaults);
+        await t.pumpAndSettle();
+        await t.tap(find.text('기본값 수정'));
+        await t.pumpAndSettle();
+        expect(find.text('기본값 저장'), findsOneWidget);
         expect(t.takeException(), isNull);
       });
       testWidgets('긴 과목·그래프·비교: 너비 $width, 글자 $scale', (t) async {

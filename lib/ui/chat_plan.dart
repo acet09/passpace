@@ -167,7 +167,7 @@ class _ChatPlanCardState extends State<ChatPlanCard> {
   Future<void> _save() async {
     final request = setup.request;
     if (request == null || setup.saving || setup.saved) return;
-    final activate = await askPlanSave(context);
+    final activate = await askPlanSave(context, widget.api);
     if (activate == null || !mounted) return;
     setState(() {
       setup.saving = true;
@@ -184,7 +184,9 @@ class _ChatPlanCardState extends State<ChatPlanCard> {
             : '계획 목록에 추가했어요$count. 학습계획 화면의 계획 목록에서 사용할 수 있어요.';
       widget.onSaved?.call();
     } catch (e) {
-      setup.saveNote = '저장 실패: ${friendly(e)}';
+      final message = '저장 실패: ${friendly(e)}';
+      setup.saveNote = message;
+      if (mounted) toast(context, message);
     } finally {
       setup.saving = false;
       _refresh();

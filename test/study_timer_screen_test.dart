@@ -13,7 +13,8 @@ import 'support/draft_storage.dart';
 Future<void> seedTimer(StudyFixture fixture, {int seconds = 85}) async {
   await fixture.session.restore();
   var ticks = 0;
-  var now = DateTime.now().toUtc();
+  final day = fixture.today;
+  var now = DateTime.utc(day.year, day.month, day.day, 3);
   final timer = StudyTimer(
     fixture.session.drafts,
     fixture.session.origin,
@@ -107,11 +108,7 @@ void main() {
     expect(find.textContaining('저장 결과를 확인하지 못했어요'), findsOneWidget);
     await tapStudy(t, find.text('기록 목록에서 확인'));
     expect(
-      t
-          .widget<OutlinedButton>(
-            find.widgetWithText(OutlinedButton, '공부시간 추가'),
-          )
-          .onPressed,
+      t.widget<TextButton>(find.byKey(const ValueKey('history-add'))).onPressed,
       isNull,
     );
     await tapStudy(t, find.text('기록 확인 완료'));
@@ -247,7 +244,7 @@ void main() {
       });
     }
     await openStudy(t, fixture);
-    await tapStudy(t, find.text('공부시간 추가'));
+    await tapStudy(t, find.byKey(const ValueKey('history-add')));
     await tapStudy(t, find.byKey(const ValueKey('study-task-picker')));
     expect(find.text('전체 일정'), findsNothing);
     expect(find.text('선택한 날짜'), findsNothing);

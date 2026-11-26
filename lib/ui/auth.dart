@@ -6,10 +6,23 @@ import 'package:flutter/material.dart';
 import '../data/api.dart';
 import '../data/models.dart';
 import '../data/session.dart';
+import 'account_withdrawal.dart';
 import 'admin_link.dart';
 import 'auth_intro.dart';
 import 'design.dart';
 import 'profile_edit.dart';
+
+bool _validateAndReveal(FormState form) {
+  final invalid = form.validateGranularly();
+  if (invalid.isEmpty) return true;
+  final first = invalid.first.context;
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (first.mounted) {
+      Scrollable.ensureVisible(first, alignment: .12);
+    }
+  });
+  return false;
+}
 
 class AuthScreen extends StatefulWidget {
   final Session session;
@@ -31,7 +44,11 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   Future<void> enter() async {
-    if (busy || !form.currentState!.validate()) return;
+    if (busy || widget.session.accountActionsBlocked) return;
+    if (!_validateAndReveal(form.currentState!)) {
+      if (error != null) setState(() => error = null);
+      return;
+    }
     FocusScope.of(context).unfocus();
     setState(() {
       busy = true;
@@ -66,22 +83,13 @@ class _AuthScreenState extends State<AuthScreen> {
     body: SafeArea(
       child: ScrollBody(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Flexible(child: Brand()),
-              IconButton(
-                tooltip: '서버 연결 설정',
-                onPressed: busy
-                    ? null
-                    : () => showConnection(context, widget.session),
-                icon: const Icon(Icons.tune_rounded, color: muted, size: 21),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          const AuthIntro(),
-          const SizedBox(height: 24),
+          if (MediaQuery.viewInsetsOf(context).bottom == 0) ...[
+            const Align(alignment: Alignment.centerLeft, child: Brand()),
+            const SizedBox(height: 8),
+          ],
+          const SizedBox(height: 12),
+          const PageTitle('계정 로그인'),
+          const SizedBox(height: 18),
           if (success != null)
             Semantics(
               liveRegion: true,
@@ -113,6 +121,13 @@ class _AuthScreenState extends State<AuthScreen> {
               ),
             ),
           if (widget.session.notice != null) AlertText(widget.session.notice!),
+          if (widget.session.withdrawalCleanupRequired)
+            OutlinedButton(
+              onPressed: widget.session.withdrawing
+                  ? null
+                  : widget.session.retryWithdrawalCleanup,
+              child: const Text('기기 정보 정리 다시 시도'),
+            ),
           Form(
             key: form,
             child: AutofillGroup(
@@ -137,6 +152,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     enabled: !busy,
                     autofillHints: const [AutofillHints.password],
                     obscureText: hidden,
+                    textInputAction: TextInputAction.done,
                     onFieldSubmitted: (_) => enter(),
                     decoration: InputDecoration(
                       labelText: '비밀번호',
@@ -146,7 +162,9 @@ class _AuthScreenState extends State<AuthScreen> {
                       ),
                       suffixIcon: IconButton(
                         tooltip: hidden ? '비밀번호 보기' : '비밀번호 숨기기',
-                        onPressed: () => setState(() => hidden = !hidden),
+                        onPressed: busy
+                            ? null
+                            : () => setState(() => hidden = !hidden),
                         icon: Icon(
                           hidden
                               ? Icons.visibility_outlined
@@ -165,11 +183,26 @@ class _AuthScreenState extends State<AuthScreen> {
           if (error != null) AlertText(error!),
           const SizedBox(height: 21),
           PrimaryAction('로그인', enter, busy: busy),
-          const SizedBox(height: 13),
+          const SizedBox(height: 12),
           OutlinedButton(
             onPressed: busy ? null : register,
             child: const Text('회원가입'),
           ),
+          if (MediaQuery.viewInsetsOf(context).bottom == 0) ...[
+            const SizedBox(height: 6),
+            Align(
+              alignment: Alignment.center,
+              child: TextButton.icon(
+                onPressed: busy
+                    ? null
+                    : () => showConnection(context, widget.session),
+                icon: const Icon(Icons.tune_rounded, size: 18),
+                label: const Text('서버 연결 설정'),
+              ),
+            ),
+            const SizedBox(height: 10),
+            const AuthIntro(),
+          ],
         ],
       ),
     ),
@@ -222,7 +255,11 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 
   Future<void> submit() async {
-    if (busy || !form.currentState!.validate()) return;
+    if (busy) return;
+    if (!_validateAndReveal(form.currentState!)) {
+      if (error != null) setState(() => error = null);
+      return;
+    }
     FocusScope.of(context).unfocus();
     setState(() {
       busy = true;
@@ -257,24 +294,12 @@ class _SignupScreenState extends State<SignupScreen> {
             Expanded(
               child: ScrollBody(
                 children: [
-                  const Text(
-                    '나에게 맞는 준비,\n지금 시작해 보세요.',
-                    style: TextStyle(
-                      fontSize: 23,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -1,
-                      height: 1.35,
-                    ),
-                  ),
-                  const SizedBox(height: 9),
-                  const HelpText('계정 하나로 웹과 앱에서 학습계획을 이어가세요.'),
                   Form(
                     key: form,
                     child: AutofillGroup(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          const Heading('로그인 정보'),
                           for (final (i, label) in [
                             '아이디',
                             '비밀번호',
@@ -282,7 +307,6 @@ class _SignupScreenState extends State<SignupScreen> {
                             '닉네임',
                             '이메일',
                           ].indexed) ...[
-                            if (i == 3) const Heading('나의 프로필'),
                             TextFormField(
                               controller: fields[i],
                               enabled: !busy,
@@ -291,7 +315,9 @@ class _SignupScreenState extends State<SignupScreen> {
                               keyboardType: i == 4
                                   ? TextInputType.emailAddress
                                   : TextInputType.text,
-                              textInputAction: TextInputAction.next,
+                              textInputAction: i == 4
+                                  ? TextInputAction.done
+                                  : TextInputAction.next,
                               autofillHints: [
                                 [AutofillHints.newUsername],
                                 [AutofillHints.newPassword],
@@ -311,8 +337,11 @@ class _SignupScreenState extends State<SignupScreen> {
                                         tooltip: hidden
                                             ? '가입 비밀번호 보기'
                                             : '가입 비밀번호 숨기기',
-                                        onPressed: () =>
-                                            setState(() => hidden = !hidden),
+                                        onPressed: busy
+                                            ? null
+                                            : () => setState(
+                                                () => hidden = !hidden,
+                                              ),
                                         icon: Icon(
                                           hidden
                                               ? Icons.visibility_outlined
@@ -326,7 +355,6 @@ class _SignupScreenState extends State<SignupScreen> {
                             ),
                             const FieldGap(),
                           ],
-                          const SizedBox(height: 8),
                           DropdownButtonFormField<String>(
                             isExpanded: true,
                             decoration: const InputDecoration(
@@ -446,103 +474,51 @@ class _ConnectionState extends State<_Connection> {
 
 class ProfileScreen extends StatelessWidget {
   final Session session;
-  final VoidCallback openPlan;
-  const ProfileScreen(this.session, this.openPlan, {super.key});
+  final Future<bool> Function()? prepareWithdrawal;
+  const ProfileScreen(this.session, {super.key, this.prepareWithdrawal});
   @override
   Widget build(BuildContext context) {
     final p = session.user!;
+    Future<void> edit() async {
+      final ok = await Navigator.push<bool>(
+        context,
+        MaterialPageRoute(builder: (_) => EditProfile(session)),
+      );
+      if (ok == true && context.mounted) {
+        toast(context, '회원정보를 수정했어요.');
+      }
+    }
+
     return ScrollBody(
       children: [
         Pane(
-          child: Row(
-            children: [
-              CircleAvatar(
-                radius: 28,
-                backgroundColor: pale,
-                child: Text(
-                  p.name.isEmpty ? 'P' : p.name.characters.first,
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w800,
-                    color: blue,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 15),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      p.name,
-                      style: const TextStyle(
-                        fontSize: 21,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const SizedBox(height: 5),
-                    HelpText(p.email),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-        const Heading('나의 계정'),
-        Pane(
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              PageTitle(p.name),
+              const SizedBox(height: 16),
               _InfoRow('아이디', p.id),
-              const SizedBox(height: 15),
+              const SizedBox(height: 12),
+              _InfoRow('이메일', p.email),
+              const SizedBox(height: 12),
               _InfoRow('전공 구분', p.major),
-              const SizedBox(height: 15),
-              const Divider(),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                title: const Text(
-                  '회원정보 수정',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+              const SizedBox(height: 8),
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: TextButton.icon(
+                  onPressed: edit,
+                  icon: const Icon(Icons.edit_outlined, size: 18),
+                  label: const Text('회원정보 수정'),
                 ),
-                trailing: const Icon(Icons.chevron_right_rounded, size: 20),
-                onTap: () async {
-                  final ok = await Navigator.push<bool>(
-                    context,
-                    MaterialPageRoute(builder: (_) => EditProfile(session)),
-                  );
-                  if (ok == true && context.mounted) {
-                    toast(context, '회원정보를 수정했어요.');
-                  }
-                },
               ),
             ],
-          ),
-        ),
-        const Heading('학습 설정'),
-        Pane(
-          padding: 0,
-          child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 18,
-              vertical: 8,
-            ),
-            leading: const ExamIcon('SQL', size: 39),
-            title: const Text(
-              '학습계획 관리',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-            ),
-            subtitle: const Text(
-              '목표 설정 · 계획 만들기 · 저장된 일정',
-              style: TextStyle(fontSize: 12, color: muted),
-            ),
-            trailing: const Icon(Icons.chevron_right_rounded, size: 20),
-            onTap: openPlan,
           ),
         ),
         if (showsAdminPage(session)) ...[
           const Heading('관리자'),
           Pane(padding: 0, child: AdminPageLink(session)),
         ],
-        const SizedBox(height: 25),
+        const Heading('계정 설정'),
         OutlinedButton.icon(
           onPressed: () async {
             try {
@@ -553,6 +529,20 @@ class ProfileScreen extends StatelessWidget {
           },
           icon: const Icon(Icons.logout_rounded, size: 18),
           label: const Text('로그아웃'),
+        ),
+        const SizedBox(height: 8),
+        TextButton(
+          onPressed: () => Navigator.push<void>(
+            context,
+            MaterialPageRoute(
+              builder: (_) =>
+                  AccountWithdrawalScreen(session, prepare: prepareWithdrawal),
+            ),
+          ),
+          child: Text(
+            '회원탈퇴',
+            style: TextStyle(color: Theme.of(context).colorScheme.error),
+          ),
         ),
       ],
     );

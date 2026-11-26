@@ -22,11 +22,6 @@ class PlanComparisonSummary extends StatelessWidget {
           if (c.previous == null)
             HelpText('저장하면 총 ${durationLabel(c.afterMinutes)}의 일정이 시작돼요.')
           else ...[
-            Text(
-              '버전 ${c.previous!.version} → 새 계획',
-              style: const TextStyle(color: muted, fontSize: 12),
-            ),
-            const SizedBox(height: 14),
             LayoutBuilder(
               builder: (context, b) {
                 final values = [

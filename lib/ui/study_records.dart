@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../data/api.dart';
 import '../data/models.dart';
 import '../data/session.dart';
+import '../data/study_history.dart';
 import '../data/study_models.dart';
 import '../data/study_timer.dart';
 import '../data/study_timer_notifications.dart';
@@ -12,20 +13,32 @@ import 'design.dart';
 import 'study_chart.dart';
 import 'study_record_form.dart';
 import 'study_delete_dialog.dart';
+import 'study_range_picker.dart';
 import 'study_timer_screen.dart';
 import 'view_switch.dart';
+import 'subject_color_picker.dart';
+
+typedef _SubjectTime = ({String name, int minutes, List<StudyRecord> sources});
 
 class StudyRecordsScreen extends StatefulWidget {
   final Session session;
   final bool active;
   final DateTime Function() today;
   final VoidCallback? onOpenTimer;
+  final ValueChanged<StudyTimer?>? onTimerBound;
+  final VoidCallback? onRecordsChanged;
+  final StudySubjectColor? colorForSubject;
+  final Color? Function(StudyRecord)? colorForRecord;
   const StudyRecordsScreen(
     this.session, {
     super.key,
     required this.active,
     this.today = dayInSeoul,
     this.onOpenTimer,
+    this.onTimerBound,
+    this.onRecordsChanged,
+    this.colorForSubject,
+    this.colorForRecord,
   });
   @override
   State<StudyRecordsScreen> createState() => StudyRecordsScreenState();
@@ -38,7 +51,12 @@ class StudyRecordsScreenState extends State<StudyRecordsScreen>
   late DateTime end = widget.today();
   late DateTime start = plusDays(end, -6);
   List<StudyRecord> records = [];
+  final dayExpansion = <DateTime, bool>{};
+  (int, DateTime, DateTime)? expansionRange;
   StudyStats? stats;
+  List<_SubjectTime>? _subjectTimes;
+  final _recordTaskChoices = <int, StudyTaskChoice>{};
+  String? subjectTimesError;
   bool loadingRecords = false, loadingStats = false, paging = false;
   bool hasNext = false, denied = false, covered = false;
   String? recordError, statsError, pageError;
@@ -48,11 +66,13 @@ class StudyRecordsScreenState extends State<StudyRecordsScreen>
   int? uncertainRecordId;
   bool uncertainDelete = false;
   final checkedDates = <String>{};
+  final recordsScroll = ScrollController();
   StudyTimer? timer;
   Timer? ticker;
   final notifications = StudyTimerNotifications();
   bool notificationOverlay = false;
   bool get canWrite =>
+      !widget.session.accountActionsBlocked &&
       uncertainDate == null &&
       timer?.restoring != true &&
       timer?.loadFailed != true &&
@@ -68,7 +88,7 @@ class StudyRecordsScreenState extends State<StudyRecordsScreen>
     unawaited(
       notifications.attach(() {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) return;
+          if (!mounted || widget.session.accountActionsBlocked) return;
           widget.onOpenTimer?.call();
           unawaited(openNotificationTimer());
         });
@@ -82,28 +102,41 @@ class StudyRecordsScreenState extends State<StudyRecordsScreen>
   void bindTimer() {
     final old = timer;
     if (old != null) {
+      notifications.clear();
       old.removeListener(timerChanged);
       unawaited(old.pause());
       old.dispose();
     }
-    final user = widget.session.user;
-    if (user == null || account == null) {
+    final user = widget.session.user, api = account;
+    if (user == null || api == null) {
       timer = null;
+      publishTimer(null);
       return;
     }
     final next = StudyTimer(
       widget.session.drafts,
       widget.session.origin,
       user.id,
+      isPlanChanging: () =>
+          api.changingPlan || widget.session.accountActionsBlocked,
     );
-    timer = next;
+    timer = api.planTimer = next;
     next.addListener(timerChanged);
     unawaited(next.restore());
+    publishTimer(next);
+  }
+
+  void publishTimer(StudyTimer? clock) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && identical(timer, clock)) widget.onTimerBound?.call(clock);
+    });
   }
 
   void timerChanged() {
     if (!mounted) return;
-    if (timer case final clock?) unawaited(notifications.sync(clock));
+    if (!denied && timer != null && !widget.session.accountActionsBlocked) {
+      unawaited(notifications.sync(timer!));
+    }
     var inspect = false;
     setState(() {
       final clock = timer;
@@ -136,9 +169,12 @@ class StudyRecordsScreenState extends State<StudyRecordsScreen>
 
   Future<void> resumeNotification() async {
     final clock = timer, api = account;
-    if (clock == null) return;
+    if (clock == null || denied || widget.session.accountActionsBlocked) return;
     final elapsed = await notifications.elapsed();
-    if (!mounted || !identical(timer, clock) || !identical(api, account)) {
+    if (!mounted ||
+        denied ||
+        !identical(timer, clock) ||
+        !identical(api, account)) {
       return;
     }
     if (elapsed != null) await clock.alignElapsed(elapsed);
@@ -146,9 +182,42 @@ class StudyRecordsScreenState extends State<StudyRecordsScreen>
     await notifications.sync(clock, refresh: true);
   }
 
+  Future<bool> prepareForWithdrawal() async {
+    final clock = timer, api = account;
+    if (clock == null || api == null) return false;
+    bool ready() =>
+        mounted &&
+        identical(timer, clock) &&
+        identical(widget.session.account, api) &&
+        !api.changingPlan &&
+        !covered &&
+        !notificationOverlay &&
+        !denied &&
+        uncertainDate == null &&
+        clock.available &&
+        clock.error == null &&
+        !clock.locked;
+    if (!ready()) return false;
+    try {
+      if (!await clock.pause().timeout(const Duration(seconds: 5)) ||
+          !ready()) {
+        return false;
+      }
+      return await notifications.stopForWithdrawal().timeout(
+            const Duration(seconds: 5),
+          ) &&
+          ready();
+    } on TimeoutException {
+      return false;
+    }
+  }
+
   void clear() {
     records = [];
+    _recordTaskChoices.clear();
     stats = null;
+    _subjectTimes = null;
+    subjectTimesError = null;
     page = -1;
     hasNext = false;
     recordError = null;
@@ -161,8 +230,10 @@ class StudyRecordsScreenState extends State<StudyRecordsScreen>
 
   void accountChanged() {
     if (!mounted || identical(account, widget.session.account)) return;
+    if (identical(account?.planTimer, timer)) account?.planTimer = null;
     setState(() {
       epoch++;
+      dayExpansion.clear();
       account = widget.session.account;
       denied = false;
       uncertainDate = null;
@@ -209,6 +280,8 @@ class StudyRecordsScreenState extends State<StudyRecordsScreen>
 
   @override
   void dispose() {
+    recordsScroll.dispose();
+    if (identical(account?.planTimer, timer)) account?.planTimer = null;
     notifications.removeListener(notificationChanged);
     notifications.dispose();
     ticker?.cancel();
@@ -235,6 +308,7 @@ class StudyRecordsScreenState extends State<StudyRecordsScreen>
 
   void forbid() {
     if (!mounted) return;
+    notifications.clear();
     if (timer case final clock?) unawaited(clock.pause());
     setState(() {
       epoch++;
@@ -245,6 +319,63 @@ class StudyRecordsScreenState extends State<StudyRecordsScreen>
 
   bool permissionError(Object e) =>
       e is ApiError && (e.status == 401 || e.status == 403);
+
+  StudyTaskChoice? _matchingTask(StudyRecord record, StudyTaskChoice? task) {
+    if (task == null ||
+        record.planId != null && task.planId != record.planId ||
+        record.subjectId != null &&
+            task.subjectId != null &&
+            task.subjectId != record.subjectId) {
+      return null;
+    }
+    return task;
+  }
+
+  Color? _recordColor(StudyRecord record) {
+    final direct = widget.colorForRecord?.call(record);
+    if (direct != null) return direct;
+    final task = _matchingTask(record, _recordTaskChoices[record.taskId]);
+    final name = record.subjectName?.trim();
+    if (task == null ||
+        name != null && name.isNotEmpty && name != task.subjectName?.trim()) {
+      return null;
+    }
+    return widget.colorForSubject?.call(task);
+  }
+
+  Set<int> _unresolvedColorTasks(Iterable<StudyRecord> history) => {
+    if (widget.colorForRecord != null && widget.colorForSubject != null)
+      for (final record in history)
+        if (record.taskId case final id?
+            when !_recordTaskChoices.containsKey(id) &&
+                widget.colorForRecord!(record) == null)
+          id,
+  };
+
+  Future<void> _loadRecordColors(
+    PassApi api,
+    int turn,
+    List<StudyRecord> items,
+  ) async {
+    final taskIds = _unresolvedColorTasks(items);
+    if (taskIds.isEmpty) return;
+    try {
+      final tasks = await readStudyTaskChoices(
+        api,
+        includeReplaced: true,
+        taskIds: taskIds,
+        isCurrent: () => current(api, turn),
+      );
+      if (tasks == null || !current(api, turn)) return;
+      setState(
+        () => _recordTaskChoices.addEntries(
+          tasks.map((task) => MapEntry(task.id, task)),
+        ),
+      );
+    } catch (_) {
+      // History remains usable when optional color metadata is unavailable.
+    }
+  }
 
   Future<void> load() async {
     final api = account;
@@ -261,15 +392,117 @@ class StudyRecordsScreenState extends State<StudyRecordsScreen>
       start = plusDays(end, 1 - preset);
     }
     final turn = ++epoch, from = start, to = end;
+    final range = (preset, from, to);
+    if (expansionRange != range) {
+      dayExpansion.clear();
+      expansionRange = range;
+    }
     setState(() {
       clear();
       loadingRecords = true;
       loadingStats = true;
     });
     await Future.wait([
-      readRecords(api, turn, from, to),
+      if (view == 0) readRecords(api, turn, from, to),
       readStats(api, turn, from, to),
+      if (view != 0) readSubjectTimes(api, turn, from, to),
     ]);
+  }
+
+  Future<void> readSubjectTimes(
+    PassApi api,
+    int turn,
+    DateTime from,
+    DateTime to,
+  ) async {
+    try {
+      final history = await readStudyHistory(
+        api,
+        from,
+        to,
+        pageSize: 100,
+        isCurrent: () => current(api, turn),
+      );
+      if (history == null || !current(api, turn)) return;
+      String? subjectName(String? value) {
+        final name = value?.trim();
+        return name == null || name.isEmpty ? null : name;
+      }
+
+      final knownNames = <int, String>{};
+      for (final record in history) {
+        final id = record.subjectId, name = subjectName(record.subjectName);
+        if (id != null && name != null) {
+          knownNames.putIfAbsent(id, () => name);
+        }
+      }
+      final missing = {
+        for (final record in history)
+          if (subjectName(record.subjectName) == null &&
+              !knownNames.containsKey(record.subjectId) &&
+              record.taskId != null)
+            record.taskId!,
+      };
+      final taskIds = {...missing, ..._unresolvedColorTasks(history)};
+      final linkedTasks = <int, StudyTaskChoice>{};
+      if (taskIds.isNotEmpty) {
+        try {
+          final found = await readStudyTaskChoices(
+            api,
+            includeReplaced: true,
+            taskIds: taskIds,
+            isCurrent: () => current(api, turn),
+          );
+          if (found == null) return;
+          for (final task in found) {
+            linkedTasks[task.id] = task;
+          }
+        } catch (error) {
+          if (missing.isNotEmpty && permissionError(error)) rethrow;
+          // Keep the confirmed minutes even when optional task details are unavailable.
+        }
+      }
+      if (!current(api, turn)) return;
+      final totals = <(int?, String), _SubjectTime>{};
+      for (final record in history) {
+        final linked = missing.contains(record.taskId)
+            ? _matchingTask(record, linkedTasks[record.taskId])
+            : null;
+        final id = record.subjectId ?? linked?.subjectId;
+        final name =
+            subjectName(record.subjectName) ??
+            knownNames[id] ??
+            subjectName(linked?.subjectName);
+        final label =
+            name ??
+            (record.taskId == null && id == null ? '과목 미연결' : '과목 이름 없음');
+        final key = (id, id == null ? label : '');
+        final prior = totals[key];
+        final sources = prior?.sources ?? <StudyRecord>[];
+        sources.add(record);
+        totals[key] = (
+          name: name ?? prior?.name ?? label,
+          minutes: (prior?.minutes ?? 0) + record.minutes,
+          sources: sources,
+        );
+      }
+      final ordered = totals.values.toList()
+        ..sort((a, b) {
+          final duration = b.minutes.compareTo(a.minutes);
+          return duration != 0 ? duration : a.name.compareTo(b.name);
+        });
+      setState(() {
+        _recordTaskChoices.addAll(linkedTasks);
+        _subjectTimes = ordered;
+      });
+    } catch (e) {
+      if (!current(api, turn)) return;
+      if (permissionError(e)) {
+        forbid();
+        return;
+      }
+      setState(() => subjectTimesError = friendly(e));
+    }
   }
 
   Future<void> readRecords(
@@ -294,6 +527,7 @@ class StudyRecordsScreenState extends State<StudyRecordsScreen>
         hasNext = result.hasNext;
         loadingRecords = false;
       });
+      unawaited(_loadRecordColors(api, turn, result.items));
     } catch (e) {
       if (!current(api, turn)) return;
       if (permissionError(e)) {
@@ -362,6 +596,7 @@ class StudyRecordsScreenState extends State<StudyRecordsScreen>
         markInspectedDate(from, to, result.hasNext);
         paging = false;
       });
+      unawaited(_loadRecordColors(api, turn, result.items));
     } catch (e) {
       if (!current(api, turn)) return;
       if (permissionError(e)) {
@@ -385,28 +620,18 @@ class StudyRecordsScreenState extends State<StudyRecordsScreen>
   }
 
   Future<void> custom() async {
-    final range = await showDateRangePicker(
-      context: context,
-      firstDate: DateTime(1000),
-      lastDate: dayInSeoul(),
-      initialDateRange: DateTimeRange(start: start, end: end),
-      helpText: '공부기록 조회 기간 · 최대 366일',
-      saveText: '조회',
+    final api = account;
+    if (api == null || denied || uncertainDate != null) return;
+    final range = await pickStudyRange(
+      context,
+      initial: DateTimeRange(start: start, end: end),
+      today: widget.today(),
     );
-    if (!mounted || range == null || account == null || denied) return;
-    final count =
-        DateTime.utc(range.end.year, range.end.month, range.end.day)
-            .difference(
-              DateTime.utc(
-                range.start.year,
-                range.start.month,
-                range.start.day,
-              ),
-            )
-            .inDays +
-        1;
-    if (count > 366) {
-      toast(context, '조회 기간은 최대 366일까지 선택해 주세요.');
+    if (!mounted ||
+        range == null ||
+        !identical(account, api) ||
+        denied ||
+        uncertainDate != null) {
       return;
     }
     setState(() {
@@ -433,6 +658,7 @@ class StudyRecordsScreenState extends State<StudyRecordsScreen>
         builder: (_) => StudyRecordForm(
           widget.session,
           record: original,
+          colorForSubject: widget.colorForSubject,
           onForbidden: forbid,
           onUncertain: (date, minutes) {
             if (mounted && identical(api, widget.session.account)) {
@@ -459,6 +685,7 @@ class StudyRecordsScreenState extends State<StudyRecordsScreen>
     if (date != null) {
       setState(() {
         view = 0;
+        dayExpansion[date] = true;
         if (uncertainDate != null ||
             date.isBefore(start) ||
             date.isAfter(end)) {
@@ -467,6 +694,9 @@ class StudyRecordsScreenState extends State<StudyRecordsScreen>
           end = date;
         }
       });
+    }
+    if (result != null || uncertainDate != null) {
+      widget.onRecordsChanged?.call();
     }
     if (result != null) {
       toast(
@@ -525,8 +755,82 @@ class StudyRecordsScreenState extends State<StudyRecordsScreen>
         end = uncertainDate!;
       });
     }
+    if (deleted == true || uncertainDate != null) {
+      widget.onRecordsChanged?.call();
+    }
     if (deleted == true) toast(context, '학습기록을 삭제했어요.');
     await load();
+  }
+
+  Future<bool> selectPlannedTask(
+    SavedPlan plan,
+    StudyTask task, {
+    required bool Function() isCurrent,
+  }) async {
+    final api = account;
+    final clock = timer;
+    if (api == null ||
+        clock == null ||
+        covered ||
+        denied ||
+        !canWrite ||
+        !clock.available) {
+      throw const ApiError('기록 화면에서 현재 타이머나 저장 상태를 먼저 확인해 주세요.');
+    }
+    final planId = plan.id;
+    if (planId == null || isoDay(task.date) != isoDay(widget.today())) {
+      throw const ApiError('오늘 학습계획을 새로고침한 뒤 다시 선택해 주세요.');
+    }
+    StudyTaskChoice? match;
+    for (var page = 0; ; page++) {
+      final result = await api.studyPlanTasks(date: task.date, page: page);
+      if (!mounted ||
+          !isCurrent() ||
+          !identical(api, account) ||
+          !identical(timer, clock)) {
+        return false;
+      }
+      if (result.page != page || (result.hasNext && result.items.isEmpty)) {
+        throw const ApiError('과목 목록을 확인하지 못했어요. 다시 시도해 주세요.');
+      }
+      for (final choice in result.items) {
+        if (choice.status != 'ACTIVE' ||
+            choice.planId != planId ||
+            choice.planVersion != plan.version ||
+            task.id != null && choice.id != task.id ||
+            choice.scheduledDate == null ||
+            isoDay(choice.scheduledDate!) != isoDay(task.date) ||
+            choice.certificationName?.trim() != task.exam.trim() ||
+            choice.subjectName?.trim() != task.subject.trim()) {
+          continue;
+        }
+        if (match != null && match.id != choice.id) {
+          throw const ApiError('같은 이름의 계획 항목이 여러 개 있어요. 기록에서 과목을 선택해 주세요.');
+        }
+        match = choice;
+      }
+      if (!result.hasNext) break;
+    }
+    if (match == null || isoDay(task.date) != isoDay(widget.today())) {
+      throw const ApiError('현재 계획과 과목을 확인하지 못했어요. 홈을 새로고침한 뒤 다시 시도해 주세요.');
+    }
+    if (covered || denied || !canWrite || !clock.available) {
+      throw const ApiError('기록 화면에서 현재 타이머나 저장 상태를 먼저 확인해 주세요.');
+    }
+    if (clock.task?.id == match.id &&
+        clock.task?.planVersion == match.planVersion &&
+        !clock.dayEnded) {
+      return true;
+    }
+    if (clock.phase == StudyTimerPhase.running ||
+        clock.elapsed > Duration.zero ||
+        clock.dayEnded) {
+      throw const ApiError('기존 측정 시간이 남아 있어요. 기록 탭에서 저장하거나 정리한 뒤 과목을 바꿔 주세요.');
+    }
+    if (!await clock.choose(match)) {
+      throw const ApiError('선택한 과목을 저장하지 못했어요. 기록 탭에서 타이머를 확인해 주세요.');
+    }
+    return mounted && isCurrent() && identical(timer, clock);
   }
 
   void showTimer() {
@@ -563,8 +867,10 @@ class StudyRecordsScreenState extends State<StudyRecordsScreen>
           builder: (_) => StudyTimerScreen(
             widget.session,
             clock,
+            colorForSubject: widget.colorForSubject,
             onForbidden: forbid,
             canSave: () =>
+                !widget.session.accountActionsBlocked &&
                 !covered &&
                 uncertainDate == null &&
                 !denied &&
@@ -597,6 +903,7 @@ class StudyRecordsScreenState extends State<StudyRecordsScreen>
   void openRecords(int selectedView) {
     if (!mounted || covered) return;
     setState(() {
+      if (selectedView == 0 && pane != 1) dayExpansion.clear();
       pane = selectedView + 1;
       view = selectedView;
       epoch++;
@@ -678,6 +985,7 @@ class StudyRecordsScreenState extends State<StudyRecordsScreen>
             widget.session,
             clock,
             key: ObjectKey(clock),
+            colorForSubject: widget.colorForSubject,
             embedded: true,
             active: widget.active,
             notificationNotice: notifications.notice,
@@ -685,6 +993,7 @@ class StudyRecordsScreenState extends State<StudyRecordsScreen>
                 ? notifications.openSettings
                 : null,
             onForbidden: forbid,
+            canSave: () => !widget.session.accountActionsBlocked,
             onUncertain: (date, minutes) {
               timerChanged();
             },
@@ -694,9 +1003,24 @@ class StudyRecordsScreenState extends State<StudyRecordsScreen>
         ),
       );
     }
-    final listCount = view == 0 && !loadingRecords && recordError == null
-        ? records.length
-        : 0;
+    final byDay = <DateTime, List<StudyRecord>>{};
+    if (view == 0 && !loadingRecords && recordError == null) {
+      for (final record in records) {
+        (byDay[record.date] ??= []).add(record);
+      }
+    }
+    final days = byDay.keys.toList()..sort((a, b) => b.compareTo(a));
+    bool isExpanded(DateTime day) => dayExpansion[day] ?? (day == days.first);
+    final totals = {
+      for (final day in stats?.days ?? <StudyDay>[]) day.date: day.minutes,
+    };
+    final rows = <(DateTime, StudyRecord?)>[
+      for (final day in days) ...[
+        (day, null),
+        if (isExpanded(day))
+          for (final record in byDay[day]!) (day, record),
+      ],
+    ];
     return withViewSwitch(
       PopScope(
         canPop: !widget.active,
@@ -708,12 +1032,25 @@ class StudyRecordsScreenState extends State<StudyRecordsScreen>
             onRefresh: load,
             child: ListView.builder(
               key: ValueKey('study-view-$view'),
+              controller: view == 0 ? recordsScroll : null,
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
               physics: const AlwaysScrollableScrollPhysics(),
-              itemCount: listCount + 2,
+              itemCount: rows.length + 2,
               itemBuilder: (context, index) {
                 if (index == 0) return header();
-                if (index <= listCount) return recordRow(records[index - 1]);
+                if (index <= rows.length) {
+                  final (day, record) = rows[index - 1];
+                  if (record != null) return recordRow(record);
+                  final minutes =
+                      totals[day] ??
+                      byDay[day]!.fold<int>(0, (n, r) => n + r.minutes);
+                  return dayRow(
+                    day,
+                    minutes,
+                    expanded: isExpanded(day),
+                    partial: totals[day] == null && hasNext && day == days.last,
+                  );
+                }
                 return view == 0 ? historyFooter() : statistics();
               },
             ),
@@ -743,6 +1080,7 @@ class StudyRecordsScreenState extends State<StudyRecordsScreen>
       preset = 0;
       start = date;
       end = date;
+      dayExpansion[date] = true;
       view = 0;
     });
     load();
@@ -757,18 +1095,6 @@ class StudyRecordsScreenState extends State<StudyRecordsScreen>
   Widget header() => Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
-      Text(
-        view == 0 ? '학습기록' : '개인 통계',
-        style: const TextStyle(fontSize: 23, fontWeight: FontWeight.w800),
-      ),
-      const SizedBox(height: 6),
-      const HelpText('실제 공부시간을 기록하고 나의 학습 흐름을 확인해요.'),
-      const SizedBox(height: 18),
-      if (view == 0)
-        OutlinedButton(
-          onPressed: canWrite ? add : null,
-          child: const Text('공부시간 추가'),
-        ),
       if (uncertainDate != null) ...[
         AlertText(
           uncertainDelete
@@ -858,6 +1184,7 @@ class StudyRecordsScreenState extends State<StudyRecordsScreen>
                   if (!mounted || !identical(api, widget.session.account)) {
                     return;
                   }
+                  if (recordsScroll.hasClients) recordsScroll.jumpTo(0);
                   setState(() {
                     uncertainDate = null;
                     uncertainMinutes = null;
@@ -871,111 +1198,231 @@ class StudyRecordsScreenState extends State<StudyRecordsScreen>
           child: const Text('기록 확인 완료'),
         ),
       ],
-      const SizedBox(height: 20),
-      Wrap(
-        spacing: 8,
-        runSpacing: 4,
-        children: [
-          for (final n in [7, 30])
+      if (view == 0)
+        historyToolbar()
+      else ...[
+        Wrap(
+          spacing: 8,
+          runSpacing: 4,
+          children: [
+            for (final n in [7, 30])
+              ChoiceChip(
+                label: Text('최근 $n일'),
+                selected: preset == n,
+                onSelected: uncertainDate != null ? null : (_) => period(n),
+              ),
             ChoiceChip(
-              label: Text('최근 $n일'),
-              selected: preset == n,
-              onSelected: uncertainDate != null ? null : (_) => period(n),
+              label: const Text('기간 선택'),
+              selected: preset == 0,
+              onSelected: uncertainDate != null ? null : (_) => custom(),
             ),
-          ChoiceChip(
-            label: const Text('기간 선택'),
-            selected: preset == 0,
-            onSelected: uncertainDate != null ? null : (_) => custom(),
-          ),
-        ],
-      ),
-      const SizedBox(height: 8),
-      Text(
-        '${isoDay(start)} ~ ${isoDay(end)}',
-        style: const TextStyle(color: muted, fontSize: 13),
-      ),
-      const SizedBox(height: 18),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Text(
+          '${isoDay(start)} ~ ${isoDay(end)}',
+          style: const TextStyle(color: muted, fontSize: 13),
+        ),
+        const SizedBox(height: 18),
+      ],
     ],
   );
 
-  Widget recordRow(StudyRecord record) => Column(
-    key: ValueKey('study-record-${record.id}'),
-    children: [
-      Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Wrap(
-              alignment: WrapAlignment.spaceBetween,
-              spacing: 16,
-              runSpacing: 6,
-              children: [
-                Text(
-                  start.year != end.year
-                      ? '${record.date.year}년 ${shortDay(record.date)}'
-                      : shortDay(record.date),
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 16,
-                  ),
+  Widget historyToolbar() {
+    final includeYear =
+        start.year != end.year || end.year != widget.today().year;
+    String date(DateTime day) {
+      final iso = isoDay(day);
+      return (includeYear ? iso : iso.substring(5)).replaceAll('-', '.');
+    }
+
+    final range = start == end ? date(start) : '${date(start)} – ${date(end)}';
+    final label = preset == 0 ? range : '최근 $preset일';
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Wrap(
+        alignment: WrapAlignment.spaceBetween,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        spacing: 4,
+        children: [
+          PopupMenuButton<int>(
+            key: const ValueKey('history-period'),
+            tooltip: '조회 기간 변경',
+            enabled: uncertainDate == null,
+            initialValue: preset,
+            onSelected: (days) {
+              if (uncertainDate != null) return;
+              if (days == 0) {
+                custom();
+              } else if (days != preset) {
+                period(days);
+              }
+            },
+            itemBuilder: (_) => [
+              for (final days in [7, 30, 0])
+                CheckedPopupMenuItem<int>(
+                  key: ValueKey('history-days-$days'),
+                  value: days,
+                  checked: days == preset,
+                  child: Text(days == 0 ? '직접 선택' : '최근 $days일'),
                 ),
-                Text(
-                  durationLabel(record.minutes),
-                  style: const TextStyle(
-                    color: blue,
-                    fontWeight: FontWeight.w800,
-                    fontSize: 18,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              record.subjectName?.trim().isNotEmpty == true
-                  ? record.subjectName!
-                  : record.taskId == null
-                  ? '과목 미연결'
-                  : '연결된 과목 이름 없음',
-              style: const TextStyle(height: 1.5),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              record.planId != null
-                  ? '학습계획에 연결된 기록'
-                  : record.inputMethod == 'MANUAL'
-                  ? '기록한 공부시간'
-                  : '공부시간 기록',
-              style: const TextStyle(color: muted, fontSize: 12),
-            ),
-            if (record.inputMethod == 'MANUAL') ...[
-              const SizedBox(height: 8),
-              Wrap(
-                alignment: WrapAlignment.end,
-                spacing: 8,
-                runSpacing: 8,
+            ],
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 48),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  OutlinedButton.icon(
-                    key: ValueKey('study-edit-${record.id}'),
-                    onPressed: canWrite ? () => add(original: record) : null,
-                    icon: const Icon(Icons.edit_outlined, size: 18),
-                    label: const Text('수정'),
+                  Flexible(
+                    child: Text(
+                      label,
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
                   ),
-                  OutlinedButton.icon(
-                    key: ValueKey('study-delete-${record.id}'),
-                    onPressed: canWrite ? () => remove(record) : null,
-                    icon: const Icon(Icons.delete_outline, size: 18),
-                    label: const Text('삭제'),
-                  ),
+                  const Icon(Icons.expand_more, size: 18, color: muted),
                 ],
               ),
-            ],
+            ),
+          ),
+          Tooltip(
+            message: '공부시간 추가',
+            child: TextButton.icon(
+              key: const ValueKey('history-add'),
+              onPressed: canWrite ? add : null,
+              icon: const Icon(Icons.add, size: 18),
+              label: const Text('추가'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget dayRow(
+    DateTime day,
+    int minutes, {
+    required bool partial,
+    required bool expanded,
+  }) {
+    final date = start.year == end.year
+        ? shortDay(day)
+        : '${day.year}년 ${shortDay(day)}';
+    return Semantics(
+      expanded: expanded,
+      child: ListTile(
+        key: ValueKey('history-day-${isoDay(day)}'),
+        contentPadding: EdgeInsets.zero,
+        shape: const Border(top: BorderSide(color: line)),
+        onTap: () => setState(() {
+          dayExpansion[day] = !expanded;
+        }),
+        title: Wrap(
+          alignment: WrapAlignment.spaceBetween,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 12,
+          children: [
+            Text(
+              '$date · ${weekdays[day.weekday - 1]}',
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+            Text(
+              '총 ${durationLabel(minutes)}${partial ? ' 이상' : ''}',
+              style: const TextStyle(fontWeight: FontWeight.w700),
+            ),
+          ],
+        ),
+        trailing: Icon(
+          expanded ? Icons.expand_less : Icons.expand_more,
+          size: 20,
+        ),
+      ),
+    );
+  }
+
+  Widget recordRow(StudyRecord record) {
+    final hasName = record.subjectName?.trim().isNotEmpty == true;
+    final color = hasName ? _recordColor(record) : null;
+    final name = hasName
+        ? record.subjectName!
+        : record.taskId == null
+        ? '과목 미연결'
+        : '연결된 과목 이름 없음';
+    final editable = record.inputMethod == 'MANUAL';
+    final entry = ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: 52),
+      child: Padding(
+        padding: const EdgeInsetsDirectional.fromSTEB(12, 8, 12, 8),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 10,
+              child: color == null
+                  ? null
+                  : SubjectColorDot(
+                      color,
+                      markerKey: ValueKey('study-record-color-${record.id}'),
+                    ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              flex: 2,
+              child: Text(
+                name,
+                style: const TextStyle(fontWeight: FontWeight.w500),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Flexible(
+              fit: FlexFit.tight,
+              child: Text(
+                durationLabel(record.minutes),
+                textAlign: TextAlign.end,
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+            ),
+            const SizedBox(width: 6),
+            SizedBox(
+              width: 18,
+              child: editable
+                  ? const Icon(Icons.more_horiz, size: 18, color: muted)
+                  : null,
+            ),
           ],
         ),
       ),
-      const Divider(),
-    ],
-  );
+    );
+    return Material(
+      key: ValueKey('study-record-${record.id}'),
+      color: const Color(0xfff5f7fa),
+      child: editable
+          ? PopupMenuButton<bool>(
+              key: ValueKey('study-actions-${record.id}'),
+              tooltip: '기록 관리',
+              enabled: canWrite,
+              onSelected: (edit) {
+                if (!canWrite) return;
+                if (edit) {
+                  add(original: record);
+                } else {
+                  remove(record);
+                }
+              },
+              itemBuilder: (_) => [
+                PopupMenuItem(
+                  value: true,
+                  key: ValueKey('study-edit-${record.id}'),
+                  child: const Text('기록 수정'),
+                ),
+                PopupMenuItem(
+                  value: false,
+                  key: ValueKey('study-delete-${record.id}'),
+                  child: const Text('기록 삭제'),
+                ),
+              ],
+              child: entry,
+            )
+          : entry,
+    );
+  }
 
   Widget failure(String message) => Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1018,29 +1465,145 @@ class StudyRecordsScreenState extends State<StudyRecordsScreen>
               child: Text(paging ? '불러오는 중…' : '이전 기록 더 보기'),
             ),
           ),
-        if (!hasNext)
+      ],
+    );
+  }
+
+  Widget statistics() {
+    if (subjectTimesError != null && subjectTimesError == statsError) {
+      return failure(subjectTimesError!);
+    }
+    final breakdown = subjectBreakdown();
+    if (stats case final value? when !loadingStats && statsError == null) {
+      return StudyChart(
+        value,
+        breakdown: breakdown,
+        subjectsByDay: _dailySubjects(),
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (loadingStats)
           const Padding(
-            padding: EdgeInsets.only(top: 20),
-            child: Text(
-              '이 기간의 기록을 모두 확인했어요.',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: muted, fontSize: 12),
+            padding: EdgeInsets.all(28),
+            child: Center(
+              child: CircularProgressIndicator(semanticsLabel: '개인 통계 불러오는 중'),
+            ),
+          )
+        else if (statsError != null)
+          failure(statsError!),
+        const SizedBox(height: 18),
+        breakdown,
+      ],
+    );
+  }
+
+  Map<DateTime, List<StudySubjectSlice>>? _dailySubjects() {
+    final times = _subjectTimes;
+    if (times == null) return null;
+    final days = <DateTime, List<StudySubjectSlice>>{};
+    for (final subject in times) {
+      final color = _subjectColor(subject);
+      final minutesByDay = <DateTime, int>{};
+      for (final record in subject.sources) {
+        minutesByDay.update(
+          record.date,
+          (minutes) => minutes + record.minutes,
+          ifAbsent: () => record.minutes,
+        );
+      }
+      for (final entry in minutesByDay.entries) {
+        (days[entry.key] ??= []).add((
+          name: subject.name,
+          minutes: entry.value,
+          color: color,
+        ));
+      }
+    }
+    return days;
+  }
+
+  Color? _subjectColor(_SubjectTime subject) {
+    final colors = subject.sources.map(_recordColor).toSet();
+    return colors.length == 1 ? colors.single : null;
+  }
+
+  Widget subjectBreakdown() {
+    final times = _subjectTimes;
+    final longest = times?.firstOrNull?.minutes ?? 1;
+    return Column(
+      key: const ValueKey('study-subject-breakdown'),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Heading('과목별 공부시간'),
+        if (subjectTimesError != null)
+          failure(subjectTimesError!)
+        else if (times == null)
+          const HelpText('과목별 공부시간을 불러오는 중이에요.')
+        else if (times.isEmpty)
+          const HelpText('선택한 기간에 저장한 학습기록이 없어요.')
+        else ...[
+          for (final (index, subject) in times.indexed) ...[
+            if (index != 0) const Divider(height: 1),
+            _subjectTimeRow(index, subject, longest),
+          ],
+        ],
+        if (times?.any((subject) => subject.name == '과목 미연결') == true)
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: TextButton.icon(
+              onPressed: () => openRecords(0),
+              icon: const Icon(Icons.link_outlined, size: 18),
+              label: const Text('미연결 기록 확인'),
             ),
           ),
       ],
     );
   }
 
-  Widget statistics() {
-    if (loadingStats) {
-      return const Padding(
-        padding: EdgeInsets.all(28),
-        child: Center(
-          child: CircularProgressIndicator(semanticsLabel: '개인 통계 불러오는 중'),
-        ),
-      );
-    }
-    if (statsError != null) return failure(statsError!);
-    return stats == null ? const SizedBox.shrink() : StudyChart(stats!);
+  Widget _subjectTimeRow(int index, _SubjectTime subject, int longest) {
+    final color = _subjectColor(subject);
+    final time = durationLabel(subject.minutes);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              if (color != null) ...[
+                SubjectColorDot(
+                  color,
+                  markerKey: ValueKey('study-subject-color-$index'),
+                ),
+                const SizedBox(width: 8),
+              ],
+              Expanded(flex: 3, child: Text(subject.name)),
+              const SizedBox(width: 12),
+              Expanded(
+                flex: 2,
+                child: Text(
+                  time,
+                  textAlign: TextAlign.end,
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          ExcludeSemantics(
+            child: LinearProgressIndicator(
+              key: ValueKey('study-subject-bar-$index'),
+              value: longest > 0 ? subject.minutes / longest : 0,
+              minHeight: 5,
+              borderRadius: BorderRadius.circular(8),
+              color: color ?? muted,
+              backgroundColor: color == null ? line : subjectColorTrack(color),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

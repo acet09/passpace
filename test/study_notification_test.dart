@@ -27,7 +27,7 @@ void main() {
     return t;
   }
 
-  test('시작 알림은 실제 측정값·과목만 보내고 일시정지하면 해당 소유자만 종료한다', () async {
+  test('일시정지 상태를 알림에 표시하고 초기화하면 해당 소유자 알림을 종료한다', () async {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(channel, (c) async {
           calls.add(c);
@@ -47,11 +47,55 @@ void main() {
     );
     await timer.pause();
     await n.sync(timer);
+    expect(calls.last.method, 'start');
+    expect((calls.last.arguments as Map)['running'], false);
+    expect(
+      (calls.last.arguments as Map)['owner'],
+      (start.arguments as Map)['owner'],
+    );
+    await timer.reset();
+    await n.sync(timer);
     expect(calls.where((c) => c.method == 'stop'), isNotEmpty);
     expect(
       (calls.last.arguments as Map)['owner'],
       (start.arguments as Map)['owner'],
     );
+    n.dispose();
+    await n.settled;
+    timer.dispose();
+  });
+  test('알림 동작은 현재 소유자의 타이머를 멈추고 이어서 시작한다', () async {
+    final messenger =
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+    messenger.setMockMethodCallHandler(channel, (c) async {
+      calls.add(c);
+      return c.method == 'notificationAllowed' ||
+          c.method == 'requestPermission';
+    });
+    final timer = await running();
+    final n = StudyTimerNotifications(channel: channel);
+    await n.attach(() => fail('Action must not open the app'));
+    await n.sync(timer);
+    final owner = (calls.last.arguments as Map)['owner'] as String;
+    Future<void> action(String target, bool start) async {
+      await messenger.handlePlatformMessage(
+        channel.name,
+        const StandardMethodCodec().encodeMethodCall(
+          MethodCall('timerAction', {'owner': target, 'running': start}),
+        ),
+        (_) {},
+      );
+      await n.settled;
+    }
+
+    await action('retired', false);
+    expect(timer.phase, StudyTimerPhase.running);
+    await action(owner, false);
+    expect(timer.phase, StudyTimerPhase.paused);
+    final elapsed = timer.elapsed;
+    await action(owner, true);
+    expect(timer.phase, StudyTimerPhase.running);
+    expect(timer.elapsed, greaterThanOrEqualTo(elapsed));
     n.dispose();
     await n.settled;
     timer.dispose();

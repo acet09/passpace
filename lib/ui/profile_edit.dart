@@ -66,7 +66,6 @@ class _EditProfileState extends State<EditProfile> {
             Expanded(
               child: ScrollBody(
                 children: [
-                  const Heading('나의 프로필'),
                   TextField(
                     controller: name,
                     enabled: !busy,
@@ -79,12 +78,13 @@ class _EditProfileState extends State<EditProfile> {
                     controller: email,
                     enabled: !busy,
                     keyboardType: TextInputType.emailAddress,
-                    textInputAction: TextInputAction.next,
+                    textInputAction: TextInputAction.done,
                     decoration: const InputDecoration(labelText: '이메일'),
                   ),
                   const FieldGap(),
                   DropdownButtonFormField<String>(
                     initialValue: major,
+                    isExpanded: true,
                     decoration: const InputDecoration(labelText: '전공 구분'),
                     items: majors.entries
                         .map(
