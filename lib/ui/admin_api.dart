@@ -52,6 +52,7 @@ class AdminApi extends ChangeNotifier {
     '/exam',
     '/sqld-schedule',
     '/manual/dataq-schedule',
+    '/cert-info', // [11-26] 자격증 정보 메뉴 값 수집
     '/reference-stats',
     '/reviews/start',
     '/reviews/cancel',

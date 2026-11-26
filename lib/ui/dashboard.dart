@@ -8,6 +8,7 @@ import '../data/session.dart';
 import '../data/study_timer.dart';
 import '../data/subject_colors.dart';
 import 'auth.dart';
+import 'cert_info.dart';
 import 'chat.dart';
 import 'design.dart';
 import 'planner.dart';
@@ -788,6 +789,9 @@ class _DashboardState extends State<Dashboard>
                       onLater: laterReplan,
                     ),
             ),
+          // [11-26] 지원 자격증 정보 메뉴 (읽지 못하면 숨김)
+          const SizedBox(height: 12),
+          SupportedCertsSection(api, onPlan: openLearningPlan),
         ],
       );
     },

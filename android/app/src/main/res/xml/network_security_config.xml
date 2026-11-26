@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 기본은 https 만. Tailscale 배포 서버만 http 허용 (Tailscale 이 연결을 암호화).
+     서버 주소가 바뀌면 여기와 src/debug/res/xml/network_security_config.xml 에 IP 를 추가한다.
+     Dart 쪽 검사는 lib/data/api.dart isTailscaleHost -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false" />
+    <domain-config cleartextTrafficPermitted="true">
+        <domain>100.95.33.60</domain>      <!-- 학교 배포 서버 students -->
+        <domain>100.112.211.106</domain>   <!-- 모의 서버 A-PC (desktop-nj0tlhd) -->
+    </domain-config>
+</network-security-config>

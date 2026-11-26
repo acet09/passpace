@@ -1,8 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 디버그 빌드: main 의 같은 이름 파일을 덮어쓴다. 에뮬레이터·USB 주소 + Tailscale 서버 -->
 <network-security-config>
     <base-config cleartextTrafficPermitted="false" />
     <domain-config cleartextTrafficPermitted="true">
         <domain>10.0.2.2</domain>
         <domain>127.0.0.1</domain>
         <domain>localhost</domain>
+        <domain>100.95.33.60</domain>
+        <domain>100.112.211.106</domain>
     </domain-config>
 </network-security-config>
