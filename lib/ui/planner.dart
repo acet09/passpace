@@ -9,6 +9,8 @@ import '../data/plan_draft.dart';
 import '../data/plan_comparison.dart';
 import 'plan_comparison.dart';
 import 'plan_list.dart';
+import '../data/certification_info.dart';
+import 'cert_info.dart';
 import 'design.dart';
 
 class PlannerScreen extends StatelessWidget {
@@ -610,6 +612,17 @@ class _PlanFormState extends State<_PlanForm> with WidgetsBindingObserver {
                             _edit(() => drafts[exam.key]!.selected = v == true),
                       ),
                     ),
+                    // [11-26] 자격증 정보 요약 시트
+                    if (certIdFromKey(exam.key) != null)
+                      IconButton(
+                        tooltip: '${exam.name} 정보',
+                        onPressed: () => showCertInfoSheet(
+                          context,
+                          widget.api,
+                          certIdFromKey(exam.key)!,
+                        ),
+                        icon: const Icon(Icons.info_outline_rounded, size: 20),
+                      ),
                   ],
                 ),
                 if (drafts[exam.key]!.selected) ...[

@@ -333,6 +333,14 @@ class _AdminOperationsScreenState extends State<AdminOperationsScreen> {
               '보조 출처인 dataq 페이지의 SQLD·ADsP 시험일정을 수동으로 수집합니다.',
             ),
           ]),
+          // [11-26] 자격증 정보 메뉴(앱 홈 "지원 자격증") 값 수집
+          AdminSection('자격증 정보', [
+            action(
+              '자격증 정보 수집',
+              '/cert-info',
+              '공공 API에서 정보처리기사·산업안전기사의 시험 방식·문항 수·시간·합격 기준과 최근 회차별 합격률, 산업안전기사·빅데이터분석기사 시험일정을 가져와요. 응시료와 SQLD·ADsP·컴활·전산회계 정보는 수집 경로가 없어 미리 넣어 둔 값(db/14·15)을 그대로 써요.',
+            ),
+          ]),
           AdminSection('후기 기반 참고시간', info: 'reference', [
             const Text(
               '합격 후기로 자격증별 총 공부시간(중앙값)을 계산해요. 학습계획의 기준값이에요. 결과는 표로 보여 줘요.',

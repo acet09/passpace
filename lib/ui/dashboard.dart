@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../data/api.dart';
+import 'cert_info.dart';
 import '../data/models.dart';
 import '../data/session.dart';
 import 'auth.dart';
@@ -435,6 +436,9 @@ class _DashboardState extends State<Dashboard>
                 return GoalCard(goalSnap.data!, today, openLearningPlan);
               },
             ),
+            // [11-26] 지원 자격증 정보 메뉴 (읽지 못하면 숨김)
+            const SizedBox(height: 4),
+            SupportedCertsSection(api, onPlan: openLearningPlan),
             if (plan != null) ...[
               Text(
                 homeMonth ? '월간 학습' : '이번 주 학습',

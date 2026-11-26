@@ -26,6 +26,12 @@ const adminCertificates = {
   'SQLD': 'SQLD',
   'CA1': '컴활 1급',
   'ADSP': 'ADsP',
+  // [11-26] 추가 자격증
+  'SAFETY': '산업안전기사',
+  'CA2': '컴활 2급',
+  'BIGDATA': '빅데이터분석기사',
+  'ACC1': '전산회계 1급',
+  'ACC2': '전산회계 2급',
 };
 const adminStatuses = {
   'ALL': '전체 상태',

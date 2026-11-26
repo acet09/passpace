@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
+import 'certification_info.dart';
 import 'models.dart';
 import 'study_models.dart';
 
@@ -151,6 +152,12 @@ class PassApi {
   }
 
   Future<void> signup(Json form) => _send('POST', '/auth/signup', body: form);
+  // [11-26] 지원 자격증 정보 (로그인 없이 열리는 API, 응답 data = {certifications: [...]})
+  Future<List<CertSummary>> certifications() async => rows(
+    (await _send('GET', '/api/certifications'))['certifications'],
+  ).map(CertSummary.from).toList();
+  Future<CertDetail> certification(int id) async =>
+      CertDetail.from(await _send('GET', '/api/certifications/$id'));
   Future<Profile> profile() async =>
       Profile.from(await _send('GET', '/auth/user-info'));
   Future<SavedPlan?> saved() async {
