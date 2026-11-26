@@ -229,6 +229,74 @@ void main() {
     );
   });
 
+  test('이어 말한 자격증·긴 문장·일부만 적은 시간도 자격증별로 읽는다', () {
+    // "각각"이면 이어 말한 자격증 모두 같은 시간.
+    expect(examMinutesInMessage('정처기랑 SQLD 각각 1시간씩 계획 짜줘'), {
+      'IPE': 60,
+      'SQLD': 60,
+    });
+    expect(examMinutesInMessage('정처기랑 SQLD랑 ADsP 각각 하루 1시간씩'), {
+      'IPE': 60,
+      'SQLD': 60,
+      'ADSP': 60,
+    });
+    // 다른 자격증에 따로 시간을 적었으면 묶어 말한 쪽도 각자의 시간.
+    expect(examMinutesInMessage('정처기 2시간, SQLD랑 ADsP는 1시간씩'), {
+      'IPE': 120,
+      'SQLD': 60,
+      'ADSP': 60,
+    });
+    // 이름과 시간 사이 말이 길어도 같은 절이면 읽는다.
+    expect(examMinutesInMessage('정처기는 평일 저녁에 퇴근하고 하루 2시간, SQLD는 1시간'), {
+      'IPE': 120,
+      'SQLD': 60,
+    });
+    // 앞에서 이름만 나열한 것은 뒤의 시간과 묶지 않는다.
+    expect(
+      examMinutesInMessage('정처기 필기랑 SQLD 같이 계획 짜줘. 정처기 2시간 SQLD 1시간'),
+      {'IPE': 120, 'SQLD': 60},
+    );
+
+    final catalog = Catalog.from({
+      'goals': [
+        for (final name in ['SQLD', '정보처리기사 필기 (2027)', 'ADsP'])
+          {
+            'key': name,
+            'certificationName': name,
+            'suggestedExamDate': '2027-03-01',
+            'subjects': [
+              {'name': '$name 과목', 'baseHours': 10.0},
+            ],
+          },
+      ],
+      'notices': [],
+    });
+    final today = DateTime(2026, 11, 17);
+    final inputs = ChatPlanInputs();
+    final all = ChatPlanSetup.from(
+      '정처기랑 SQLD랑 ADsP 각각 하루 1시간씩 계획',
+      catalog,
+      inputs,
+      today,
+    );
+    expect(all.splitFromQuestion, isTrue);
+    expect(all.dailyTotal(inputs), 180);
+    expect(all.confirmed, contains(ChatPlanSetup.stepTime));
+
+    // 셋 중 둘만 시간을 적으면 적은 것은 넣어 두고, 빠진 자격증은 카드에서 묻는다.
+    final part = ChatPlanSetup.from(
+      '정처기 하루 2시간, SQLD 1시간, 그리고 ADsP 계획',
+      catalog,
+      inputs,
+      today,
+    );
+    expect(part.splitFromQuestion, isTrue);
+    expect(inputs.split, isTrue);
+    expect(inputs.examMinutes, {'정보처리기사 필기 (2027)': 120, 'SQLD': 60});
+    expect(part.dailyTotal(inputs), isNull);
+    expect(part.current(inputs), ChatPlanSetup.stepTime);
+  });
+
   test('ADsP·컴활 1급과 필기·실기 구분을 알아듣고 3개까지만 묶는다', () {
     String read(String message) => certsInMessage(message)
         .map(
