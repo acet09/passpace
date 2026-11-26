@@ -9,6 +9,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Isolation;
 
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -36,7 +37,7 @@ public class ChatPlanStore {
     public static final String PLAN_TYPE = "CHATBOT";
 
     /** 마이페이지 표시용 할 일 한 줄 */
-    public record Task(LocalDate date, String certificationName, String subjectName, int minutes) {
+    public record Task(LocalDate date, String certificationName, String subjectName, int minutes, long taskId) {
     }
 
     /** 저장된 챗봇 계획 */
@@ -79,6 +80,7 @@ public class ChatPlanStore {
     public long save(long userId, PlanResponse plan, Map<String, Long> subjectIds, boolean activate,
                      Map<Integer, Integer> dayCaps) {
         if (plan.days().isEmpty()) throw new IllegalArgumentException("저장할 날짜별 계획이 없습니다.");
+        lockOwner(userId);
         if (activate)
             jdbc.update("UPDATE STUDY_PLANS SET status = 'REPLACED' WHERE user_id = ? AND plan_type = ? AND status = 'ACTIVE'",
                     userId, PLAN_TYPE);
@@ -136,11 +138,13 @@ public class ChatPlanStore {
     }
 
     /** 지금 쓰는 챗봇 계획 (없으면 null) */
+    @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ)
     public SavedPlan findActive(long userId) {
         return load(userId, "status = 'ACTIVE'");
     }
 
     /** 목록의 계획 한 건을 할 일까지 (없거나 남의 계획이면 null) */
+    @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ)
     public SavedPlan find(long userId, long planId) {
         return load(userId, "status IN ('ACTIVE', 'REPLACED') AND plan_id = " + planId);
     }
@@ -164,6 +168,7 @@ public class ChatPlanStore {
     /** 목록의 계획을 지금 쓰는 계획으로 바꾼다. 쓰던 계획은 목록에 보관된다. */
     @Transactional
     public void activate(long userId, long planId) {
+        lockOwner(userId);
         requireOwned(userId, planId);
         jdbc.update("UPDATE STUDY_PLANS SET status = 'REPLACED' WHERE user_id = ? AND plan_type = ? AND status = 'ACTIVE'",
                 userId, PLAN_TYPE);
@@ -177,6 +182,7 @@ public class ChatPlanStore {
      */
     @Transactional
     public void delete(long userId, long planId) {
+        lockOwner(userId);
         requireOwned(userId, planId);
         Integer linked = jdbc.queryForObject("""
                 SELECT COUNT(*) FROM STUDY_SESSIONS s
@@ -273,6 +279,10 @@ public class ChatPlanStore {
                 accepted ? java.sql.Timestamp.valueOf(java.time.LocalDateTime.now()) : null);
     }
 
+    private void lockOwner(long userId) {
+        jdbc.queryForObject("SELECT user_id FROM USERS WHERE user_id = ? FOR UPDATE", Long.class, userId);
+    }
+
     private void requireOwned(long userId, long planId) {
         Integer found = jdbc.queryForObject("""
                 SELECT COUNT(*) FROM STUDY_PLANS
@@ -294,10 +304,10 @@ public class ChatPlanStore {
         if (plans.isEmpty()) return null;
         SavedPlan p = plans.get(0);
         List<Task> tasks = jdbc.query("""
-                SELECT scheduled_date, study_category, subject_name, estimated_minutes FROM STUDY_PLAN_DETAILS
+                SELECT scheduled_date, study_category, subject_name, estimated_minutes, task_id FROM STUDY_PLAN_DETAILS
                 WHERE plan_id = ? AND user_id = ? ORDER BY scheduled_date, task_id
                 """, (rs, n) -> new Task(rs.getObject("scheduled_date", LocalDate.class), rs.getString("study_category"),
-                rs.getString("subject_name"), rs.getInt("estimated_minutes")), p.planId(), userId);
+                rs.getString("subject_name"), rs.getInt("estimated_minutes"), rs.getLong("task_id")), p.planId(), userId);
         return new SavedPlan(p.planId(), p.planName(), p.versionNo(), p.startDate(), p.endDate(), tasks);
     }
 }

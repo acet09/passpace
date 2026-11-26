@@ -1,0 +1,125 @@
+{
+  "info": {
+    "name": "PASS PACE SAMPLE 전체 학습계획 수정",
+    "description": "격리된 SAMPLE DB용. accessToken, planId, baseUrl, wholePlanRequest JSON을 설정한다.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:0"
+    }
+  ],
+  "item": [
+    {
+      "name": "SAMPLE 전체 수정 입력 조회",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/chat/planner/review-based/plans/{{planId}}/schedule"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"editor read\", () => pm.response.to.have.status(200));",
+              "pm.collectionVariables.set(\"wholePlanVersion\", pm.response.json().data.planVersion);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SAMPLE 전체 수정 미리보기",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/chat/planner/review-based/plans/{{planId}}/schedule/preview",
+        "body": {
+          "mode": "raw",
+          "raw": "{{wholePlanPreviewBody}}"
+        }
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const edit = JSON.parse(pm.environment.get(\"wholePlanRequest\"));",
+              "edit.expectedPlanVersion = Number(pm.collectionVariables.get(\"wholePlanVersion\"));",
+              "pm.collectionVariables.set(\"wholePlanPreviewBody\", JSON.stringify(edit));"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"preview with changes\", () => { pm.response.to.have.status(200); pm.expect(pm.response.json().data.changed).to.be.true; });",
+              "const edit = JSON.parse(pm.collectionVariables.get(\"wholePlanPreviewBody\"));",
+              "edit.approval = pm.response.json().data.approval;",
+              "pm.collectionVariables.set(\"wholePlanApprovedBody\", JSON.stringify(edit));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "SAMPLE 같은 계획에 전체 수정 저장",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/chat/planner/review-based/plans/{{planId}}/schedule",
+        "body": {
+          "mode": "raw",
+          "raw": "{{wholePlanApprovedBody}}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"same plan and next version\", () => { pm.response.to.have.status(200);",
+              "const data = pm.response.json().data;",
+              "pm.expect(String(data.planId)).to.eql(String(pm.variables.get(\"planId\")));",
+              "pm.expect(data.planVersion).to.eql(Number(pm.collectionVariables.get(\"wholePlanVersion\")) + 1); });"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
