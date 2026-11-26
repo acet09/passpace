@@ -47,7 +47,10 @@ public class SourceRegistry {
             "SQLD 합격 후기", "SQLD 독학 합격", "SQLD 벼락치기",
             // [11-14] 컴활 1급·ADsP
             "컴활 1급 합격 후기", "컴활 1급 필기 합격", "컴활 1급 실기 합격", "컴퓨터활용능력 1급 독학",
-            "ADsP 합격 후기", "ADsP 독학 합격", "ADsP 비전공 합격");
+            "ADsP 합격 후기", "ADsP 독학 합격", "ADsP 비전공 합격",
+            // [11-26] 산업안전기사·컴활 2급
+            "산업안전기사 합격 후기", "산업안전기사 필기 합격", "산업안전기사 실기 합격", "산안기 독학 합격",
+            "컴활 2급 합격 후기", "컴활 2급 필기 합격", "컴활 2급 실기 합격", "컴퓨터활용능력 2급 독학");
 
     /** 기본 velog 검색어 (검색어 1개 = 최근 글 약 20개). 연도·회차·필기/실기·전공·공부 방식 조합 */
     static final List<String> DEFAULT_VELOG_KEYWORDS = List.of(
@@ -60,7 +63,10 @@ public class SourceRegistry {
             "SQLD 벼락치기", "SQLD 2025", "SQLD 2026", "SQL 개발자 후기",
             // [11-14] 컴활 1급·ADsP
             "컴활 1급 합격", "컴활 1급 실기 후기", "컴활 1급 필기 후기", "컴퓨터활용능력 1급",
-            "ADsP 합격", "ADsP 후기", "ADsP 독학", "ADsP 2026", "데이터분석 준전문가");
+            "ADsP 합격", "ADsP 후기", "ADsP 독학", "ADsP 2026", "데이터분석 준전문가",
+            // [11-26] 산업안전기사·컴활 2급
+            "산업안전기사 합격", "산업안전기사 필기 후기", "산업안전기사 실기 후기", "산안기 합격",
+            "컴활 2급 합격", "컴활 2급 필기 후기", "컴활 2급 실기 후기", "컴퓨터활용능력 2급");
 
     /** [11-14] 이번에 새로 넣은 기본 검색어 (이미 파일이 있는 PC 에도 서버 시작 시 한 번만 추가) */
     static final List<String> NEW_VELOG_KEYWORDS_2026_11 = List.of(
@@ -71,6 +77,30 @@ public class SourceRegistry {
             "ADsP 합격 후기", "ADsP 독학 합격", "ADsP 비전공 합격");
     /** 한 번 적용 표시 파일: 있으면 위 새 기본값을 다시 넣지 않는다 (관리자가 지운 검색어가 되살아나지 않게) */
     static final String DEFAULTS_DONE_FILE = ".defaults-2026-11.done";
+
+    /** [11-26] 산업안전기사·컴활 2급 기본 검색어 (이미 파일이 있는 PC 에도 서버 시작 시 한 번만 추가) */
+    static final List<String> NEW_VELOG_KEYWORDS_2026_11B = List.of(
+            "산업안전기사 합격", "산업안전기사 필기 후기", "산업안전기사 실기 후기", "산안기 합격",
+            "컴활 2급 합격", "컴활 2급 필기 후기", "컴활 2급 실기 후기", "컴퓨터활용능력 2급");
+    static final List<String> NEW_TISTORY_KEYWORDS_2026_11B = List.of(
+            "산업안전기사 합격 후기", "산업안전기사 필기 합격", "산업안전기사 실기 합격", "산안기 독학 합격",
+            "컴활 2급 합격 후기", "컴활 2급 필기 합격", "컴활 2급 실기 합격", "컴퓨터활용능력 2급 독학");
+    static final List<String> NEW_NAVER_KEYWORDS_2026_11B = List.of(
+            "산업안전기사 합격 후기", "산업안전기사 공부시간", "산업안전기사 비전공 합격",
+            "컴활 2급 합격 후기", "컴활 2급 공부시간", "컴활 2급 독학 합격");
+    static final String DEFAULTS_DONE_FILE_B = ".defaults-2026-11b.done";
+
+    /** [11-26] 빅분기·전산회계 1·2급 기본 검색어 (기존 PC 에 한 번만 추가, 표시 파일 .defaults-2026-11c.done) */
+    static final List<String> NEW_VELOG_KEYWORDS_2026_11C = List.of(
+            "빅데이터분석기사 합격", "빅데이터분석기사 필기 후기", "빅데이터분석기사 실기 후기", "빅분기 합격",
+            "전산회계 1급 합격", "전산회계 2급 합격", "전산회계 1급 후기", "전산회계 2급 후기");
+    static final List<String> NEW_TISTORY_KEYWORDS_2026_11C = List.of(
+            "빅데이터분석기사 합격 후기", "빅분기 필기 합격", "빅분기 실기 합격",
+            "전산회계 1급 합격 후기", "전산회계 2급 합격 후기", "전산회계 독학 합격");
+    static final List<String> NEW_NAVER_KEYWORDS_2026_11C = List.of(
+            "빅데이터분석기사 합격 후기", "빅분기 공부시간", "빅분기 실기 합격",
+            "전산회계 1급 합격 후기", "전산회계 2급 합격 후기", "전산회계 공부시간");
+    static final String DEFAULTS_DONE_FILE_C = ".defaults-2026-11c.done";
 
     // ---------------- [11-14] 네이버 검색 API 검색어 ----------------
     static final String NAVER_KEYWORD_FILE = "naver_keywords.txt";
@@ -151,6 +181,38 @@ public class SourceRegistry {
         naverKeywordFile = dir.resolve(NAVER_KEYWORD_FILE);
         if (!Files.exists(naverKeywordFile)) copyDefault("collect/" + NAVER_KEYWORD_FILE, naverKeywordFile);
         read(naverKeywordFile, naverKeywordHeader, naverKeywords);
+        applyNewDefaultsOnceB(dir);
+        applyNewDefaultsOnceC(dir);
+    }
+
+    /** [11-26] 빅분기·전산회계 검색어를 velog·티스토리·네이버 파일에 없는 것만 한 번 추가 (처음 설치 PC 에도 적용) */
+    private void applyNewDefaultsOnceC(Path dir) throws IOException {
+        Path done = dir.resolve(DEFAULTS_DONE_FILE_C);
+        if (Files.exists(done)) return;
+        boolean v = false, t = false, n = false;
+        for (String k : NEW_VELOG_KEYWORDS_2026_11C) v |= listings.add(VELOG_SEARCH + k);
+        for (String k : NEW_TISTORY_KEYWORDS_2026_11C) t |= tistoryKeywords.add(k);
+        for (String k : NEW_NAVER_KEYWORDS_2026_11C) n |= naverKeywords.add(k);
+        if (v) save(listingFile, listingHeader, listings);
+        if (t) save(tistoryKeywordFile, tistoryKeywordHeader, tistoryKeywords);
+        if (n) save(naverKeywordFile, naverKeywordHeader, naverKeywords);
+        Files.writeString(done, "# 2026-11-26 기본 검색어(빅분기·전산회계)를 한 번 추가함. 지우면 서버 시작 시 다시 추가\n",
+                StandardCharsets.UTF_8);
+    }
+
+    /** [11-26] 산업안전기사·컴활 2급 검색어를 velog·티스토리·네이버 파일에 없는 것만 한 번 추가 (표시 파일 .defaults-2026-11b.done) */
+    private void applyNewDefaultsOnceB(Path dir) throws IOException {
+        Path done = dir.resolve(DEFAULTS_DONE_FILE_B);
+        if (Files.exists(done)) return;
+        boolean v = false, t = false, n = false;
+        for (String k : NEW_VELOG_KEYWORDS_2026_11B) v |= listings.add(VELOG_SEARCH + k);
+        for (String k : NEW_TISTORY_KEYWORDS_2026_11B) t |= tistoryKeywords.add(k);
+        for (String k : NEW_NAVER_KEYWORDS_2026_11B) n |= naverKeywords.add(k);
+        if (v) save(listingFile, listingHeader, listings);
+        if (t) save(tistoryKeywordFile, tistoryKeywordHeader, tistoryKeywords);
+        if (n) save(naverKeywordFile, naverKeywordHeader, naverKeywords);
+        Files.writeString(done, "# 2026-11-26 기본 검색어(산업안전기사·컴활 2급)를 한 번 추가함. 지우면 서버 시작 시 다시 추가\n",
+                StandardCharsets.UTF_8);
     }
 
     public synchronized List<String> naverKeywords() {
